@@ -1,17 +1,50 @@
-# PickUs
-## Description
+# Welcome to your Expo app 👋
 
-## Jira
-Link your development information to Jira work items
-To link branches, commits, and pull requests to Jira, your team must include Jira keys in their development actions.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Find the key for the Jira work item you want to link to, for example “JRA-123”. You can find the key on the board, keys appear at the bottom of a card.
+## Get started
 
-**Use cases:**
-1) Check out a new branch in your repo, using the key in the branch name. For example, git checkout -b JRA-123-<branch-name>.
+1. Install dependencies
 
-2) When committing changes to your branch, use the key in your commit message to link those commits to the development panel in your Jira work item. For example, git commit -m "JRA-123 <commit-desc>".
+   ```bash
+   npm install
+   ```
 
-3) When you create a pull request, use the key in the pull request title.
+2. Start the app
 
-After you push your branch, you’ll see development information in your Jira work item. 
+   ```bash
+   npx expo start
+   ```
+
+In the output, you'll find options to open the app in a
+
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
