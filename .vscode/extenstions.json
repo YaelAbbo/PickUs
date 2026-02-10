@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "aaron-bond.better-comments",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "cardinal90.multi-cursor-case-preserve",
+    "codeandstuff.package-json-upgrade",
+    "yoavbls.pretty-ts-errors",
+    "helixquar.randomeverything",
+    "humao.rest-client",
+    "meganrogge.template-string-converter",
+    "sasaa"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "pickus",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"cd ./backend && npm i && npm run start:dev\" \"cd ./frontend && npm i && npm run start\"",
+    "build": "concurrently \"cd ./backend && npm run build\" \"cd ./frontend && npm run build\"",
+    "format": "concurrently \"cd ./backend && npm run format\" \"cd ./frontend && npm run format\"",
+    "lint": "concurrently \"cd ./backend && npm run lint\" \"cd ./frontend && npm run lint\"",
+    "prepare": "npx husky"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "concurrently": "^9.2.1",
+    "react-hook-form": "^7.71.1",
+    "usehooks-ts": "^3.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "backend/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "bash -c 'pushd backend && npm run format && git add . && npm run lint && git add . && popd'"
+    ],
+    "frontend/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "bash -c 'pushd frontend && npm run format && git add . && npm run lint && git add . && popd'"
+    ],
+    "*.{js,json,css,scss,md}": [
+      "prettier --write",
+      "git add .",
+      "eslint --fix",
+      "git add ."
+    ]
+  }
+}

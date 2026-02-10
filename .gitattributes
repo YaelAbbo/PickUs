@@ -1,0 +1,12 @@
+# Normalize all text files to LF in repo
+* text=auto
+
+# Ensure TypeScript files always LF
+*.ts text eol=lf
+*.tsx text eol=lf
+
+# JSON/YAML/Markdown files
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
