@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "authors": [
+    "Natan Sinai",
+    "Shira Magrafta",
+    "Yael Abbo",
+    "Yishai Chen"
+  ],
+  "license": "MIT",
   "scripts": {
     "dev": "concurrently \"cd ./backend && npm i && npm run start:dev\" \"cd ./frontend && npm i && npm run start\"",
     "build": "concurrently \"cd ./backend && npm run build\" \"cd ./frontend && npm run build\"",
