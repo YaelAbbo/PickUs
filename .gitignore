@@ -121,7 +121,8 @@ dist
 
 # TernJS port file
 .tern-port
-
+# Include only custom code snippets under .vscode, the rest should be gitignored
+!.vscode/index.code-snippets
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
