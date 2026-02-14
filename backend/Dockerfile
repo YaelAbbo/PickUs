@@ -1,25 +1,22 @@
 FROM node:22-slim AS builder
 WORKDIR /app
-ENV NODE_ENV=development
 
-# Install full dependencies (including devDeps needed for build)
+# install all deps (including dev) for build
 COPY package*.json ./
-RUN npm ci --silent
+RUN npm install
 
-# Copy sources and build
+# copy source and build
 COPY . .
 RUN npm run build
 
 FROM node:22-slim AS runner
 WORKDIR /app
-ENV NODE_ENV=production
 
-# Install only production dependencies
+# install only production deps
 COPY package*.json ./
-RUN npm install --omit=dev --no-audit --no-fund --silent
+RUN npm install --omit=dev
 
-# Copy built app
+# copy built output from builder
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 3000
 CMD ["node", "dist/main"]
