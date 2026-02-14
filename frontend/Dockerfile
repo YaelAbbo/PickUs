@@ -9,9 +9,9 @@ RUN npm install
 
 COPY . .
 
-# Expo web defaults to port 19006
-EXPOSE 19006
+# Expo Metro and devtools ports
+EXPOSE 19000 19001 19002 19006
 
-# Start Expo web on LAN so devices on the same network can connect.
-# The `--tunnel` flag can be added in environments where LAN is blocked.
-CMD ["npx", "expo", "start", "--web", "--host", "lan"]
+# Start the Expo Metro dev server using Tunnel by default so devices can connect
+# even when LAN is blocked or networks isolate clients.
+CMD ["npx", "expo", "start", "--tunnel"]
