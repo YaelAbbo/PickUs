@@ -1,4 +1,4 @@
-# PickUs Project
+# PickUs Project Frontend
 
 Created by Natan Sinai, Shira Magrafta, Yael Abbo and Yishai Chen (2026).
 
@@ -15,9 +15,15 @@ npm install
 ## Compile and run the project
 
 ```bash
-# Development
-npm run dev
+# Global development
+npm run start
 
-# Production mode
-TODO
+# Web development
+npm run web
+
+# IOS development
+npm run ios
+
+# Android development
+npm run android
 ```

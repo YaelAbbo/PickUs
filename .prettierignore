@@ -1,0 +1,20 @@
+# Ignore artifacts
+build
+dist
+coverage
+*.min.js
+*.min.css
+
+# Ignore dependency directories (node_modules is ignored by default, but doesn't hurt to be explicit)
+node_modules
+
+# Ignore lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore logs and temporary files
+/logs
+.temp
+.cache
+.DS_Store

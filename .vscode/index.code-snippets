@@ -1,0 +1,30 @@
+{
+  "Functional Component Template": {
+    "prefix": "fc",
+    "body": [
+      "import type { FC } from 'react';",
+      "",
+      "export type ${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}Props = {};",
+      "",
+      "export const ${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}: FC<${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}Props> = () => {",
+      "  return <div>${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}</div>;",
+      "};",
+      "",
+    ],
+    "description": "Creates a functional component with the file name",
+  },
+  "Hook Template": {
+    "prefix": "hook",
+    "body": [
+      "export type ${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}Args = {};",
+      "",
+      "export type ${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}Content = ReturnType<typeof ${TM_FILENAME_BASE}>;",
+      "",
+      "export const ${TM_FILENAME_BASE} = ({}: ${TM_FILENAME_BASE/(^.)(.*)/${1:/upcase}${2}/}Args) => {",
+      "  return;",
+      "};",
+      "",
+    ],
+    "description": "Creates a hook with the file name",
+  },
+}

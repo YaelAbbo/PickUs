@@ -1,4 +1,4 @@
-# PickUs Project
+# PickUs Project Backend
 
 Created by Natan Sinai, Shira Magrafta, Yael Abbo and Yishai Chen (2026).
 
@@ -16,8 +16,24 @@ npm install
 
 ```bash
 # Development
-npm run dev
+npm run start
+
+# Watch mode
+npm run start:dev
 
 # Production mode
-TODO
+npm run start:prod
+```
+
+## Run tests
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```

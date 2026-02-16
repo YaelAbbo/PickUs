@@ -1,0 +1,90 @@
+{
+  "cSpell.words": [
+    "Abbo",
+    "DTOs",
+    "Heebo",
+    "Magrafta",
+    "pickus",
+    "Shira",
+    "signup",
+    "usehooks",
+    "VITE",
+    "worklets",
+    "Yael",
+    "Yishai",
+    "סגירה"
+  ],
+  "workbench.startupEditor": "none",
+  "files.autoSave": "onWindowChange",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "workbench.iconTheme": "vscode-icons",
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false,
+  "editor.tabSize": 2,
+  "git.autofetch": true,
+  "editor.linkedEditing": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "gitlens.views.remotes.branches.layout": "list",
+  "workbench.preferredDarkColorTheme": "One Dark Pro Mix",
+  "editor.fontLigatures": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "html.format.contentUnformatted": "",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "html.format.extraLiners": "",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit",
+    "source.fixAll.eslint": "never"
+  },
+  "prettier.requireConfig": true,
+  "editor.accessibilitySupport": "off",
+  "workbench.productIconTheme": "fluent-icons",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "errorLens.lintFilePaths": {
+    "eslint": ["**/*.eslintrc.{js,cjs,yaml,yml,json}", "**/*package.json"],
+    "Stylelint": [
+      "**/*.stylelintrc",
+      "**/*.stylelintrc.{cjs,js,json,yaml,yml}",
+      "**/*stylelint.config.{cjs,js}",
+      "**/*package.json"
+    ]
+  },
+  "git.inputValidationSubjectLength": 100,
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.prisma": "prisma",
+    ".env": "env"
+  },
+  "terminal.integrated.env.linux": {},
+  "redhat.telemetry.enabled": true,
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "vsicons.dontShowNewVersionMessage": true,
+  "editor.smoothScrolling": true,
+  "editor.cursorBlinking": "smooth",
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  "workbench.editor.empty.hint": "hidden",
+  "files.insertFinalNewline": true,
+  "terminal.integrated.fontSize": 18,
+  "gitlens.home.preview.enabled": false,
+  "files.eol": "\n",
+  "gitlab.duoCodeSuggestions.enabled": false,
+  "terminal.integrated.fontLigatures.enabled": true,
+  "terminal.integrated.smoothScrolling": true,
+  "terminal.integrated.suggest.enabled": true,
+  "terminal.integrated.stickyScroll.enabled": false,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "rest-client.rememberCookiesForSubsequentRequests": true
+}
