@@ -20,3 +20,6 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 
 CMD ["node", "dist/main"]
+
+# To build, run locally the following command: docker buildx build --load -t pickus-backend:latest .
+# To run the container locally, use: docker run -it --rm -p 3000:3000 --env-file .env --name pickus-backend pickus-backend:latest 
