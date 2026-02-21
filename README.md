@@ -21,3 +21,7 @@ npm run dev
 # Production mode
 TODO
 ```
+
+## Database
+
+The DB and the PgAdmin both run as containers. For more information about migrating with typeorm and connecting to the PgAdmin **[Click here](./backend/src/database/Migrations.md)**.
