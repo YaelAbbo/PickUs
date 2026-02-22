@@ -9,9 +9,6 @@ RUN npm install
 
 COPY . .
 
-# Expo Metro and devtools ports
-EXPOSE 19000 19001 19002 19006
+EXPOSE 8081
 
-# Start the Expo Metro dev server using Tunnel by default so devices can connect
-# even when LAN is blocked or networks isolate clients.
-CMD ["npx", "expo", "start", "--tunnel"]
+CMD ["npx", "expo", "start"]
