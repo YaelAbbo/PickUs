@@ -45,6 +45,13 @@ EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
 API_URL=[http://192.168.1.](http://192.168.1.)X:3000
 ```
 
+### Pay attention!
+
+Ensure these lines are present under the frontend service in your docker-compose.yml if you want a QR code to appear:
+
+    stdin_open: true
+    tty: true
+
 ### 2: Build and Run
 
 ```bash
