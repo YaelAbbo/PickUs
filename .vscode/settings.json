@@ -77,7 +77,6 @@
   "typescript.preferences.quoteStyle": "single",
   "workbench.editor.empty.hint": "hidden",
   "files.insertFinalNewline": true,
-  "terminal.integrated.fontSize": 18,
   "gitlens.home.preview.enabled": false,
   "files.eol": "\n",
   "gitlab.duoCodeSuggestions.enabled": false,
