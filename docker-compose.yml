@@ -1,0 +1,25 @@
+# This is for local development, you can use this docker-compose file to run both the backend and frontend services together.
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+    env_file: .env
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - '8081:8081'
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+    env_file: .env
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
