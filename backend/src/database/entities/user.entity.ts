@@ -11,7 +11,7 @@ export enum UserRole {
 }
 
 @Entity('user')
-@Index('user_current_location_index', ['current_location'], { spatial: true })
+@Index('user_current_location_index', ['currentLocation'], { spatial: true })
 export class User extends BaseEntity {
   @Column()
   first_name: string;
@@ -35,16 +35,17 @@ export class User extends BaseEntity {
     spatialFeatureType: 'Point',
     srid: 4326,
     nullable: true,
+    name: 'current_location',
   })
-  current_location: Point;
+  currentLocation: Point;
 
-  @ManyToOne(() => Organization, { nullable: false })
+  @ManyToOne(() => Organization)
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'user_org_id_fkey' })
   organization: Organization;
 
-  @Column({ default: true })
-  is_temp_password: boolean;
+  @Column({ default: true, name: 'is_temp_password' })
+  isTempPassword: boolean;
 
-  @Column({ nullable: true })
-  profile_image_url: string;
+  @Column({ nullable: true, name: 'profile_image_url' })
+  profileImageUrl: string;
 }

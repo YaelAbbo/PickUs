@@ -7,13 +7,13 @@ export class Organization extends BaseEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column({ nullable: true })
-  image_url: string;
+  @Column({ nullable: true, name: 'image_url' })
+  imageUrl: string;
 
   @OneToOne(() => User, { nullable: true })
   @JoinColumn({
     name: 'admin_id',
     foreignKeyConstraintName: 'organization_admin_id_fkey',
   })
-  admin: User;
+  admin: User | null;
 }

@@ -7,7 +7,7 @@ import { Ride } from './ride.entity';
 @Index('ride_stop_location_index', ['location'], { spatial: true })
 @Unique('ride_stop_ride_id_location_key', ['location', 'ride'])
 export class RideStop extends BaseEntity {
-  @ManyToOne(() => Ride, (ride) => ride.stops, { nullable: false })
+  @ManyToOne(() => Ride, (ride) => ride.stops)
   @JoinColumn({
     name: 'ride_id',
     foreignKeyConstraintName: 'ride_stop_ride_id_fkey',
@@ -17,9 +17,9 @@ export class RideStop extends BaseEntity {
   @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326 })
   location: Point;
 
-  @Column({ type: 'timestamptz' })
-  estimated_arrival_at: Date;
+  @Column({ type: 'timestamptz', name: 'estimated_arrival_at' })
+  estimatedArrivalAt: Date;
 
-  @Column()
-  order_index: number;
+  @Column({ name: 'order_index' })
+  orderIndex: number;
 }

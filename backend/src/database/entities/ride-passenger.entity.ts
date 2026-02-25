@@ -7,24 +7,24 @@ import { User } from './user.entity';
 @Entity('ride_passenger')
 @Unique('ride_passenger_user_id_ride_id_key', ['user', 'ride'])
 export class RidePassenger extends BaseEntity {
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User)
   @JoinColumn({
     name: 'user_id',
     foreignKeyConstraintName: 'ride_passenger_user_id_fkey',
   })
   user: User;
 
-  @ManyToOne(() => Ride, { nullable: false })
+  @ManyToOne(() => Ride)
   @JoinColumn({
     name: 'ride_id',
     foreignKeyConstraintName: 'ride_passenger_ride_id_fkey',
   })
   ride: Ride;
 
-  @ManyToOne(() => RideStop, { nullable: false })
+  @ManyToOne(() => RideStop)
   @JoinColumn({
     name: 'ride_stop_id',
     foreignKeyConstraintName: 'ride_passenger_ride_stop_id_fkey',
   })
-  ride_stop: RideStop;
+  rideStop: RideStop;
 }

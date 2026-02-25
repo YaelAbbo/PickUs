@@ -22,52 +22,64 @@ export enum RideStatus {
 }
 
 @Entity('ride')
-@Index('ride_current_location_index', ['current_location'], { spatial: true })
-@Unique('ride_driver_id_starts_at_key', ['driver', 'starts_at']) // Match SQL name
-@Check('ride_check', '"estimated_ends_at" > "starts_at"')
-@Check('ride_max_seats_amount_check', '"max_seats_amount" > 0')
+@Index('ride_current_location_index', ['currentLocation'], { spatial: true })
+@Unique('ride_driver_id_starts_at_key', ['driver', 'startsAt'])
+@Check('ride_check', '"estimatedEndsAt" > "startsAt"')
+@Check('ride_max_seats_amount_check', '"maxSeatsAmount" > 0')
 export class Ride extends BaseEntity {
-  @ManyToOne(() => Organization, { nullable: false })
+  @ManyToOne(() => Organization)
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'ride_org_id_fkey' })
   organization: Organization;
 
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User)
   @JoinColumn({
     name: 'driver_id',
     foreignKeyConstraintName: 'ride_driver_id_fkey',
   })
   driver: User;
 
-  @Column({ type: 'timestamptz' })
-  starts_at: Date;
+  @Column({ type: 'timestamptz', name: 'starts_at' })
+  startsAt: Date;
 
-  @Column({ type: 'timestamptz' })
-  estimated_ends_at: Date;
+  @Column({ type: 'timestamptz', name: 'estimated_ends_at' })
+  estimatedEndsAt: Date;
 
-  @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326 })
-  start_location: Point;
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    name: 'start_location',
+  })
+  startLocation: Point;
 
-  @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326 })
-  end_location: Point;
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    name: 'end_location',
+  })
+  endLocation: Point;
 
   @Column({
     type: 'geography',
     spatialFeatureType: 'Point',
     srid: 4326,
     nullable: true,
+    name: 'current_location',
   })
-  current_location: Point;
+  currentLocation: Point;
 
-  @Column()
-  max_seats_amount: number;
+  @Column({ name: 'max_seats_amount' })
+  maxSeatsAmount: number;
 
   @Column({
     type: 'enum',
     enum: RideStatus,
     enumName: 'ride_status',
     default: RideStatus.PENDING,
+    name: 'ride_status',
   })
-  ride_status: RideStatus;
+  rideStatus: RideStatus;
 
   @OneToMany(() => RideStop, (stop) => stop.ride)
   stops: RideStop[];
