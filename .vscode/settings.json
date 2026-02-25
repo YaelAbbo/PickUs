@@ -15,7 +15,7 @@
     "סגירה"
   ],
   "workbench.startupEditor": "none",
-  "files.autoSave": "onWindowChange",
+  "files.autoSave": "onFocusChange",
   "liveServer.settings.donotShowInfoMsg": true,
   "workbench.iconTheme": "vscode-icons",
   "editor.formatOnSave": true,

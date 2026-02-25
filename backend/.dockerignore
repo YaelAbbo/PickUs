@@ -1,0 +1,26 @@
+# Here we list files and directories that should be ignored by Docker when building the image.
+
+# Node and build output
+node_modules
+dist
+
+# Logs
+npm-debug.log
+*.log
+
+# Local env and editor files
+.env
+.env.local
+.env.*.local
+.vscode
+
+# Git
+.git
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Misc
+coverage
+test
