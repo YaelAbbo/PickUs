@@ -82,5 +82,5 @@ export class Ride extends BaseEntity {
   rideStatus: RideStatus;
 
   @OneToMany(() => RideStop, (stop) => stop.ride)
-  stops: RideStop[];
+  rideStops: RideStop[];
 }
