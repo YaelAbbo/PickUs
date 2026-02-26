@@ -21,6 +21,10 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "strictPropertyInitialization": false
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
   }
 }

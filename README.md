@@ -24,8 +24,6 @@ npm install
 
 ### 1: Environment Setup
 
-Create a `.env` file in the root of your project directory (the same folder as your `docker-compose.yml`).
-
 #### Find Your Local IP Address
 
 - **Windows:** Run `ipconfig` in CMD (look for "IPv4 Address").
@@ -33,17 +31,8 @@ Create a `.env` file in the root of your project directory (the same folder as y
 
 #### Configure the `.env` File
 
-```env
-# Backend Configuration
-PORT=3000
-NODE_ENV=production
-
-# Frontend Configuration
-# Replace 192.168.1.X with your computer's actual local IP address
-REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.X
-EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-API_URL=[http://192.168.1.](http://192.168.1.)X:3000
-```
+Create a `.env` file in the root of your project directory (the same folder as your `docker-compose.yml`).
+Copy the values from the [.env.example](.env.example) file.
 
 ### Pay attention!
 
@@ -71,3 +60,7 @@ A large QR code should appear in your terminal output for you to scan.
 - **iOS:** Use the native Apple Camera app to scan the QR code, which will prompt you to open Expo Go.
 
 2. The app should now launch on your screen
+
+## Database
+
+The DB and the PgAdmin both run as containers. For more information about migrating with typeorm and connecting to the PgAdmin **[Click here](./backend/src/database/Migrations.md)**.

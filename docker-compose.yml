@@ -8,6 +8,9 @@ services:
       - '3000:3000'
     environment:
       - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
     env_file: .env
 
   frontend:
@@ -23,3 +26,36 @@ services:
       - backend
     stdin_open: true
     tty: true
+
+  db:
+    image: timescale/timescaledb-ha:pg17
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d pickus']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/home/postgres/pgdata/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '8080:80'
+    volumes:
+      - ./config/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - db
+
+volumes:
+  db_data:
