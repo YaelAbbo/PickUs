@@ -48,6 +48,6 @@ export class User extends BaseEntity {
   @Column({ nullable: true, name: 'profile_image_url' })
   profileImageUrl: string;
 
-  @Column({ select: false, nullable: true, name: 'hashed_refresh_token' })
+  @Column({ type: 'varchar', select: false, nullable: true, name: 'hashed_refresh_token' })
   hashedRefreshToken: string | null;
 }

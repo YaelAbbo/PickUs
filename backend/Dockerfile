@@ -3,7 +3,7 @@ WORKDIR /app
 
 # install all deps (including dev) for build
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # copy source and build
 COPY . .
@@ -14,7 +14,7 @@ WORKDIR /app
 
 # install only production deps
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --legacy-peer-deps
 
 # copy built output from builder
 COPY --from=builder /app/dist ./dist

@@ -44,6 +44,7 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "is_temp_password" BOOL NOT NULL DEFAULT TRUE,
         "role" "user_role" NOT NULL DEFAULT 'BASIC_USER',
         "profile_image_url" VARCHAR,
+        "hashed_refresh_token" VARCHAR,
         "current_location" GEOGRAPHY(POINT, 4326),
         "is_deleted" BOOL NOT NULL DEFAULT FALSE,
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -168,7 +169,6 @@ export class InitialSchema1710000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "notification_to_user" CASCADE`);
     await queryRunner.query(`DROP TABLE "notification" CASCADE`);
     await queryRunner.query(`DROP TABLE "ride_passenger" CASCADE`);
     await queryRunner.query(`DROP TABLE "ride_stop" CASCADE`);
