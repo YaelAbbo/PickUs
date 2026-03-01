@@ -1,4 +1,3 @@
-import { BaseEntity } from '@/database/entities/base.entity';
 import { Point } from 'geojson';
 import {
   Check,
@@ -10,6 +9,7 @@ import {
   OneToMany,
   Unique,
 } from 'typeorm';
+import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RideStop } from './ride-stop.entity';
 import { User } from './user.entity';
