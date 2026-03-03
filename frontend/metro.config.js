@@ -1,10 +1,7 @@
-import { getDefaultConfig } from 'expo/metro-config';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+/* eslint-disable */
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-export default config;
+module.exports = config;
