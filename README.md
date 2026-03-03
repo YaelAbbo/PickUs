@@ -39,14 +39,28 @@ Your Phone (Expo Go)
 
 ## Local Deployment Guide
 
-### Step 1 — Find Your Local IP Address
+### Step 1 — Install Dependencies
+
+From the project root (first time only):
+
+```bash
+npm install
+```
+
+This installs dependencies for the root, `backend`, and `frontend` workspaces in one shot.
+
+---
+
+### Step 2 — Find Your Local IP Address
 
 You'll need your machine's local IP to let the phone reach the Expo dev server.
 
 - **Windows:** Run `ipconfig` in CMD and look for "IPv4 Address".
 - **Mac/Linux:** Run `ip a` or `ifconfig` in Terminal.
 
-### Step 2 — Configure Environment Files
+---
+
+### Step 3 — Configure Environment Files
 
 #### Root `.env` (same folder as `docker-compose.yml`)
 
@@ -62,8 +76,6 @@ All other values can remain as the defaults from `.env.example`.
 
 #### Frontend `.env` (`/frontend/.env`)
 
-This file is used when the Expo bundler itself needs to know the API URL:
-
 ```env
 EXPO_PUBLIC_API_URL=http://<YOUR_LOCAL_IP>/api
 ```
@@ -72,12 +84,14 @@ EXPO_PUBLIC_API_URL=http://<YOUR_LOCAL_IP>/api
 
 ---
 
-### Step 3 — Start the Docker Stack
-
-Run from the project root (where `docker-compose.yml` lives):
+### Step 4 — Start the Docker Stack
 
 ```bash
-docker compose up --build
+# First run (builds images)
+npm run dev:build
+
+# Subsequent runs
+npm run dev
 ```
 
 This starts:
@@ -89,32 +103,44 @@ This starts:
 | `pickus_backend` | `3000` | NestJS API               |
 | `pickus_gateway` | `80`   | Nginx reverse proxy      |
 
-Wait until the backend healthcheck passes before proceeding — you'll see the backend logs stabilize.
+Wait until the backend healthcheck passes before proceeding.
 
 ---
 
-### Step 4 — Start the Expo Frontend (separate terminal)
+### Step 5 — Start the Expo Frontend (separate terminal)
 
-Open a **new terminal**, navigate to the frontend directory, and start the Expo dev server:
+Open a **new terminal** and run from the project root:
 
 ```bash
-cd frontend
-npm install       # first time only
-npm start         # or: npx expo start
+npm run frontend
 ```
 
-Expo will start a bundler on port `8081`. Nginx (running in Docker) proxies `/` through to this port via `host.docker.internal:8081`, so the gateway and the phone can both reach the dev server.
+Expo will start a bundler on port `8081`. Nginx proxies `/` to this port via `host.docker.internal:8081`, so both the gateway and your phone can reach the dev server.
 
 ---
 
-### Step 5 — Connect Your Device
+### Step 6 — Connect Your Device
 
-Once both the Docker stack and Expo are running, scan the QR code printed in the Expo terminal:
+Scan the QR code printed in the Expo terminal:
 
 - **Android:** Use the **Scan QR Code** button inside the Expo Go app.
 - **iOS:** Use the native **Camera app** to scan — it will prompt you to open Expo Go.
 
 The app should now load on your device. 🎉
+
+---
+
+## Useful Scripts
+
+| Script                 | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `npm run dev`          | Start the Docker stack                     |
+| `npm run dev:build`    | Build and start the Docker stack           |
+| `npm run frontend`     | Start the Expo dev server                  |
+| `npm run down`         | Stop the Docker stack                      |
+| `npm run down:volumes` | Stop the stack and remove all data volumes |
+| `npm run lint`         | Lint both backend and frontend             |
+| `npm run format`       | Format both backend and frontend           |
 
 ---
 
@@ -145,7 +171,10 @@ For information on running TypeORM migrations and connecting to pgAdmin, see the
 → Confirm the Expo dev server is running on port `8081`. Nginx uses `host.docker.internal:8081` to reach the host machine — this is pre-configured via the `extra_hosts` entry in `docker-compose.yml` and works on Docker Desktop (Mac/Windows) and Linux.
 
 **pgAdmin is blank or returns 502**
-→ Wait a few seconds after `docker compose up` for pgAdmin to fully initialize, then refresh.
+→ Wait a few seconds after `npm run dev` for pgAdmin to fully initialize, then refresh.
 
 **Changes to `.env` not picked up**
-→ Restart the stack: `docker compose down && docker compose up --build`.
+→ Restart the stack: `npm run down && npm run dev:build`.
+
+**Want a clean slate (wipe the database)**
+→ Run `npm run down:volumes` — this removes all Docker volumes including the database data.
