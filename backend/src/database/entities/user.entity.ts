@@ -1,8 +1,7 @@
-import { BaseEntity } from '@/database/entities/base.entity';
 import { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
-
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
   HR_MANAGER = 'HR_MANAGER',
@@ -48,4 +47,12 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true, name: 'profile_image_url' })
   profileImageUrl: string;
+
+  @Column({
+    type: 'varchar',
+    select: false,
+    nullable: true,
+    name: 'hashed_refresh_token',
+  })
+  hashedRefreshToken: string | null;
 }

@@ -17,7 +17,7 @@ import { join } from 'path';
         database: configService.get('POSTGRES_DB'),
         entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
         migrations: [join(__dirname, './migrations/*.{ts,js}')],
-        logging: configService.get('NODE_ENV') === 'development',
+        logging: configService.get('DB_LOGGING') === 'true',
         synchronize: false,
         migrationsRun: true,
       }),

@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 import { configDotenv } from 'dotenv';
 import { join } from 'path';
 import { AppModule } from './app.module';
@@ -14,13 +15,15 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.set('trust proxy', 1);
+  app.use(cookieParser());
 
-  const { FRONTEND_BASE_URL, BACKEND_PORT = 3000, BASE_URL } = process.env;
+  const {
+    FRONTEND_BASE_URL = 'http://localhost:8081',
+    BACKEND_PORT = 3000,
+    BASE_URL,
+  } = process.env;
 
-  app.enableCors({
-    origin: [FRONTEND_BASE_URL || 'http://localhost:8081'],
-    credentials: true,
-  });
+  app.enableCors({ origin: [FRONTEND_BASE_URL], credentials: true });
 
   await app.listen(BACKEND_PORT);
 

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 
@@ -14,6 +15,7 @@ import { HealthController } from './health/health.controller';
     }),
     DatabaseModule,
     TerminusModule,
+    AuthModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

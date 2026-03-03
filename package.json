@@ -12,8 +12,12 @@
   "scripts": {
     "dev": "docker-compose up",
     "dev:build": "docker-compose up --build",
+    "prod": "docker-compose -f docker-compose.prod.yml up",
+    "prod:build": "docker-compose -f docker-compose.prod.yml up --build",
     "down": "docker-compose down",
     "down:volumes": "docker-compose down -v",
+    "down:prod": "docker-compose -f docker-compose.prod.yml down",
+    "down:prod:volumes": "docker-compose -f docker-compose.prod.yml down -v",
     "format": "concurrently \"cd ./backend && npm run format\" \"cd ./frontend && npm run format\"",
     "lint": "concurrently \"cd ./backend && npm run lint\" \"cd ./frontend && npm run lint\"",
     "prepare": "npx husky",
