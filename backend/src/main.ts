@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { configDotenv } from 'dotenv';
@@ -7,6 +8,8 @@ import { AppModule } from './app.module';
 configDotenv({ path: join(__dirname, '../../.env') });
 
 async function bootstrap() {
+  const logger = new Logger();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
@@ -21,7 +24,7 @@ async function bootstrap() {
 
   await app.listen(BACKEND_PORT);
 
-  console.info(`🚀 Backend running on ${BASE_URL}/api`);
+  logger.log(`Backend running on ${BASE_URL}/api`);
 }
 
 void bootstrap();
