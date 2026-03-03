@@ -9,15 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
-
-interface AuthConfig {
-  jwtAccessSecret: string;
-  jwtRefreshSecret: string;
-  jwtAccessExpiration: string;
-  jwtRefreshExpiration: string;
-  bcryptSaltRounds: number;
-  refreshTokenCookieKey: string;
-}
+import type { AuthConfig } from './types';
 
 @Injectable()
 export class AuthService {
@@ -71,14 +63,14 @@ export class AuthService {
     };
     const refreshToken = await this.jwtService.signAsync(payload, rtOptions);
 
-    return { access_token: accessToken, refresh_token: refreshToken };
+    return { accessToken, refreshToken };
   }
 
   async login(id: string, password: string) {
-    const user = (await this.usersRepo.findOne({
+    const user = await this.usersRepo.findOne({
       where: { id },
-      select: ['id', 'passwordHash'] as (keyof User)[],
-    })) as Pick<User, 'id' | 'passwordHash'> | null;
+      select: ['id', 'passwordHash'],
+    });
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
@@ -87,7 +79,7 @@ export class AuthService {
 
     const tokens = await this.getTokens(user.id);
     const hashed = await bcrypt.hash(
-      tokens.refresh_token,
+      tokens.refreshToken,
       this.config.bcryptSaltRounds,
     );
     await this.usersRepo.update(user.id, { hashedRefreshToken: hashed });
@@ -113,30 +105,10 @@ export class AuthService {
 
     const tokens = await this.getTokens(user.id);
     const hashed = await bcrypt.hash(
-      tokens.refresh_token,
+      tokens.refreshToken,
       this.config.bcryptSaltRounds,
     );
     await this.usersRepo.update(user.id, { hashedRefreshToken: hashed });
     return tokens;
-  }
-
-  setCookies(res: any, refreshToken: string) {
-    res.cookie(this.config.refreshTokenCookieKey, refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge:
-        this.config.jwtRefreshExpiration === '7d'
-          ? 1000 * 60 * 60 * 24 * 7
-          : undefined,
-    });
-  }
-
-  clearCookies(res: any) {
-    res.clearCookie(this.config.refreshTokenCookieKey, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
   }
 }

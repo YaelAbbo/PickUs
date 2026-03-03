@@ -13,7 +13,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(),
         (req: Request) => {
-          return req?.cookies?.refreshToken || null;
+          return (req?.cookies?.refreshToken || null) as string | null;
         },
       ]),
       ignoreExpiration: false,
@@ -22,7 +22,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     } as StrategyOptionsWithRequest);
   }
 
-  async validate(req: Request, payload: any) {
+  validate(req: Request, payload: { [key: string]: string }) {
     const auth = req.get('authorization') || '';
     const refreshToken = auth.replace('Bearer ', '');
     return { sub: payload.sub, refreshToken: refreshToken, ...payload };

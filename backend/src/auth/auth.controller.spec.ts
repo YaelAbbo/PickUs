@@ -1,11 +1,12 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { DataSource } from 'typeorm';
 import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
-import { AuthService } from './auth.service';
 
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
 
@@ -13,16 +14,15 @@ describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let module: TestingModule;
   let dataSource: DataSource;
-  let authService: AuthService;
   let authController: AuthController;
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [
-        require('@nestjs/config').ConfigModule.forRoot({
+        ConfigModule.forRoot({
           isGlobal: true,
           envFilePath: path.join(__dirname, '../../.env.test'),
         }),
-        require('@nestjs/typeorm').TypeOrmModule.forRoot({
+        TypeOrmModule.forRoot({
           type: 'postgres',
           host: process.env.DB_HOST || 'localhost',
           port: parseInt(process.env.DB_PORT || '5432'),
@@ -52,7 +52,6 @@ describe('AuthController (e2e)', () => {
     }
 
     authController = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
   });
 
   afterAll(async () => {
