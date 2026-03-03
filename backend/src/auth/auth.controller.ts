@@ -1,6 +1,7 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
-import ms, { type StringValue } from 'ms';
+import * as ms from 'ms';
+import { type StringValue } from 'ms';
 import { UseAccessAuth, UseRefreshAuth } from './auth.decorator';
 import { AuthService } from './auth.service';
 import type { AuthConfig, LoginDto } from './types';
