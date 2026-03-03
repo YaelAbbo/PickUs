@@ -1,0 +1,41 @@
+name: pickus
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: pickus_backend
+    env_file: .env
+    ports:
+      - 3000:3000
+    networks:
+      - pickus_network
+
+  frontend:
+    build: ./frontend
+    container_name: pickus_frontend
+    ports:
+      - '8081:8081'
+    env_file: .env
+    stdin_open: true
+    tty: true
+    networks:
+      - pickus_network
+
+  gateway:
+    build:
+      context: gateway
+      dockerfile: Dockerfile
+    container_name: pickus_gateway
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+    networks:
+      - pickus_network
+
+networks:
+  pickus_network:
+    driver: bridge

@@ -1,22 +1,37 @@
-FROM node:22-slim AS builder
-WORKDIR /app
+# Specify node version and choose image
+# also name our image as development (can be anything)
+FROM node:20-alpine AS development
 
-# install all deps (including dev) for build
+# Specify our working directory, this is in our container/in our image
+WORKDIR /usr/src/app
+
+# Copy the package.json-s from host to container
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
+
+# Here we install all the deps
 RUN npm install
 
-# copy source and build
+# Bundle app source / copy all other files
 COPY . .
-RUN npm run build
 
-FROM node:22-slim AS runner
-WORKDIR /app
+################
+## PRODUCTION ##
+################
+# Build another image named production
+FROM node:20-alpine AS production
 
-# install only production deps
-COPY package*.json ./
-RUN npm install --omit=dev
+# Set node env to prod
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-# copy built output from builder
-COPY --from=builder /app/dist ./dist
+# Set Working Directory
+WORKDIR /usr/src/app
 
+# Copy all from development stage
+COPY --from=development /usr/src/app/ .
+
+EXPOSE 3000
+
+# Run app
 CMD ["node", "dist/main"]

@@ -2,7 +2,6 @@
   "name": "pickus",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "authors": [
     "Natan Sinai",
     "Shira Magrafta",
@@ -11,11 +10,15 @@
   ],
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"cd ./backend && npm i && npm run start:dev\" \"cd ./frontend && npm i && npm run start\"",
-    "build": "concurrently \"cd ./backend && npm run build\" \"cd ./frontend && npm run build\"",
+    "dev": "docker-compose up",
+    "dev:build": "docker-compose up --build",
+    "down": "docker-compose down",
+    "down:volumes": "docker-compose down -v",
     "format": "concurrently \"cd ./backend && npm run format\" \"cd ./frontend && npm run format\"",
     "lint": "concurrently \"cd ./backend && npm run lint\" \"cd ./frontend && npm run lint\"",
-    "prepare": "npx husky"
+    "prepare": "npx husky",
+    "backend": "npm run start:dev --workspace=backend",
+    "frontend": "npm run start --workspace=frontend"
   },
   "workspaces": [
     "frontend",

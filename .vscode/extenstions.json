@@ -11,6 +11,8 @@
     "helixquar.randomeverything",
     "humao.rest-client",
     "meganrogge.template-string-converter",
-    "sasaa"
+    "ahmadalli.vscode-nginx-conf",
+    "jakebathman.nginx-log-highlighter",
+    "raynigon.nginx-formatter"
   ]
 }

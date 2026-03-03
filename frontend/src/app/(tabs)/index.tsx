@@ -1,13 +1,22 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Platform, StyleSheet, Text } from 'react-native';
 
 export default function HomeScreen() {
+  const [apiStatus, setApiStatus] = useState('Connecting...');
+
+  useEffect(() => {
+    fetch(`${process.env.EXPO_PUBLIC_API_URL}/health` || 'http://localhost/api/health')
+      .then((response) => response.json())
+      .then(({ status }) => setApiStatus(`✅ ${status}`))
+      .catch(() => setApiStatus('❌ Backend unreachable'));
+  }, []);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -17,6 +26,9 @@ export default function HomeScreen() {
         <ThemedText type='title'>Hello PickUs Frontend!</ThemedText>
         <HelloWave />
       </ThemedView>
+
+      <Text style={styles.subtitle}>API Status: {apiStatus}</Text>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type='subtitle'>Step 1: Try it</ThemedText>
         <ThemedText>
@@ -78,5 +90,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#555',
   },
 });

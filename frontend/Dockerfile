@@ -1,14 +1,12 @@
 FROM node:22-slim
-WORKDIR /app
 
-# Ensure devtools are reachable from other devices
-ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+WORKDIR /usr/src/app
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-EXPOSE 8081
+EXPOSE 8081 19000 19001 19002
 
 CMD ["npx", "expo", "start"]

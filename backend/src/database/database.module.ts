@@ -7,18 +7,24 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USER'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        synchronize: false,
-        migrationsRun: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const x = {
+          type: 'postgres',
+          host: configService.get('POSTGRES_HOST'),
+          port: configService.get<number>('POSTGRES_PORT'),
+          username: configService.get('POSTGRES_USER'),
+          password: configService.get('POSTGRES_PASSWORD'),
+          database: configService.get('POSTGRES_DB'),
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          logging: configService.get('NODE_ENV') === 'development',
+          synchronize: false,
+          migrationsRun: true,
+        } as TypeOrmModuleOptions;
+
+        console.log(x);
+
+        return x;
+      },
     }),
   ],
 })
