@@ -1,5 +1,5 @@
-import { BaseEntity } from '@/database/entities/base.entity';
 import { Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import { BaseEntity } from './base.entity';
 import { RideStop } from './ride-stop.entity';
 import { Ride } from './ride.entity';
 import { User } from './user.entity';

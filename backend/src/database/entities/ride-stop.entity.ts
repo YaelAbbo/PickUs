@@ -1,6 +1,6 @@
-import { BaseEntity } from '@/database/entities/base.entity';
 import { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import { BaseEntity } from './base.entity';
 import { Ride } from './ride.entity';
 
 @Entity('ride_stop')
