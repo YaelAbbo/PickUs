@@ -5,8 +5,8 @@
       "Group": "Servers",
       "Host": "db",
       "Port": 5432,
-      "MaintenanceDB": "pickus",
-      "Username": "postgres",
+      "MaintenanceDB": "pickus_db",
+      "Username": "pickus_user",
       "SSLMode": "prefer",
       "PassFile": "/tmp/pgpass"
     }
