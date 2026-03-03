@@ -138,7 +138,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# .vscode/
+.vscode/
 !.vscode/index.code-snippets
 !.vscode/extensions.json
 !.vscode/settings.json
