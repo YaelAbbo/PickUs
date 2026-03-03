@@ -1,9 +1,8 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
 import ms, { type StringValue } from 'ms';
-import { AccessTokenGuard } from './accessToken.guard';
+import { UseAccessAuth, UseRefreshAuth } from './auth.decorator';
 import { AuthService } from './auth.service';
-import { RefreshTokenGuard } from './refreshToken.guard';
 import type { AuthConfig, LoginDto } from './types';
 
 @Controller('auth')
@@ -30,7 +29,7 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Post('logout')
   async logout(
     @Req() req: { user: { sub: string } },
@@ -41,7 +40,7 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
-  @UseGuards(RefreshTokenGuard)
+  @UseRefreshAuth()
   @Post('refresh')
   async refresh(
     @Req() req: { user: { sub: string; refreshToken: string } },
