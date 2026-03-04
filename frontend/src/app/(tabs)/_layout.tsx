@@ -14,6 +14,7 @@ type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName };
 const tabScreensConfigs: TabScreenConfig[] = [
   { name: 'home', title: 'Home', icon: 'home' },
   { name: 'create-ride', title: 'Create Ride', icon: 'car' },
+  { name: 'hr', title: 'HR', icon: 'user' },
 ];
 
 const tabBarBackground = () => (
@@ -28,7 +29,7 @@ export default function TabLayout() {
 
   if (isUserLoading) return <SplashScreen />;
 
-  if (!user) return <Redirect href='/(auth)/login' />;
+  if (!user) return <Redirect href={'/(auth)/login' as any} />;
 
   return (
     <Tabs

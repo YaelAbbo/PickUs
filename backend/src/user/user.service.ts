@@ -1,4 +1,3 @@
-import type { Organization } from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -103,13 +102,34 @@ export class UserService {
   }
 
   async findAllByOrganization(
-    organizationId: Organization['id'],
-  ): Promise<User[]> {
-    return await this.usersRepository.find({
-      where: {
-        organization: { id: organizationId },
-        isDeleted: false,
-      },
-    });
+    organizationId: string,
+    page: number = 1,
+    limit: number = 15,
+    searchQuery: string = '',
+  ): Promise<{ data: User[]; total: number; hasNextPage: boolean }> {
+    const query = this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.organization = :organizationId', { organizationId })
+      .andWhere('user.isDeleted = false');
+
+    if (searchQuery) {
+      query.andWhere(
+        '(LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search) OR user.nationalId LIKE :search)',
+        { search: `%${searchQuery}%` },
+      );
+    }
+
+    query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('user.createdAt', 'DESC');
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      hasNextPage: page * limit < total,
+    };
   }
 }
