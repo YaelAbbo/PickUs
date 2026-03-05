@@ -92,6 +92,7 @@ describe('AuthController (e2e)', () => {
       passwordHash: passwordHash,
       role: UserRole.BASIC_USER,
       organization: savedOrganization,
+      nationalId: '123456789',
     });
     return userRepository.save(user);
   };
