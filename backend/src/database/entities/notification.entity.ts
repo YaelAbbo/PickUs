@@ -5,7 +5,7 @@ import { User } from './user.entity';
 
 @Entity('notification')
 export class Notification extends BaseEntity {
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: false })
   @JoinColumn({
     name: 'created_by_user_id',
     foreignKeyConstraintName: 'notification_created_by_user_id_fkey',

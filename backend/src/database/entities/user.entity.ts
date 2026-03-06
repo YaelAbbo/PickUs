@@ -2,6 +2,7 @@ import { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
+
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
   HR_MANAGER = 'HR_MANAGER',
@@ -38,7 +39,7 @@ export class User extends BaseEntity {
   })
   currentLocation: Point;
 
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'user_org_id_fkey' })
   organization: Organization;
 

@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import * as ms from 'ms';
-import { type StringValue } from 'ms';
+import ms, { type StringValue } from 'ms';
 import { UseAccessAuth, UseRefreshAuth } from './auth.decorator';
 import { AuthService } from './auth.service';
 import type { AuthConfig, LoginDto } from './types';
@@ -12,11 +12,16 @@ export class AuthController {
     AuthConfig,
     'refreshTokenCookieKey' | 'jwtRefreshExpiration'
   >;
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {
     this.config = {
-      refreshTokenCookieKey:
-        process.env.REFRESH_TOKEN_COOKIE_KEY || 'refreshToken',
-      jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
+      refreshTokenCookieKey: configService.get(
+        'REFRESH_TOKEN_COOKIE_KEY',
+        'refreshToken',
+      ),
+      jwtRefreshExpiration: configService.get('JWT_REFRESH_EXPIRATION', '7d'),
     };
   }
 
@@ -26,7 +31,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.authService.login(body.id, body.password);
-    this.setCookies(res, tokens.refreshToken);
+
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+
     return { accessToken: tokens.accessToken };
   }
 
@@ -37,7 +44,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userId = req.user.sub;
-    this.clearCookies(res);
+    this.clearRefreshTokenCookie(res);
+
     return this.authService.logout(userId);
   }
 
@@ -49,25 +57,31 @@ export class AuthController {
   ) {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
+
     const tokens = await this.authService.refreshTokens(userId, refreshToken);
-    this.setCookies(res, tokens.refreshToken);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+
     return { accessToken: tokens.accessToken };
   }
 
-  setCookies(res: Response, refreshToken: string) {
-    res.cookie(this.config.refreshTokenCookieKey, refreshToken, {
+  @UseAccessAuth()
+  @Get('verify')
+  verify() {
+    return; // Used for Nginx auth_request
+  }
+
+  private setRefreshTokenCookie = (response: Response, refreshToken: string) =>
+    response.cookie(this.config.refreshTokenCookieKey, refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict',
       maxAge: ms(this.config.jwtRefreshExpiration as StringValue),
     });
-  }
 
-  clearCookies(res: Response) {
-    res.clearCookie(this.config.refreshTokenCookieKey, {
+  private clearRefreshTokenCookie = (response: Response) =>
+    response.clearCookie(this.config.refreshTokenCookieKey, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict',
     });
-  }
 }
