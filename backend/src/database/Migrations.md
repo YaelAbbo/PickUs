@@ -1,9 +1,9 @@
-## Connect to PgAdmin:
+## Connect to PgAdmin
 
-PgAdmin is available at http://localhost:8080
+PgAdmin is available at <http://localhost:8080>
 
 - Login:
-  - Email/Username: admin@pickus.com
+  - Email/Username: <admin@pickus.com>
   - Password: admin
 - Connect to db server using .env
 

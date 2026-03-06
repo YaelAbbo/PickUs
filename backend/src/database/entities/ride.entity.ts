@@ -27,11 +27,11 @@ export enum RideStatus {
 @Check('ride_check', '"estimatedEndsAt" > "startsAt"')
 @Check('ride_max_seats_amount_check', '"maxSeatsAmount" > 0')
 export class Ride extends BaseEntity {
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'ride_org_id_fkey' })
   organization: Organization;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: false })
   @JoinColumn({
     name: 'driver_id',
     foreignKeyConstraintName: 'ride_driver_id_fkey',

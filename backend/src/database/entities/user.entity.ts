@@ -38,7 +38,7 @@ export class User extends BaseEntity {
   })
   currentLocation: Point;
 
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'user_org_id_fkey' })
   organization: Organization;
 
