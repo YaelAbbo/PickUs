@@ -6,9 +6,8 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { AccessTokenGuard } from '../auth/accessToken.guard';
+import { UseAccessAuth } from '../auth/auth.decorator';
 import { User } from '../database/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,25 +17,25 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.userService.create(createUserDto);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
     return await this.userService.findOne(id);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Get('organization/:orgId')
   async findAllByOrganization(@Param('orgId') orgId: string): Promise<User[]> {
     return await this.userService.findAllByOrganization(orgId);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -45,7 +44,7 @@ export class UserController {
     return await this.userService.update(id, updateUserDto);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseAccessAuth()
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return await this.userService.remove(id);

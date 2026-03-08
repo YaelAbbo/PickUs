@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { Organization } from '../database/entities/organization.entity';
 import { User } from '../database/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -38,7 +39,8 @@ export class UserService {
 
     // Default password for new users
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash('PickUs123!', salt);
+    const password = uuidv4();
+    const passwordHash = await bcrypt.hash(password, salt);
 
     const user = this.usersRepository.create({
       firstName,
@@ -60,7 +62,17 @@ export class UserService {
     }
   }
 
-  async update(id: string, {firstName, lastName, role, currentLocation, profileImageUrl, isDeleteImage}: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    {
+      firstName,
+      lastName,
+      role,
+      currentLocation,
+      profileImageUrl,
+      isDeleteImage,
+    }: UpdateUserDto,
+  ): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
@@ -71,8 +83,7 @@ export class UserService {
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (role) user.role = role;
-    if (currentLocation)
-      user.currentLocation = currentLocation;
+    if (currentLocation) user.currentLocation = currentLocation;
 
     if (isDeleteImage) {
       user.profileImageUrl = null;

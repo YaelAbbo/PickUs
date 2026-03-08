@@ -1,11 +1,11 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import * as request from 'supertest';
+import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { DatabaseModule } from '../database/database.module';
@@ -55,6 +55,13 @@ describe('UserController (e2e)', () => {
 
     app = testingModule.createNestApplication();
     app.use(cookieParser());
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     dataSource = app.get(DataSource);
@@ -105,7 +112,6 @@ describe('UserController (e2e)', () => {
   };
 
   describe('User Operations', () => {
-
     it('POST /users should create a new user', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
@@ -139,7 +145,9 @@ describe('UserController (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.find((u: User) => u.id === createdUserId)).toBeDefined();
+      expect(
+        response.body.find((u: User) => u.id === createdUserId),
+      ).toBeDefined();
     });
 
     it('PATCH /users/:id should update user details', async () => {
@@ -153,6 +161,25 @@ describe('UserController (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.firstName).toBe(updatedFirstName);
+    });
+
+    it('PATCH /users/:id should delete profile image when isDeleteImage is true', async () => {
+      const imageUrl = 'http://test-image.com/img.jpg';
+      const patchRes = await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({ profileImageUrl: imageUrl });
+
+      expect(patchRes.status).toBe(200);
+      expect(patchRes.body.profileImageUrl).toBe(imageUrl);
+
+      const deleteRes = await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({ isDeleteImage: true });
+
+      expect(deleteRes.status).toBe(200);
+      expect(deleteRes.body.profileImageUrl).toBe(null);
     });
 
     it('DELETE /users/:id should soft delete user', async () => {
@@ -171,14 +198,16 @@ describe('UserController (e2e)', () => {
   });
 
   it('All endpoints should fail without token', async () => {
-      const res1 = await request(app.getHttpServer()).post('/users').send({});
-      const res2 = await request(app.getHttpServer()).get('/users/some-id');
-      const res3 = await request(app.getHttpServer()).patch('/users/some-id').send({});
-      const res4 = await request(app.getHttpServer()).delete('/users/some-id');
+    const res1 = await request(app.getHttpServer()).post('/users').send({});
+    const res2 = await request(app.getHttpServer()).get('/users/some-id');
+    const res3 = await request(app.getHttpServer())
+      .patch('/users/some-id')
+      .send({});
+    const res4 = await request(app.getHttpServer()).delete('/users/some-id');
 
-      expect(res1.status).toBe(401);
-      expect(res2.status).toBe(401);
-      expect(res3.status).toBe(401);
-      expect(res4.status).toBe(401);
+    expect(res1.status).toBe(401);
+    expect(res2.status).toBe(401);
+    expect(res3.status).toBe(401);
+    expect(res4.status).toBe(401);
   });
 });
