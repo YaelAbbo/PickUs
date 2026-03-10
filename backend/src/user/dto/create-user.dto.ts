@@ -1,30 +1,16 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Point } from 'geojson';
-import { UserRole } from '../../database/entities/user.entity';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { UpsertUserDto } from './upsert-user.dto';
 
-export class CreateUserDto {
-  @IsString()
+export class CreateUserDto extends UpsertUserDto {
   @IsNotEmpty()
-  firstName: string;
+  declare firstName: string;
 
-  @IsString()
   @IsNotEmpty()
-  lastName: string;
+  declare lastName: string;
 
   @IsString()
   @IsNotEmpty()
   nationalId: string;
-
-  @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
-
-  @IsOptional()
-  currentLocation?: Point;
-
-  @IsString()
-  @IsOptional()
-  profileImageUrl?: string;
 
   @IsString()
   @IsNotEmpty()

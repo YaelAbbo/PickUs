@@ -1,30 +1,19 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import { Point } from 'geojson';
-import { UserRole } from '../../database/entities/user.entity';
+import { IsBoolean, IsOptional } from 'class-validator';
+import { UpsertUserDto } from './upsert-user.dto';
 
-export class UpdateUserDto {
-  @IsString()
+export class UpdateUserDto extends UpsertUserDto {
   @IsOptional()
-  firstName?: string;
-
-  @IsString()
-  @IsOptional()
-  lastName?: string;
-
-  @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
+  declare firstName?: string;
 
   @IsOptional()
-  currentLocation?: Point;
+  declare lastName?: string;
 
-  @IsString()
   @IsOptional()
   @Transform(({ obj }) =>
     obj.isDeleteImage === true ? null : obj.profileImageUrl,
   )
-  profileImageUrl?: string | null;
+  declare profileImageUrl?: string | null;
 
   @IsBoolean()
   @IsOptional()

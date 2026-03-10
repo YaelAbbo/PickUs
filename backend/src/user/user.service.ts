@@ -48,9 +48,9 @@ export class UserService {
       nationalId,
       role,
       organization,
-      currentLocation: currentLocation,
-      profileImageUrl: profileImageUrl,
-      passwordHash: passwordHash,
+      currentLocation,
+      profileImageUrl,
+      passwordHash,
       isTempPassword: true,
     });
 
@@ -71,42 +71,36 @@ export class UserService {
       currentLocation,
       profileImageUrl,
       isDeleteImage,
-    }: UpdateUserDto,
+      isDeleted,
+    }: UpdateUserDto & { isDeleted?: boolean },
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
-    if (role) user.role = role;
-    if (currentLocation) user.currentLocation = currentLocation;
+    if (isDeleted) {
+      user.isDeleted = true;
+    } else {
+      if (firstName) user.firstName = firstName;
+      if (lastName) user.lastName = lastName;
+      if (role) user.role = role;
+      if (currentLocation) user.currentLocation = currentLocation;
 
-    if (isDeleteImage) {
-      user.profileImageUrl = null;
-    } else if (profileImageUrl) {
-      user.profileImageUrl = profileImageUrl;
+      if (isDeleteImage) {
+        user.profileImageUrl = null;
+      } else if (profileImageUrl) {
+        user.profileImageUrl = profileImageUrl;
+      }
     }
 
     return await this.usersRepository.save(user);
   }
 
-  async remove(id: string): Promise<void> {
-    const user = await this.usersRepository.findOne({
-      where: { id, isDeleted: false },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    user.isDeleted = true;
-    await this.usersRepository.save(user);
-  }
-
-  async findOne(id: string): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
       relations: ['organization'],

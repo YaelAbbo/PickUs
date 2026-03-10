@@ -8,7 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { UseAccessAuth } from '../auth/auth.decorator';
-import { User } from '../database/entities/user.entity';
+import { Organization, User } from '../database/entities';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
@@ -25,20 +25,22 @@ export class UserController {
 
   @UseAccessAuth()
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
-    return await this.userService.findOne(id);
+  async findOne(@Param('id') id: User['id']): Promise<User> {
+    return await this.userService.getUserById(id);
   }
 
   @UseAccessAuth()
   @Get('organization/:orgId')
-  async findAllByOrganization(@Param('orgId') orgId: string): Promise<User[]> {
+  async findAllByOrganization(
+    @Param('orgId') orgId: Organization['id'],
+  ): Promise<User[]> {
     return await this.userService.findAllByOrganization(orgId);
   }
 
   @UseAccessAuth()
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: User['id'],
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return await this.userService.update(id, updateUserDto);
@@ -46,7 +48,7 @@ export class UserController {
 
   @UseAccessAuth()
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    return await this.userService.remove(id);
+  async remove(@Param('id') id: User['id']): Promise<void> {
+    await this.userService.update(id, { isDeleted: true });
   }
 }
