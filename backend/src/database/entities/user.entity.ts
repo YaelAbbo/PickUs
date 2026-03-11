@@ -13,13 +13,16 @@ export enum UserRole {
 @Entity('user')
 @Index('user_current_location_index', ['currentLocation'], { spatial: true })
 export class User extends BaseEntity {
-  @Column({ name: 'first_name' })
+  @Column({ name: 'first_name', type: 'varchar' })
   firstName: string;
 
-  @Column({ name: 'last_name' })
+  @Column({ name: 'last_name', type: 'varchar' })
   lastName: string;
 
-  @Column({ select: false, name: 'password_hash' })
+  @Column({ name: 'national_id', type: 'varchar', unique: true })
+  nationalId: string;
+
+  @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
 
   @Column({
@@ -46,8 +49,8 @@ export class User extends BaseEntity {
   @Column({ default: true, name: 'is_temp_password' })
   isTempPassword: boolean;
 
-  @Column({ nullable: true, name: 'profile_image_url' })
-  profileImageUrl: string;
+  @Column({ nullable: true, name: 'profile_image_url', type: 'varchar' })
+  profileImageUrl: string | null;
 
   @Column({
     type: 'varchar',

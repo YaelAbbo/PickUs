@@ -1,3 +1,5 @@
+import { IsNotEmpty, IsString } from 'class-validator';
+
 export type AuthConfig = {
   jwtAccessSecret: string;
   jwtRefreshSecret: string;
@@ -7,7 +9,12 @@ export type AuthConfig = {
   refreshTokenCookieKey: string;
 };
 
-export type LoginDto = {
+export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
   password: string;
-};
+}

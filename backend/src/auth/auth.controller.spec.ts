@@ -2,10 +2,10 @@ import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import * as request from 'supertest';
+import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { DatabaseModule } from '../database/database.module';
 import { Organization } from '../database/entities';
@@ -92,6 +92,7 @@ describe('AuthController (e2e)', () => {
       passwordHash: passwordHash,
       role: UserRole.BASIC_USER,
       organization: savedOrganization,
+      nationalId: '123456789',
     });
     return userRepository.save(user);
   };

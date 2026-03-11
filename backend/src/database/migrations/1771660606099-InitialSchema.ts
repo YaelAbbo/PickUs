@@ -37,6 +37,7 @@ export class InitialSchema1710000000000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TABLE "user" (
         "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        "national_id" VARCHAR NOT NULL UNIQUE, 
         "org_id" UUID NOT NULL,
         "first_name" VARCHAR NOT NULL,
         "last_name" VARCHAR NOT NULL,
