@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Organization } from '../database/entities/organization.entity';
 import { User } from '../database/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -17,8 +16,6 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Organization)
-    private organizationsRepository: Repository<Organization>,
   ) {}
 
   async create({
@@ -30,13 +27,6 @@ export class UserService {
     profileImageUrl,
     organizationId,
   }: CreateUserDto): Promise<User> {
-    const organization = await this.organizationsRepository.findOne({
-      where: { id: organizationId },
-    });
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
     // Default password for new users
     const salt = await bcrypt.genSalt(10);
     const password = uuidv4();
@@ -47,7 +37,7 @@ export class UserService {
       lastName,
       nationalId,
       role,
-      organization,
+      organization: { id: organizationId },
       currentLocation,
       profileImageUrl,
       passwordHash,
