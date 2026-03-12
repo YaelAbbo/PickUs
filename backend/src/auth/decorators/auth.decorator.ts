@@ -1,6 +1,6 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
-import { AccessTokenGuard } from './accessToken.guard';
-import { RefreshTokenGuard } from './refreshToken.guard';
+import { AccessTokenGuard } from '../accessToken.guard';
+import { RefreshTokenGuard } from '../refreshToken.guard';
 
 export function UseAccessAuth() {
   return applyDecorators(UseGuards(AccessTokenGuard));

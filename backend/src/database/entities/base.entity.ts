@@ -1,3 +1,4 @@
+import type { UUID } from 'crypto';
 import {
   Column,
   CreateDateColumn,
@@ -7,7 +8,7 @@ import {
 
 export abstract class BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: UUID;
 
   @Column({ type: 'boolean', default: false, name: 'is_deleted' })
   isDeleted: boolean;

@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
+import type {
+  JWTPayload,
+  JWTPayloadWithRefresh,
+  RequestWithCookies,
+} from './types';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -22,10 +27,18 @@ export class RefreshTokenStrategy extends PassportStrategy(
     } as StrategyOptionsWithRequest);
   }
 
-  validate(req: Request, payload: { [key: string]: string }) {
-    const refreshToken =
-      req.get('authorization')?.replace('Bearer ', '') ||
-      req.cookies?.refreshToken;
-    return { sub: payload.sub, refreshToken: refreshToken, ...payload };
+  validate(request: RequestWithCookies, payload: JWTPayload) {
+    const refreshToken = (request
+      .get('authorization')
+      ?.replace('Bearer ', '') ?? request.cookies.refreshToken) as string;
+
+    if (!refreshToken) throw new UnauthorizedException();
+
+    const jwtPayloadWithRefresh = {
+      ...payload,
+      refreshToken,
+    } satisfies JWTPayloadWithRefresh;
+
+    return jwtPayloadWithRefresh;
   }
 }

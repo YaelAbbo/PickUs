@@ -18,7 +18,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const {
-    FRONTEND_BASE_URL = 'http://localhost:8081',
+    FRONTEND_BASE_URL = 'http://localhost',
     BACKEND_PORT = 3000,
     BASE_URL,
   } = process.env;
