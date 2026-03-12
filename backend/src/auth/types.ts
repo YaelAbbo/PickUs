@@ -1,4 +1,5 @@
 import type { User } from '@/database/entities';
+import { IsNotEmpty, IsString } from 'class-validator';
 import type { Request } from 'express';
 
 export type AuthConfig = {
@@ -9,8 +10,6 @@ export type AuthConfig = {
   bcryptSaltRounds: number;
   refreshTokenCookieKey: string;
 };
-
-export type LoginDTO = Pick<User, 'nationalId'> & { password: string };
 
 export type JWTPayload = { sub: string; iat: number; exp: number };
 
@@ -26,4 +25,14 @@ declare module 'express-serve-static-core' {
   interface Request {
     user: JWTPayload;
   }
+}
+
+export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
+  nationalId: User['nationalId'];
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }

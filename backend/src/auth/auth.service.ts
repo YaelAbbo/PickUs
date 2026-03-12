@@ -2,7 +2,6 @@ import type { WithResponse } from '@/utils/types';
 import {
   ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,7 +13,7 @@ import type { StringValue } from 'ms';
 import ms from 'ms';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
-import type { AuthConfig, LoginDTO, WithRefreshToken } from './types';
+import type { AuthConfig, LoginDto, WithRefreshToken } from './types';
 
 @Injectable()
 export class AuthService {
@@ -72,19 +71,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  // TODO: Delete this when the user.service.ts is created!
-  async findUserById(id: User['id']) {
-    const user = await this.usersRepository.findOne({
-      where: { id, isDeleted: false },
-      relations: ['organization'],
-    });
-
-    if (!user) throw new NotFoundException('User not found');
-
-    return user;
-  }
-
-  async login({ nationalId, password, response }: WithResponse<LoginDTO>) {
+  async login({ nationalId, password, response }: WithResponse<LoginDto>) {
     const user = (await this.usersRepository.findOne({
       where: { nationalId },
       select: ['id', 'passwordHash'],

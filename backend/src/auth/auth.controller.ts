@@ -1,4 +1,5 @@
 import type { User } from '@/database/entities';
+import { UserService } from '@/user/user.service';
 import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -8,15 +9,18 @@ import {
   UseAccessAuth,
   UseRefreshAuth,
 } from './decorators';
-import type { LoginDTO } from './types';
+import { LoginDto } from './types';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService,
+  ) {}
 
   @Post('login')
   async login(
-    @Body() loginDTO: LoginDTO,
+    @Body() loginDTO: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     const tokens = await this.authService.login({ ...loginDTO, response });
@@ -38,9 +42,7 @@ export class AuthController {
   @UseAccessAuth()
   @Get('me')
   async findOne(@CurrentUserId() id: User['id']) {
-    // TODO: Update this when the user.service.ts is created - use their findUserById instead
-
-    return await this.authService.findUserById(id);
+    return await this.userService.getUserById(id);
   }
 
   @UseRefreshAuth()

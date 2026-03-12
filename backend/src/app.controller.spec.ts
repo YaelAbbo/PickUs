@@ -16,8 +16,10 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello PickUs Backend!"', () => {
-      expect(appController.getHello()).toBe('Hello PickUs Backend!');
+    it('should return {"message": "Welcome to PickUs API"}', () => {
+      expect(appController.getHello()).toStrictEqual({
+        message: 'Welcome to PickUs API',
+      });
     });
   });
 });

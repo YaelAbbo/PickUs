@@ -1,3 +1,4 @@
+import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -18,6 +19,7 @@ import { RefreshTokenStrategy } from './refreshToken.strategy';
       } as JwtSignOptions,
     }),
     TypeOrmModule.forFeature([User]),
+    UserModule,
   ],
   providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
   controllers: [AuthController],

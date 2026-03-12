@@ -13,14 +13,14 @@ export enum UserRole {
 @Entity('user')
 @Index('user_current_location_index', ['currentLocation'], { spatial: true })
 export class User extends BaseEntity {
-  @Column({ name: 'national_id', unique: true, type: 'varchar' })
-  nationalId: string;
-
   @Column({ name: 'first_name', type: 'varchar' })
   firstName: string;
 
   @Column({ name: 'last_name', type: 'varchar' })
   lastName: string;
+
+  @Column({ name: 'national_id', type: 'varchar', unique: true })
+  nationalId: string;
 
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
