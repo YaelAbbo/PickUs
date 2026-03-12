@@ -14,14 +14,14 @@ export class RidePassenger extends BaseEntity {
   })
   user: User;
 
-  @ManyToOne(() => Ride, { nullable: false })
+  @ManyToOne(() => Ride, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'ride_id',
     foreignKeyConstraintName: 'ride_passenger_ride_id_fkey',
   })
   ride: Ride;
 
-  @ManyToOne(() => RideStop, { nullable: false })
+  @ManyToOne(() => RideStop, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'ride_stop_id',
     foreignKeyConstraintName: 'ride_passenger_ride_stop_id_fkey',
