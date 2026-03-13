@@ -48,7 +48,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            leftIcon='person'
+            rightIconName='person'
             keyboardType='numeric'
             returnKeyType='next'
             placeholder='9 ספרות'
@@ -92,7 +92,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
 
       <AppButton
         label='כניסה'
-        isLoading={isSubmitting}
+        loading={isSubmitting}
         disabled={!!errors.nationalId || !!errors.password}
         onPress={onSubmit}
       />

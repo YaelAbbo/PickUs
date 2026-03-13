@@ -51,7 +51,7 @@ export const useLoginForm = ({ onLoginSuccess, startShake }: UseLoginFormArgs) =
 
           startShake();
         },
-      }),
+      }).catch(() => {}),
     startShake,
   );
 

@@ -18,8 +18,8 @@ export const useAuthLogic = () => {
     refetch: refreshUser,
   } = useMeQuery(!isAccessTokenLoading && !!hasAccessToken);
 
-  const { mutate: login } = useLoginMutation();
-  const { mutate: logout } = useLogoutMutation();
+  const { mutateAsync: login } = useLoginMutation();
+  const { mutateAsync: logout } = useLogoutMutation();
 
   useValidateAccessToken({ user });
 
