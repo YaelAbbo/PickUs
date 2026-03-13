@@ -1,3 +1,4 @@
+import { IS_WEB } from '@constants';
 import { colors, radii, spacing, typography } from '@theme';
 import type { WithStyle } from '@types';
 import type { ComponentProps, FC } from 'react';
@@ -13,7 +14,10 @@ export const AppButton: FC<AppButtonProps> = ({ label, disabled, style, contentS
       mode='contained'
       disabled={isDisabled}
       style={[{ borderRadius: radii.md, backgroundColor: isDisabled ? colors.inputBg : colors.yellow }, style]}
-      contentStyle={[{ paddingVertical: spacing.xs, paddingHorizontal: spacing.sm }, contentStyle]}
+      contentStyle={[
+        { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, flexDirection: IS_WEB ? 'row-reverse' : 'row' },
+        contentStyle,
+      ]}
       labelStyle={[
         {
           fontFamily: typography.fonts.medium,

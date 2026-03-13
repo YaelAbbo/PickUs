@@ -1,11 +1,10 @@
+import { IS_WEB } from '@constants';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, typography } from '@theme';
 import type { ComponentProps, FC } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { HelperText, TextInput } from 'react-native-paper';
 import { useBoolean } from 'usehooks-ts';
-
-export const IS_WEB = Platform.OS === 'web';
 
 export type AppTextInputProps = Omit<ComponentProps<typeof TextInput>, 'style' | 'error'> & {
   label: string;
@@ -27,11 +26,33 @@ export const AppTextInput: FC<AppTextInputProps> = ({
 
   const hasError = !!error;
 
-  const iconColor = (focused: boolean) => (hasError ? colors.error : focused ? colors.yellowLight : colors.textMuted);
+  const getColor = (focused: boolean) => (hasError ? colors.error : focused ? colors.yellowLight : colors.textMuted);
+
+  const clearIcon = value ? (
+    <TextInput.Icon
+      icon={({ size }) => <Ionicons {...{ name: 'close-circle', size, color: colors.textMuted }} />}
+      onPress={() => onChangeText?.('')}
+    />
+  ) : undefined;
+
+  const startIcon = isPassword ? (
+    <TextInput.Icon
+      icon={({ size, color }) => (
+        <Ionicons {...{ name: showPassword ? 'eye-off-outline' : 'eye-outline', size, color }} />
+      )}
+      color={getColor}
+      onPress={toggleShowPassword}
+    />
+  ) : rightIconName ? (
+    <TextInput.Icon
+      icon={({ size, color }) => <Ionicons {...{ name: rightIconName, size, color }} />}
+      color={getColor}
+    />
+  ) : undefined;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>
 
       <TextInput
         mode='outlined'
@@ -45,39 +66,17 @@ export const AppTextInput: FC<AppTextInputProps> = ({
         placeholderTextColor={colors.textMuted}
         selectionColor={colors.yellow}
         selectionHandleColor={colors.yellow}
-        right={
-          value ? (
-            <TextInput.Icon
-              icon={({ size }) => <Ionicons {...{ name: 'close-circle', size, color: colors.textMuted }} />}
-              onPress={() => onChangeText?.('')}
-            />
-          ) : undefined
-        }
-        left={
-          isPassword ? (
-            <TextInput.Icon
-              icon={({ size, color }) => (
-                <Ionicons {...{ name: showPassword ? 'eye-off-outline' : 'eye-outline', size, color }} />
-              )}
-              color={iconColor}
-              onPress={toggleShowPassword}
-            />
-          ) : rightIconName ? (
-            <TextInput.Icon
-              icon={({ size, color }) => <Ionicons {...{ name: rightIconName, size, color }} />}
-              color={iconColor}
-            />
-          ) : undefined
-        }
+        right={IS_WEB ? startIcon : clearIcon}
+        left={IS_WEB ? clearIcon : startIcon}
         style={styles.input}
         theme={{
+          roundness: radii.md,
           colors: {
             primary: colors.yellow,
             error: colors.error,
             onSurfaceVariant: 'transparent',
             outline: colors.inputBorder,
           },
-          roundness: radii.md,
           fonts: {
             bodyLarge: { fontFamily: typography.fonts.regular },
           },
@@ -99,9 +98,8 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.md,
-    color: colors.yellowLight,
     textAlign: 'right',
-    alignSelf: 'flex-start',
+    alignSelf: IS_WEB ? 'auto' : 'flex-start',
   },
   input: {
     backgroundColor: colors.inputBg,
@@ -122,6 +120,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.error,
     paddingHorizontal: 0,
-    alignSelf: 'flex-start',
+    alignSelf: IS_WEB ? 'auto' : 'flex-start',
   },
 });

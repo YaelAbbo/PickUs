@@ -7,3 +7,5 @@ export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost/api
 export const useNativeDriver = (Platform.OS !== 'web') satisfies Animated.TimingAnimationConfig['useNativeDriver'];
 
 export const APP_NAME = 'PickUs';
+
+export const IS_WEB = Platform.OS === 'web';

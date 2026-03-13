@@ -103,6 +103,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: '100%',
+    maxWidth: 360,
     backgroundColor: colors.purpleCard,
     borderRadius: radii.xl,
     padding: spacing.lg,
