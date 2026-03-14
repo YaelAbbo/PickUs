@@ -1,14 +1,12 @@
-import { useNativeDriver } from '@constants';
+import { IS_WEB, useNativeDriver } from '@constants';
 import { useShakeAnimation } from '@hooks';
 import { useEffect, useRef } from 'react';
-import { Animated, Platform } from 'react-native';
-
-const isWeb = Platform.OS === 'web';
+import { Animated } from 'react-native';
 
 export type UseLoginAnimationContent = ReturnType<typeof useLoginAnimation>;
 
 export const useLoginAnimation = () => {
-  const bounceAnimationScaleRef = useRef(new Animated.Value(isWeb ? 1 : 0.88));
+  const bounceAnimationScaleRef = useRef(new Animated.Value(IS_WEB ? 1 : 0.88));
   const fadeAnimationOpacityRef = useRef(new Animated.Value(0));
   const useShakeAnimationContent = useShakeAnimation();
 

@@ -1,4 +1,5 @@
 import { AppBackground } from '@components';
+import { IS_WEB } from '@constants';
 import { Heebo_300Light, Heebo_400Regular, Heebo_500Medium, Heebo_700Bold, useFonts } from '@expo-google-fonts/heebo';
 import { colors, spacing } from '@theme';
 import type { FC } from 'react';
@@ -16,7 +17,6 @@ import { useLoginAnimation, useLoginForm, type UseLoginFormArgs } from './hooks'
 import { LoginFormCard } from './LoginFormCard';
 
 const WIDE_WIDTH_BREAKPOINT = 800;
-const isWeb = Platform.OS === 'web';
 
 export type LoginScreenProps = Omit<UseLoginFormArgs, 'startShake'>;
 
@@ -30,9 +30,11 @@ export const LoginScreen: FC<LoginScreenProps> = (useLoginFormArgs) => {
 
   const useLoginFormContent = useLoginForm({ ...useLoginFormArgs, startShake });
 
-  if (!isFontsLoaded) return <AppBackground style={isWeb && isWide ? styles.webRoot : undefined} />;
+  const isWideWeb = IS_WEB && isWide;
 
-  if (isWeb && isWide) {
+  if (!isFontsLoaded) return <AppBackground style={isWideWeb ? styles.webRoot : undefined} />;
+
+  if (isWideWeb) {
     return (
       <AppBackground style={styles.webRoot}>
         <Animated.View style={[styles.webWrap, { opacity: fadeAnimationOpacity }]}>
@@ -50,7 +52,7 @@ export const LoginScreen: FC<LoginScreenProps> = (useLoginFormArgs) => {
     <AppBackground>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, isWeb && styles.scrollContentWeb]}
+          contentContainerStyle={[styles.scrollContent, IS_WEB && styles.scrollContentWeb]}
           keyboardShouldPersistTaps='handled'
           showsVerticalScrollIndicator={false}
         >
