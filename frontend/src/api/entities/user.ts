@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { entityMetadata } from './constants';
+import { entityMetadata } from './schemas';
 
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
