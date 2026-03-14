@@ -1,18 +1,11 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
+import { createTestApp } from '@/test/createTestApp';
+import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import type { UUID } from 'crypto';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { DatabaseModule } from '../database/database.module';
 import { Organization, User, UserRole } from '../database/entities';
-import { UserModule } from './user.module';
-
-dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
@@ -21,7 +14,7 @@ describe('UserController (e2e)', () => {
   let organizationRepository: Repository<Organization>;
 
   const adminUser = {
-    id: '11111111-1111-1111-1111-111111111111',
+    id: '11111111-1111-1111-1111-111111111111' as UUID,
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
@@ -35,36 +28,13 @@ describe('UserController (e2e)', () => {
     role: UserRole.BASIC_USER,
   };
 
-  let testOrgId: string | null = null;
+  let testOrgId: Organization['id'] | null = null;
   let adminAccessToken: string;
-  let createdUserId: string | null = null;
+  let createdUserId: User['id'] | null = null;
 
   beforeAll(async () => {
-    if (process.env.DB_HOST === 'db') {
-      process.env.DB_HOST = 'localhost';
-    }
+    ({ app, dataSource } = await createTestApp(AuthModule));
 
-    const testingModule: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        DatabaseModule,
-        UserModule,
-        AuthModule,
-      ],
-    }).compile();
-
-    app = testingModule.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    await app.init();
-
-    dataSource = app.get(DataSource);
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
 

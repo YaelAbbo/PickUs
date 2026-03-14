@@ -1,4 +1,5 @@
-import { Point } from 'geojson';
+import type { UUID } from 'crypto';
+import type { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
@@ -24,6 +25,9 @@ export class User extends BaseEntity {
 
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
+
+  @Column({ name: 'org_id', type: 'varchar' })
+  orgId: UUID;
 
   @Column({
     type: 'enum',
