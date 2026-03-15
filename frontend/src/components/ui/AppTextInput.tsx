@@ -7,7 +7,7 @@ import { HelperText, TextInput } from 'react-native-paper';
 import { useBoolean } from 'usehooks-ts';
 
 export type AppTextInputProps = Omit<ComponentProps<typeof TextInput>, 'style' | 'error'> & {
-  label: string;
+  label?: string;
   rightIconName?: ComponentProps<typeof Ionicons>['name'];
   isPassword?: boolean;
   error?: string;
@@ -52,7 +52,7 @@ export const AppTextInput: FC<AppTextInputProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>
+      {label && <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>}
 
       <TextInput
         mode='outlined'

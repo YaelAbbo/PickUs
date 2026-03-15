@@ -10,3 +10,5 @@ export const IS_MOBILE = !IS_WEB;
 export const useNativeDriver = IS_MOBILE satisfies Animated.TimingAnimationConfig['useNativeDriver'];
 
 export const APP_NAME = 'PickUs';
+
+export const GOOGLE_PLACES_API_KEY = '';

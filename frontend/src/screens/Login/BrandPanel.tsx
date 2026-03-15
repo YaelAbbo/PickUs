@@ -1,4 +1,5 @@
 import { colors, spacing, typography } from '@/theme';
+import { APP_NAME } from '@constants';
 import type { FC } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 
@@ -10,7 +11,7 @@ export const BrandPanel: FC<BrandPanelProps> = ({ bounceAnimationScale }) => {
       <Animated.View style={[styles.inner, { transform: [{ scale: bounceAnimationScale }] }]}>
         <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
 
-        <Text style={styles.appName}>PickUs</Text>
+        <Text style={styles.appName}>{APP_NAME}</Text>
 
         <Text style={styles.tagline}>הדרך החכמה{'\n'}לנסוע ביחד</Text>
 

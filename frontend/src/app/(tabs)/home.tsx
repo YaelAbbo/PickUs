@@ -3,6 +3,7 @@ import { ParallaxScrollView } from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppButton, PageHead } from '@components';
+import { APP_NAME } from '@constants';
 import { useAuth } from '@services';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -28,7 +29,7 @@ export default function HomeScreen() {
         headerImage={<Image source={require('@/assets/images/partial-react-logo.png')} style={styles.reactLogo} />}
       >
         <ThemedView style={styles.titleContainer}>
-          <ThemedText type='title'>Hello PickUs Frontend!</ThemedText>
+          <ThemedText type='title'>Hello {APP_NAME} Frontend!</ThemedText>
           <HelloWave />
         </ThemedView>
 
