@@ -37,13 +37,14 @@ export class RideService {
 
   async getAllRides(): Promise<Ride[]> {
     return await this.ridesRepository.find({
+      where: { isDeleted: false },
       relations: ['organization', 'driver', 'rideStops'],
     });
   }
 
   async getRideById(id: string): Promise<Ride> {
     const ride = await this.ridesRepository.findOne({
-      where: { id },
+      where: { id, isDeleted: false },
       relations: ['organization', 'driver', 'rideStops'],
     });
 
@@ -56,14 +57,14 @@ export class RideService {
 
   async getRidesByOrganizationId(organizationId: string): Promise<Ride[]> {
     return await this.ridesRepository.find({
-      where: { organization: { id: organizationId } },
+      where: { orgId: organizationId, isDeleted: false },
       relations: ['driver', 'rideStops'],
     });
   }
 
   async getRidesByDriverId(driverId: string): Promise<Ride[]> {
     return await this.ridesRepository.find({
-      where: { driver: { id: driverId } },
+      where: { driverId, isDeleted: false },
       relations: ['organization', 'rideStops'],
     });
   }
@@ -77,8 +78,8 @@ export class RideService {
       ...rest,
     };
 
-    if (organizationId) preloadPayload.organization = { id: organizationId };
-    if (driverId) preloadPayload.driver = { id: driverId };
+    if (organizationId) preloadPayload.orgId = organizationId;
+    if (driverId) preloadPayload.driverId = driverId;
     if (rideStops) preloadPayload.rideStops = rideStops;
 
     const ride = await this.ridesRepository.preload(preloadPayload);
@@ -96,7 +97,7 @@ export class RideService {
   }
 
   async deleteRide(id: string): Promise<void> {
-    const result = await this.ridesRepository.delete(id);
+    const result = await this.ridesRepository.update(id, { isDeleted: true });
 
     if (result.affected === 0) {
       throw new NotFoundException(`Ride with ID ${id} not found`);

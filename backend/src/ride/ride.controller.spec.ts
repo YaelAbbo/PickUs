@@ -21,7 +21,7 @@ import { RideModule } from './ride.module';
 
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
-describe('RideController (e2e)', () => {
+describe('RideController', () => {
   let app: INestApplication;
   let httpServer: Server;
   let dataSource: DataSource;

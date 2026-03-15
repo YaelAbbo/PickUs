@@ -31,12 +31,18 @@ export class Ride extends BaseEntity {
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'ride_org_id_fkey' })
   organization: Organization;
 
+  @Column({ name: 'org_id' })
+  orgId: string;
+
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({
     name: 'driver_id',
     foreignKeyConstraintName: 'ride_driver_id_fkey',
   })
   driver: User;
+
+  @Column({ name: 'driver_id' })
+  driverId: string;
 
   @Column({ type: 'timestamptz', name: 'starts_at' })
   startsAt: Date;

@@ -12,7 +12,7 @@ export class Notification extends BaseEntity {
   })
   creator: User;
 
-  @ManyToOne(() => Ride, { nullable: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Ride, { nullable: true })
   @JoinColumn({
     name: 'ride_id',
     foreignKeyConstraintName: 'notification_ride_id_fkey',

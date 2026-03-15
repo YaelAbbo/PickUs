@@ -9,7 +9,6 @@ import { Ride } from './ride.entity';
 export class RideStop extends BaseEntity {
   @ManyToOne(() => Ride, (ride) => ride.rideStops, {
     nullable: false,
-    onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'ride_id',

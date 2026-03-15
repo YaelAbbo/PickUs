@@ -103,7 +103,7 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "is_deleted" BOOL NOT NULL DEFAULT FALSE,
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT "ride_stop_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+        CONSTRAINT "ride_stop_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
         CONSTRAINT "ride_stop_ride_id_location_key" UNIQUE ("ride_id", "location")
       )
     `);
@@ -119,8 +119,8 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         CONSTRAINT "ride_passenger_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
-        CONSTRAINT "ride_passenger_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
-        CONSTRAINT "ride_passenger_ride_stop_id_fkey" FOREIGN KEY ("ride_stop_id") REFERENCES "ride_stop"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+        CONSTRAINT "ride_passenger_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
+        CONSTRAINT "ride_passenger_ride_stop_id_fkey" FOREIGN KEY ("ride_stop_id") REFERENCES "ride_stop"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
         CONSTRAINT "ride_passenger_user_id_ride_id_key" UNIQUE ("user_id", "ride_id")
       )
     `);
@@ -136,7 +136,7 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         CONSTRAINT "notification_created_by_user_id_fkey" FOREIGN KEY ("created_by_user_id") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
-        CONSTRAINT "notification_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+        CONSTRAINT "notification_ride_id_fkey" FOREIGN KEY ("ride_id") REFERENCES "ride"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
       )
     `);
 

@@ -1,16 +1,9 @@
-import {
-  IsDate,
-  IsInt,
-  IsNotEmpty,
-  IsObject,
-  Min,
-  ValidateNested,
-} from 'class-validator';
+import { IsPoint } from '@/utils/decorators/is-point.decorator';
+import { IsDate, IsInt, IsNotEmpty, Min } from 'class-validator';
 import type { Point } from 'geojson';
 
 export class CreateRideStopDto {
-  @IsObject()
-  @ValidateNested()
+  @IsPoint()
   @IsNotEmpty()
   location: Point;
 
