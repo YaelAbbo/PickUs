@@ -28,7 +28,9 @@ export class RideService {
     });
 
     try {
-      return await this.ridesRepository.save(newRide);
+      const createdRide = await this.ridesRepository.save(newRide);
+
+      return await this.getRideById(createdRide.id);
     } catch (err) {
       console.error(err);
       throw new ConflictException('Failed to create ride');
@@ -89,7 +91,9 @@ export class RideService {
     }
 
     try {
-      return await this.ridesRepository.save(ride);
+      const updatedRide = await this.ridesRepository.save(ride);
+
+      return await this.getRideById(updatedRide.id);
     } catch (err) {
       console.error(err);
       throw new ConflictException(`Failed to update ride with ID ${id}`);
