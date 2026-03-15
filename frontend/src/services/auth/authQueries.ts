@@ -1,4 +1,4 @@
-import type { User } from '@entities';
+import type { User } from '@schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authService } from './authService';
 

@@ -7,7 +7,7 @@
     "strictNullChecks": true,
     "paths": {
       "@api": ["./src/api/api.ts"],
-      "@entities": ["./src/api/entities/index.ts"],
+      "@schemas": ["./src/schemas/index.ts"],
       "@theme": ["./src/theme/index.ts"],
       "@hooks": ["./src/hooks/index.ts"],
       "@components": ["./src/components/index.ts"],

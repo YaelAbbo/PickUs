@@ -1,6 +1,6 @@
 import { IS_MOBILE } from '@constants';
-import type { User } from '@entities';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { User } from '@schemas';
 import { deleteItemAsync, getItemAsync, setItemAsync } from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 
