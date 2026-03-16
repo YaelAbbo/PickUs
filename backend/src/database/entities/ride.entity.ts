@@ -13,6 +13,7 @@ import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RideStop } from './ride-stop.entity';
 import { User } from './user.entity';
+import type { UUID } from 'crypto';
 
 export enum RideStatus {
   PENDING = 'PENDING',
@@ -32,7 +33,7 @@ export class Ride extends BaseEntity {
   organization: Organization;
 
   @Column({ name: 'org_id' })
-  orgId: string;
+  orgId: UUID;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({
@@ -42,7 +43,7 @@ export class Ride extends BaseEntity {
   driver: User;
 
   @Column({ name: 'driver_id' })
-  driverId: string;
+  driverId: UUID;
 
   @Column({ type: 'timestamptz', name: 'starts_at' })
   startsAt: Date;

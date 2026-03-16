@@ -14,15 +14,16 @@ import {
 import { Point } from 'geojson';
 import { IsPoint } from '../../utils/decorators/is-point.decorator';
 import { CreateRideStopDto } from './create-ride-stop.dto';
+import type { Organization, User } from '@/database/entities';
 
 export class CreateRideDto {
   @IsUUID()
   @IsNotEmpty()
-  organizationId: string;
+  organizationId: Organization['id'];
 
   @IsUUID()
   @IsNotEmpty()
-  driverId: string;
+  driverId: User['id'];
 
   @Type(() => Date)
   @IsDate()
