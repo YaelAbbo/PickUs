@@ -1,4 +1,5 @@
-import { Point } from 'geojson';
+import type { UUID } from 'crypto';
+import type { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
@@ -25,6 +26,9 @@ export class User extends BaseEntity {
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
 
+  @Column({ name: 'org_id', type: 'varchar' })
+  orgId: UUID;
+
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -40,13 +44,13 @@ export class User extends BaseEntity {
     nullable: true,
     name: 'current_location',
   })
-  currentLocation: Point;
+  currentLocation: Point | null;
 
   @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: 'org_id', foreignKeyConstraintName: 'user_org_id_fkey' })
   organization: Organization;
 
-  @Column({ default: true, name: 'is_temp_password' })
+  @Column({ default: true, name: 'is_temp_password', type: 'bool' })
   isTempPassword: boolean;
 
   @Column({ nullable: true, name: 'profile_image_url', type: 'varchar' })

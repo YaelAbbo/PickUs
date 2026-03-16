@@ -1,35 +1,67 @@
-import { Tabs } from 'expo-router';
-
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuth } from '@/services/auth/AuthContext';
+import { ThemeColors } from '@/theme/theme';
+import { SplashScreen } from '@components';
+import { AntDesign } from '@expo/vector-icons';
+import { Redirect, Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
+type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName };
+
+const tabScreensConfigs: TabScreenConfig[] = [
+  { name: 'home', title: 'Home', icon: 'home' },
+  { name: 'create-ride', title: 'Create Ride', icon: 'car' },
+];
+
+const tabBarBackground = () => (
+  <View style={styles.tabBarBackground}>
+    <View style={styles.divider} />
+  </View>
+);
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? 'light';
+  const { isUserLoading, user } = useAuth();
+
+  if (isUserLoading) return <SplashScreen />;
+
+  if (!user) return <Redirect href='/(auth)/login' />;
 
   return (
     <Tabs
+      initialRouteName='home'
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        title: 'PickUs',
+        tabBarActiveTintColor: ThemeColors[colorScheme].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        animation: 'shift',
+        tabBarBackground,
       }}
     >
-      <Tabs.Screen
-        name='index'
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='house.fill' color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name='explore'
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='paperplane.fill' color={color} />,
-        }}
-      />
+      {tabScreensConfigs.map(({ icon, name, title }) => (
+        <Tabs.Screen
+          key={name}
+          name={name}
+          options={{ title, tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} /> }}
+        />
+      ))}
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBarBackground: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  divider: {
+    width: StyleSheet.hairlineWidth,
+    height: '60%',
+    backgroundColor: '#ccc',
+  },
+});

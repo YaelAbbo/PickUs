@@ -1,3 +1,4 @@
+import type { WithResponse } from '@/utils/types';
 import {
   ForbiddenException,
   Injectable,
@@ -7,9 +8,12 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import type { Response } from 'express';
+import type { StringValue } from 'ms';
+import ms from 'ms';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
-import type { AuthConfig } from './types';
+import type { AuthConfig, LoginDto, WithRefreshToken } from './types';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +22,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User)
-    private usersRepo: Repository<User>,
+    private usersRepository: Repository<User>,
     private configService: ConfigService,
   ) {
     this.config = {
@@ -48,67 +52,104 @@ export class AuthService {
     };
   }
 
-  async getTokens(userId: string) {
+  async getTokens(userId: User['id']) {
     const payload = { sub: userId };
-    const atOptions: JwtSignOptions = {
-      secret: this.config.jwtAccessSecret,
-      expiresIn: this.config.jwtAccessExpiration as JwtSignOptions['expiresIn'],
-    };
-    const accessToken = await this.jwtService.signAsync(payload, atOptions);
 
-    const rtOptions: JwtSignOptions = {
-      secret: this.config.jwtRefreshSecret,
-      expiresIn: this.config
-        .jwtRefreshExpiration as JwtSignOptions['expiresIn'],
-    };
-    const refreshToken = await this.jwtService.signAsync(payload, rtOptions);
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: this.config.jwtAccessSecret,
+        expiresIn: this.config
+          .jwtAccessExpiration as JwtSignOptions['expiresIn'],
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.config.jwtRefreshSecret,
+        expiresIn: this.config
+          .jwtRefreshExpiration as JwtSignOptions['expiresIn'],
+      }),
+    ]);
 
     return { accessToken, refreshToken };
   }
 
-  async login(id: string, password: string) {
-    const user = await this.usersRepo.findOne({
-      where: { id },
+  async login({ nationalId, password, response }: WithResponse<LoginDto>) {
+    const user = (await this.usersRepository.findOne({
+      where: { nationalId },
       select: ['id', 'passwordHash'],
-    });
+    })) as Pick<User, 'id' | 'passwordHash'> | null;
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    const pwOk = await bcrypt.compare(password, user.passwordHash);
-    if (!pwOk) throw new UnauthorizedException('Invalid credentials');
+    const arePasswordsMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if (!arePasswordsMatch)
+      throw new UnauthorizedException('Invalid credentials');
 
     const tokens = await this.getTokens(user.id);
-    const hashed = await bcrypt.hash(
+    const hashedRefreshToken = await bcrypt.hash(
       tokens.refreshToken,
       this.config.bcryptSaltRounds,
     );
-    await this.usersRepo.update(user.id, { hashedRefreshToken: hashed });
+
+    await this.usersRepository.update(user.id, { hashedRefreshToken });
+
+    this.setRefreshTokenCookie(response, tokens.refreshToken);
+
     return tokens;
   }
 
-  async logout(userId: string) {
-    await this.usersRepo.update(userId, { hashedRefreshToken: null });
+  async logout({ id, response }: WithResponse<Pick<User, 'id'>>) {
+    await this.usersRepository.update(id, { hashedRefreshToken: null });
+
+    this.clearRefreshTokenCookie(response);
+
     return { success: true };
   }
 
-  async refreshTokens(userId: string, rt: string) {
-    const user = (await this.usersRepo.findOne({
-      where: { id: userId },
-      select: ['id', 'hashedRefreshToken'] as (keyof User)[],
-    })) as Pick<User, 'id' | 'hashedRefreshToken'> | null;
+  async refreshTokens({
+    id,
+    refreshToken,
+    response,
+  }: WithResponse<WithRefreshToken<Pick<User, 'id'>>>) {
+    const user = (await this.usersRepository.findOne({
+      where: { id },
+      select: ['hashedRefreshToken'],
+    })) as Pick<User, 'hashedRefreshToken'> | null;
 
     if (!user || !user.hashedRefreshToken)
       throw new ForbiddenException('Access Denied');
 
-    const matches = await bcrypt.compare(rt, user.hashedRefreshToken);
-    if (!matches) throw new ForbiddenException('Access Denied');
+    const areRefreshTokensMatch = await bcrypt.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
 
-    const tokens = await this.getTokens(user.id);
-    const hashed = await bcrypt.hash(
+    if (!areRefreshTokensMatch) throw new ForbiddenException('Access Denied');
+
+    const tokens = await this.getTokens(id);
+    const hashedRefreshToken = await bcrypt.hash(
       tokens.refreshToken,
       this.config.bcryptSaltRounds,
     );
-    await this.usersRepo.update(user.id, { hashedRefreshToken: hashed });
+
+    await this.usersRepository.update(id, { hashedRefreshToken });
+
+    this.setRefreshTokenCookie(response, tokens.refreshToken);
+
     return tokens;
   }
+
+  private setRefreshTokenCookie = (response: Response, refreshToken: string) =>
+    response.cookie(this.config.refreshTokenCookieKey, refreshToken, {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      sameSite: 'lax',
+      maxAge: ms(this.config.jwtRefreshExpiration as StringValue),
+    });
+
+  private clearRefreshTokenCookie = (response: Response) =>
+    response.clearCookie(this.config.refreshTokenCookieKey, {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      sameSite: 'lax',
+    });
 }

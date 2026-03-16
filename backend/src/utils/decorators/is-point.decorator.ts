@@ -9,7 +9,7 @@ import { Point } from 'geojson';
 
 @ValidatorConstraint({ name: 'isPoint', async: false })
 export class IsPointConstraint implements ValidatorConstraintInterface {
-  validate(value: any) {
+  validate(value: unknown) {
     if (!value || typeof value !== 'object') {
       return false;
     }

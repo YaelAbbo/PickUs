@@ -3,9 +3,21 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
     "paths": {
+      "@api": ["./src/api/api.ts"],
+      "@schemas": ["./src/schemas/index.ts"],
+      "@theme": ["./src/theme/index.ts"],
+      "@hooks": ["./src/hooks/index.ts"],
+      "@components": ["./src/components/index.ts"],
+      "@services": ["./src/services/index.ts"],
+      "@types": ["./src/utils/types.ts"],
+      "@constants": ["./src/utils/constants.ts"],
+      "@helpers": ["./src/utils/helpers.ts"],
+      "@screens": ["./src/screens/index.ts"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "src/app/(auth)/_layout.tsz"]
 }

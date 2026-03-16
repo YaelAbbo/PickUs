@@ -1,18 +1,12 @@
+import { createTestApp } from '@/test/createTestApp';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import type { UUID } from 'crypto';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
-import { DatabaseModule } from '../database/database.module';
 import { Organization } from '../database/entities';
 import { User, UserRole } from '../database/entities/user.entity';
 import { AuthModule } from './auth.module';
-
-dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -21,35 +15,17 @@ describe('AuthController (e2e)', () => {
   let organizationRepository: Repository<Organization>;
 
   const testUser = {
-    id: '36b8f84d-df4e-4d49-b662-bcde71a8764f',
+    id: '36b8f84d-df4e-4d49-b662-bcde71a8764f' as UUID,
     password: 'Password123!',
     firstName: 'Test',
     lastName: 'User',
   };
 
-  let createdOrganizationgId: string | null = null;
+  let createdOrganizationId: Organization['id'] | null = null;
 
   beforeAll(async () => {
-    // If DB_HOST is 'db' (from .env for docker), we need to use 'localhost' for local tests
-    if (process.env.DB_HOST === 'db') {
-      process.env.DB_HOST = 'localhost';
-    }
+    ({ app, dataSource } = await createTestApp(AuthModule));
 
-    const testingModule: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-        }),
-        DatabaseModule,
-        AuthModule,
-      ],
-    }).compile();
-
-    app = testingModule.createNestApplication();
-    app.use(cookieParser());
-    await app.init();
-
-    dataSource = app.get(DataSource);
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
   }, 60000);
@@ -62,9 +38,9 @@ describe('AuthController (e2e)', () => {
 
   const cleanup = async () => {
     await userRepository.delete(testUser.id);
-    if (createdOrganizationgId) {
-      await organizationRepository.delete(createdOrganizationgId);
-      createdOrganizationgId = null;
+    if (createdOrganizationId) {
+      await organizationRepository.delete(createdOrganizationId);
+      createdOrganizationId = null;
     }
   };
 
@@ -82,7 +58,7 @@ describe('AuthController (e2e)', () => {
     });
     const savedOrganization: Organization =
       await organizationRepository.save(organization);
-    createdOrganizationgId = savedOrganization.id;
+    createdOrganizationId = savedOrganization.id;
 
     const passwordHash = await bcrypt.hash(testUser.password, 10);
     const user: User = userRepository.create({

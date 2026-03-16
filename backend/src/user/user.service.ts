@@ -1,3 +1,4 @@
+import type { Organization } from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -53,7 +54,7 @@ export class UserService {
   }
 
   async update(
-    id: string,
+    id: User['id'],
     {
       firstName,
       lastName,
@@ -90,7 +91,7 @@ export class UserService {
     return await this.usersRepository.save(user);
   }
 
-  async getUserById(id: string): Promise<User> {
+  async getUserById(id: User['id']): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
       relations: ['organization'],
@@ -101,7 +102,9 @@ export class UserService {
     return user;
   }
 
-  async findAllByOrganization(organizationId: string): Promise<User[]> {
+  async findAllByOrganization(
+    organizationId: Organization['id'],
+  ): Promise<User[]> {
     return await this.usersRepository.find({
       where: {
         organization: { id: organizationId },

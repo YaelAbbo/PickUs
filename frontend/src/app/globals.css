@@ -1,0 +1,17 @@
+/* Remove browser focus outline on all React Native Web inputs */
+input:focus,
+textarea:focus {
+  outline: none !important;
+}
+
+/* Standard selection for modern browsers */
+::selection {
+  background: #f5c842;
+  color: #000;
+}
+
+/* Firefox specific selection */
+::-moz-selection {
+  background: #f5c842;
+  color: #000;
+}

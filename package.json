@@ -2,6 +2,7 @@
   "name": "pickus",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "authors": [
     "Natan Sinai",
     "Shira Magrafta",
@@ -40,17 +41,19 @@
     "prettier": "^3.8.1"
   },
   "lint-staged": {
-    "backend/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
-      "bash -c 'pushd backend && npm run format && git add . && npm run lint && git add . && popd'"
-    ],
-    "frontend/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
-      "bash -c 'pushd frontend && npm run format && git add . && npm run lint && git add . && popd'"
-    ],
-    "*.{js,json,css,scss,md}": [
+    "backend/**/*.{js,jsx,ts,tsx}": [
       "prettier --write",
-      "git add .",
-      "eslint --fix",
-      "git add ."
+      "eslint --fix"
+    ],
+    "backend/**/*.{json,css,scss,md}": [
+      "prettier --write"
+    ],
+    "frontend/**/*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "frontend/**/*.{json,css,scss,md}": [
+      "prettier --write"
     ]
   }
 }

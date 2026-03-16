@@ -1,3 +1,4 @@
+import { UseAccessAuth } from '@/auth/decorators';
 import {
   Body,
   Controller,
@@ -7,7 +8,6 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UseAccessAuth } from '../auth/auth.decorator';
 import { Organization, User } from '../database/entities';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
