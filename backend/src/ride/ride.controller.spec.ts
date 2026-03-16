@@ -1,15 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
 import { Server } from 'http';
-import * as path from 'path';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { DatabaseModule } from '../database/database.module';
 import {
   Organization,
   Ride,
@@ -17,9 +11,8 @@ import {
   User,
   UserRole,
 } from '../database/entities';
+import { createTestApp } from '../test/createTestApp';
 import { RideModule } from './ride.module';
-
-dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 describe('RideController', () => {
   let app: INestApplication;
@@ -35,7 +28,7 @@ describe('RideController', () => {
   let createdRideId: string | null = null;
 
   const adminUser = {
-    id: '22222222-2222-4222-8222-222222222222',
+    id: crypto.randomUUID(),
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
@@ -43,7 +36,7 @@ describe('RideController', () => {
   };
 
   const testDriver = {
-    id: '33333333-3333-4333-8333-333333333333',
+    id: crypto.randomUUID(),
     firstName: 'Driver',
     lastName: 'Test',
     nationalId: 'driver-national-id-test',
@@ -59,32 +52,9 @@ describe('RideController', () => {
   };
 
   beforeAll(async () => {
-    if (process.env.DB_HOST === 'db') {
-      process.env.DB_HOST = 'localhost';
-    }
-
-    const testingModule: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        DatabaseModule,
-        RideModule,
-        AuthModule,
-      ],
-    }).compile();
-
-    app = testingModule.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    await app.init();
+    ({ app, dataSource } = await createTestApp(RideModule, AuthModule));
 
     httpServer = app.getHttpServer() as Server;
-    dataSource = app.get(DataSource);
     rideRepository = dataSource.getRepository(Ride);
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
@@ -122,7 +92,7 @@ describe('RideController', () => {
 
     const loginRes = await request(httpServer)
       .post('/auth/login')
-      .send({ id: adminUser.id, password: adminUser.password });
+      .send({ nationalId: adminUser.nationalId, password: adminUser.password });
 
     adminAccessToken = loginRes.body.accessToken;
   }, 60000);
