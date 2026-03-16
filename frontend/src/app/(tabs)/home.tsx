@@ -16,8 +16,8 @@ export default function HomeScreen() {
   useEffect(() => {
     fetch(`${process.env.EXPO_PUBLIC_API_URL}/health`)
       .then((response) => response.json())
-      .then(({ status }) => setApiStatus(`✅ ${status}`))
-      .catch(() => setApiStatus('❌ Backend unreachable'));
+      .then(({ status }) => setApiStatus(status))
+      .catch(() => setApiStatus('Backend unreachable'));
   }, []);
 
   return (

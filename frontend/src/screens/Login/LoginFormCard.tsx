@@ -42,7 +42,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
       <Controller
         control={control}
         name='nationalId'
-        render={({ field: { onChange, onBlur, value } }) => (
+        render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <AppTextInput
             nativeID='תעודת זהות'
             label='תעודת זהות'
@@ -56,7 +56,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
             autoCapitalize='none'
             autoCorrect={false}
             maxLength={9}
-            error={errors.nationalId?.message}
+            error={error?.message}
           />
         )}
       />
@@ -65,7 +65,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
         <Controller
           control={control}
           name='password'
-          render={({ field: { onChange, onBlur, value } }) => (
+          render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
             <AppTextInput
               nativeID='סיסמה'
               label='סיסמה'
@@ -77,7 +77,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
               onSubmitEditing={onSubmit}
               textContentType='password'
               autoComplete='password'
-              error={errors.password?.message}
+              error={error?.message}
             />
           )}
         />

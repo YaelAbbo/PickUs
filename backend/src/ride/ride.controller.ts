@@ -1,0 +1,68 @@
+import { UseAccessAuth } from '@/auth/auth.decorator';
+import { Organization, Ride, User } from '@/database/entities';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+import { CreateRideDto } from './dto/create-ride.dto';
+import { UpdateRideDto } from './dto/update-ride.dto';
+import { RideService } from './ride.service';
+
+@Controller('rides')
+export class RideController {
+  constructor(private readonly rideService: RideService) {}
+
+  @UseAccessAuth()
+  @Post()
+  async createRide(@Body() createRideDto: CreateRideDto): Promise<Ride> {
+    return await this.rideService.createRide(createRideDto);
+  }
+
+  @UseAccessAuth()
+  @Get()
+  async getAllRides(): Promise<Ride[]> {
+    return await this.rideService.getAllRides();
+  }
+
+  @UseAccessAuth()
+  @Get(':id')
+  async getRideById(@Param('id') id: Ride['id']): Promise<Ride> {
+    return await this.rideService.getRideById(id);
+  }
+
+  @UseAccessAuth()
+  @Get('organization/:organizationId')
+  async getRidesByOrganizationId(
+    @Param('organizationId') organizationId: Organization['id'],
+  ): Promise<Ride[]> {
+    return await this.rideService.getRidesByOrganizationId(organizationId);
+  }
+
+  @UseAccessAuth()
+  @Get('driver/:driverId')
+  async getRidesByDriverId(
+    @Param('driverId') driverId: User['id'],
+  ): Promise<Ride[]> {
+    return await this.rideService.getRidesByDriverId(driverId);
+  }
+
+  @UseAccessAuth()
+  @Patch(':id')
+  async updateRide(
+    @Param('id') id: Ride['id'],
+    @Body() updateRideDto: UpdateRideDto,
+  ): Promise<Ride> {
+    return await this.rideService.updateRide(id, updateRideDto);
+  }
+
+  @UseAccessAuth()
+  @Delete(':id')
+  async deleteRide(@Param('id') id: Ride['id']): Promise<void> {
+    return await this.rideService.deleteRide(id);
+  }
+}
