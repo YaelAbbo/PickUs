@@ -1,5 +1,6 @@
 import { REQUIRED } from '@constants';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { userSchema } from '@schemas';
 import { useAuth } from '@services';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -7,10 +8,7 @@ import { z } from 'zod';
 
 const DEFAULT_ERROR = 'תעודת זהות או סיסמה שגויים';
 
-const schema = z.object({
-  nationalId: z.string().nonempty(REQUIRED).max(9, 'תעודת זהות בעלת 9 ספרות'),
-  password: z.string().nonempty(REQUIRED),
-});
+const schema = userSchema.pick({ nationalId: true }).extend({ password: z.string().nonempty(REQUIRED) });
 
 export type LoginFormValues = z.infer<typeof schema>;
 
@@ -31,7 +29,7 @@ export const useLoginForm = ({ onLoginSuccess, startShake }: UseLoginFormArgs) =
   } = useForm<LoginFormValues>({
     resolver: zodResolver(schema),
     defaultValues: { nationalId: '', password: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
 
   useEffect(() => {

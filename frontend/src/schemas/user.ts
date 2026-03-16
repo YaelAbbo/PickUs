@@ -1,3 +1,5 @@
+import { REQUIRED } from '@constants';
+import { isValidIsraeliId } from '@helpers';
 import { z } from 'zod';
 import { entityMetadata } from './genericSchemas';
 
@@ -9,9 +11,13 @@ export enum UserRole {
 }
 
 export const userSchema = entityMetadata.extend({
-  nationalId: z.string().nonempty('User first name is required').max(9, 'User national id must be maximum 9 digits'),
-  firstName: z.string().min(1, 'User first name is required'),
-  lastName: z.string().min(1, 'User last name is required'),
+  nationalId: z
+    .string()
+    .nonempty(REQUIRED)
+    .max(9, { error: ({ maximum }) => `תעודת זהות בעלת ${maximum} ספרות` })
+    .refine(isValidIsraeliId, 'תעודת זהות לא תקינה'),
+  firstName: z.string().nonempty(REQUIRED),
+  lastName: z.string().nonempty(REQUIRED),
   role: z.enum(UserRole, 'User role must be of type UserRole'),
   isTempPassword: z.boolean(),
   profileImageUrl: z.url().nullable(),

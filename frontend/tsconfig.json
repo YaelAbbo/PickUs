@@ -14,6 +14,7 @@
       "@services": ["./src/services/index.ts"],
       "@types": ["./src/utils/types.ts"],
       "@constants": ["./src/utils/constants.ts"],
+      "@helpers": ["./src/utils/helpers.ts"],
       "@screens": ["./src/screens/index.ts"],
       "@/*": ["./src/*"]
     }
