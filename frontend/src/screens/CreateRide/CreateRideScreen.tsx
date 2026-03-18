@@ -11,11 +11,7 @@ import { useCreateRideForm } from './hooks/useCreateRideForm';
 export const CreateRideScreen: FC = () => {
   const router = useRouter();
   const {
-    form: {
-      control,
-      watch,
-      formState: { errors },
-    },
+    form: { control },
     stops,
     addStop,
     removeStop,
@@ -24,8 +20,6 @@ export const CreateRideScreen: FC = () => {
     mutationError,
   } = useCreateRideForm();
 
-  const seats = watch('seats');
-
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
       <View style={styles.inner}>
@@ -33,106 +27,98 @@ export const CreateRideScreen: FC = () => {
 
         {/* ── General Details ── */}
         <SectionCard title='פרטים כלליים' style={{ zIndex: 20 }}>
-          <Controller
-            control={control}
-            name='rideDate'
-            render={({ field }) => (
-              <DateInput
-                label='תאריך נסיעה'
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.rideDate?.message}
-                minimumDate={new Date()}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name='startTime'
-            render={({ field: timeField }) => (
-              <Controller
-                control={control}
-                name='origin'
-                render={({ field: locField }) => (
-                  <LocationRow
-                    label='התחלה'
-                    timeValue={timeField.value}
-                    onTimeChange={timeField.onChange}
-                    timeError={errors.startTime?.message}
-                    locationValue={locField.value}
-                    onLocationChange={(text) => locField.onChange(text)}
-                    locationError={errors.origin?.message}
-                  />
-                )}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name='endTime'
-            render={({ field: timeField }) => (
-              <Controller
-                control={control}
-                name='destination'
-                render={({ field: locField }) => (
-                  <LocationRow
-                    label='סיום'
-                    timeValue={timeField.value}
-                    onTimeChange={timeField.onChange}
-                    timeError={errors.endTime?.message}
-                    locationValue={locField.value}
-                    onLocationChange={(text) => locField.onChange(text)}
-                    locationError={errors.destination?.message}
-                  />
-                )}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name='seats'
-            render={({ field }) => <SeatsSlider value={seats} onChange={field.onChange} />}
-          />
-
-          <Controller
-            control={control}
-            name='isReturnTrip'
-            render={({ field }) => <ReturnTripToggle value={field.value} onChange={field.onChange} />}
-          />
-        </SectionCard>
-
-        {/* ── Stops ── */}
-        <SectionCard title='תחנות עצירה'>
-          {stops.map((stop, index) => (
+          <View style={{ gap: spacing.md }}>
             <Controller
-              key={stop.id}
               control={control}
-              name={`stops.${index}.time`}
-              render={({ field: timeField }) => (
+              name='rideDate'
+              render={({ field, fieldState: { error } }) => (
+                <DateInput label='תאריך נסיעה' {...field} error={error?.message} />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name='startTime'
+              render={({ field: startTimeField, fieldState: { error: startTimeError } }) => (
                 <Controller
                   control={control}
-                  name={`stops.${index}.location`}
-                  render={({ field: locField }) => (
+                  name='origin'
+                  render={({ field: originField, fieldState: { error: locationError } }) => (
                     <LocationRow
-                      label={`תחנה ${index + 1}`}
-                      timeValue={timeField.value}
-                      onTimeChange={timeField.onChange}
-                      timeError={errors.stops?.[index]?.time?.message}
-                      locationValue={locField.value}
-                      onLocationChange={(text) => locField.onChange(text)}
-                      locationError={errors.stops?.[index]?.location?.message}
-                      onRemove={() => removeStop(index)}
+                      label='התחלה'
+                      timeValue={startTimeField.value}
+                      onTimeChange={startTimeField.onChange}
+                      timeError={startTimeError?.message}
+                      locationValue={originField.value}
+                      onLocationChange={originField.onChange}
+                      locationError={locationError?.message}
                     />
                   )}
                 />
               )}
             />
-          ))}
 
-          <AddStopButton onPress={addStop} />
+            <Controller
+              control={control}
+              name='endTime'
+              render={({ field: endTimeField, fieldState: { error: endTimeError } }) => (
+                <Controller
+                  control={control}
+                  name='destination'
+                  render={({ field: destinationField, fieldState: { error: destinationError } }) => (
+                    <LocationRow
+                      label='סיום'
+                      timeValue={endTimeField.value}
+                      onTimeChange={endTimeField.onChange}
+                      timeError={endTimeError?.message}
+                      locationValue={destinationField.value}
+                      onLocationChange={destinationField.onChange}
+                      locationError={destinationError?.message}
+                    />
+                  )}
+                />
+              )}
+            />
+          </View>
+
+          <View>
+            <Controller control={control} name='seats' render={({ field }) => <SeatsSlider {...field} />} />
+
+            <Controller control={control} name='isReturnTrip' render={({ field }) => <ReturnTripToggle {...field} />} />
+          </View>
+        </SectionCard>
+
+        {/* ── Stops ── */}
+        <SectionCard title='תחנות עצירה'>
+          <View style={{ gap: spacing.md }}>
+            {stops.map((stop, index) => (
+              <Controller
+                key={stop.id}
+                control={control}
+                name={`stops.${index}.time`}
+                render={({ field: timeField, fieldState: { error: timeError } }) => (
+                  <Controller
+                    control={control}
+                    name={`stops.${index}.location`}
+                    render={({ field: locationField, fieldState: { error: locationError } }) => (
+                      <LocationRow
+                        label={`תחנה ${index + 1}`}
+                        timeValue={timeField.value}
+                        onTimeChange={timeField.onChange}
+                        timeError={timeError?.message}
+                        locationValue={locationField.value}
+                        onLocationChange={(text) => locationField.onChange(text)}
+                        locationError={locationError?.message}
+                        onRemove={() => removeStop(index)}
+                      />
+                    )}
+                  />
+                )}
+              />
+            ))}
+
+            <AddStopButton onPress={addStop} />
+          </View>
         </SectionCard>
 
         {/* ── Mutation error ── */}
@@ -169,14 +155,14 @@ const styles = StyleSheet.create({
   inner: {
     width: '100%',
     maxWidth: IS_WEB ? 560 : undefined,
+    marginTop: spacing.lg,
   },
   screenTitle: {
     fontFamily: typography.fonts.bold,
     fontSize: IS_WEB ? typography.sizes.xxl : typography.sizes.xl,
     color: colors.textPrimary,
     textAlign: 'center',
-    marginBottom: IS_WEB ? spacing.xl : spacing.lg,
-    marginTop: IS_WEB ? spacing.lg : spacing.sm,
+    marginBottom: spacing.sm,
   },
   mutationError: {
     fontFamily: typography.fonts.regular,

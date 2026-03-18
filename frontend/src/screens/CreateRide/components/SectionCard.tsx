@@ -15,6 +15,7 @@ export const SectionCard: FC<SectionCardProps> = ({ title, children, style }) =>
     <Text style={styles.title}>{title}</Text>
 
     <Divider style={styles.divider} />
+
     {children}
   </View>
 );
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     paddingTop: IS_WEB ? spacing.md : spacing.sm,
     paddingBottom: IS_WEB ? spacing.lg : spacing.md,
     marginBottom: IS_WEB ? spacing.lg : spacing.md,
-    gap: IS_WEB ? spacing.md : spacing.sm,
+    gap: IS_WEB ? spacing.md : spacing.xs,
   },
   title: {
     fontFamily: typography.fonts.bold,

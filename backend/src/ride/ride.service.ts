@@ -1,4 +1,4 @@
-import { Ride } from '@/database/entities';
+import { Ride, type Organization } from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -44,7 +44,7 @@ export class RideService {
     });
   }
 
-  async getRideById(id: string): Promise<Ride> {
+  async getRideById(id: Ride['id']): Promise<Ride> {
     const ride = await this.ridesRepository.findOne({
       where: { id, isDeleted: false },
       relations: ['organization', 'driver', 'rideStops'],
@@ -57,14 +57,16 @@ export class RideService {
     return ride;
   }
 
-  async getRidesByOrganizationId(organizationId: string): Promise<Ride[]> {
+  async getRidesByOrganizationId(
+    organizationId: Organization['id'],
+  ): Promise<Ride[]> {
     return await this.ridesRepository.find({
       where: { orgId: organizationId, isDeleted: false },
       relations: ['driver', 'rideStops'],
     });
   }
 
-  async getRidesByDriverId(driverId: string): Promise<Ride[]> {
+  async getRidesByDriverId(driverId: Ride['driverId']): Promise<Ride[]> {
     return await this.ridesRepository.find({
       where: { driverId, isDeleted: false },
       relations: ['organization', 'rideStops'],
@@ -72,7 +74,7 @@ export class RideService {
   }
 
   async updateRide(
-    id: string,
+    id: Ride['id'],
     { organizationId, driverId, rideStops, ...rest }: UpdateRideDto,
   ): Promise<Ride> {
     const preloadPayload: DeepPartial<Ride> = {

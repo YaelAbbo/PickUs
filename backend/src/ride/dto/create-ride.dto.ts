@@ -1,4 +1,4 @@
-import { RideStatus } from '@/database/entities/ride.entity';
+import { RideStatus, type Ride } from '@/database/entities/ride.entity';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -18,11 +18,11 @@ import { CreateRideStopDto } from './create-ride-stop.dto';
 export class CreateRideDto {
   @IsUUID()
   @IsNotEmpty()
-  organizationId: string;
+  organizationId: Ride['orgId'];
 
   @IsUUID()
   @IsNotEmpty()
-  driverId: string;
+  driverId: Ride['driverId'];
 
   @Type(() => Date)
   @IsDate()

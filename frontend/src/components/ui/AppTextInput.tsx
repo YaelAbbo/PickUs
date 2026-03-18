@@ -10,7 +10,8 @@ export type AppTextInputProps = Omit<ComponentProps<typeof TextInput>, 'style' |
   label?: string;
   rightIconName?: ComponentProps<typeof Ionicons>['name'];
   isPassword?: boolean;
-  error?: string;
+  isError?: boolean;
+  helperText?: string;
 };
 
 export const AppTextInput: FC<AppTextInputProps> = ({
@@ -19,14 +20,13 @@ export const AppTextInput: FC<AppTextInputProps> = ({
   isPassword,
   value,
   onChangeText,
-  error,
+  isError,
+  helperText,
   ...props
 }) => {
   const { value: showPassword, toggle: toggleShowPassword } = useBoolean();
 
-  const hasError = !!error;
-
-  const getColor = (focused: boolean) => (hasError ? colors.error : focused ? colors.yellowLight : colors.textMuted);
+  const getColor = (focused: boolean) => (isError ? colors.error : focused ? colors.yellowLight : colors.textMuted);
 
   const clearIcon = value ? (
     <TextInput.Icon
@@ -52,14 +52,14 @@ export const AppTextInput: FC<AppTextInputProps> = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: isError ? colors.error : colors.yellowLight }]}>{label}</Text>}
 
       <TextInput
         mode='outlined'
         label=''
         value={value}
         onChangeText={onChangeText}
-        error={hasError}
+        error={isError}
         secureTextEntry={isPassword && !showPassword}
         textAlign={isPassword && !showPassword ? 'left' : 'right'}
         contentStyle={[styles.content, isPassword && !showPassword && { writingDirection: 'ltr', textAlign: 'left' }]}
@@ -84,9 +84,14 @@ export const AppTextInput: FC<AppTextInputProps> = ({
         {...props}
       />
 
-      <HelperText type='error' visible={hasError} style={styles.helperText}>
-        {error}
-      </HelperText>
+      {!!helperText && (
+        <HelperText
+          type={isError ? 'error' : 'info'}
+          style={[styles.helperText, { color: isError ? colors.error : colors.textMuted }]}
+        >
+          {helperText}
+        </HelperText>
+      )}
     </View>
   );
 };
@@ -118,8 +123,8 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.sm,
-    color: colors.error,
     paddingHorizontal: 0,
+    paddingVertical: 0,
     alignSelf: IS_WEB ? 'auto' : 'flex-start',
   },
 });

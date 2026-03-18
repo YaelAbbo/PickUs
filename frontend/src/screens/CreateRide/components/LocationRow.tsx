@@ -8,8 +8,8 @@ import { TimeInput } from './TimeInput';
 
 export type LocationRowProps = {
   label: string;
-  timeValue: string;
-  onTimeChange: (v: string) => void;
+  timeValue: Date;
+  onTimeChange: (value: Date | undefined) => void;
   timeError?: string;
   locationValue: string;
   onLocationChange: (value: string, place?: PlaceResult) => void;
@@ -43,7 +43,7 @@ export const LocationRow: FC<LocationRowProps> = ({
       </View>
 
       {onRemove && (
-        <TouchableOpacity onPress={onRemove} style={styles.removeBtn} hitSlop={8}>
+        <TouchableOpacity onPress={onRemove} style={styles.removeButton} hitSlop={8}>
           <Ionicons name='close-circle' size={22} color={colors.error} />
         </TouchableOpacity>
       )}
@@ -68,13 +68,12 @@ const styles = StyleSheet.create({
   },
   timeWrapper: {
     width: IS_WEB ? 100 : 92,
-    marginBottom: spacing.sm,
   },
   locationWrapper: {
     flex: 1,
     zIndex: 10,
   },
-  removeBtn: {
-    marginTop: spacing.md,
+  removeButton: {
+    marginTop: spacing.md + 2,
   },
 });

@@ -1,7 +1,9 @@
+import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { addHours, subHours } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { last } from 'lodash';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { postCreateRide } from '../api';
 import { createRideSchema, type CreateRideFormValues } from '../schema';
@@ -14,43 +16,46 @@ export const useCreateRideForm = () => {
   const form = useForm<CreateRideFormValues>({
     resolver: zodResolver(createRideSchema),
     defaultValues: {
-      startTime: '08:00',
+      rideDate: getTomorrowAt8AM(),
+      startTime: getTomorrowAt8AM(),
+      endTime: getTomorrowAt(9),
       origin: '',
-      endTime: '09:00',
       destination: '',
       seats: 3,
       isReturnTrip: false,
       stops: [],
     },
+    mode: 'onChange',
   });
 
-  const stopsArray = useFieldArray<CreateRideFormValues, 'stops'>({
-    control: form.control,
-    name: 'stops',
-  });
+  const stopsArray = useFieldArray<CreateRideFormValues, 'stops'>({ control: form.control, name: 'stops' });
 
   const {
-    mutate,
+    mutateAsync,
     isPending,
     error: mutationError,
   } = useMutation({
     mutationFn: postCreateRide,
-    onSuccess: () => router.back(),
+    onSuccess: router.back,
+    onError: () => form.setError('root', { message: 'קרתה שגיאה ביצירת הנסיעה' }),
   });
 
-  const onSubmit = useCallback((values: CreateRideFormValues) => mutate(values), [mutate]);
+  const [stops, startTime] = form.watch(['stops', 'startTime']);
 
-  const addStop = useCallback(() => stopsArray.append({ time: '08:00', location: '' }), [stopsArray]);
+  const onSubmit = form.handleSubmit((values: CreateRideFormValues) => mutateAsync(values));
 
-  const removeStop = useCallback((index: number) => stopsArray.remove(index), [stopsArray]);
+  const addStop = () => {
+    const lastStopTime = last(stops)?.time ?? subHours(startTime, 1);
+    const nextStopTime = addHours(lastStopTime, 1);
 
-  return {
-    form,
-    stops: stopsArray.fields,
-    addStop,
-    removeStop,
-    onSubmit: form.handleSubmit(onSubmit),
-    isPending,
-    mutationError,
+    stopsArray.append({ time: nextStopTime, location: '' });
   };
+
+  const removeStop = (index: number) => {
+    stopsArray.remove(index);
+
+    form.trigger('stops');
+  };
+
+  return { form, stops: stopsArray.fields, addStop, removeStop, onSubmit, isPending, mutationError };
 };

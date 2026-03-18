@@ -66,7 +66,8 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
         onFocus={() => (results.length > 0 || isSearching) && setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder ?? label ?? ''}
-        error={error}
+        isError={!!error}
+        helperText={error}
         rightIconName='location-outline'
         autoCorrect={false}
         autoComplete='off'

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
+import type { UUID } from 'crypto';
 import * as dotenv from 'dotenv';
 import { Server } from 'http';
 import * as path from 'path';
@@ -35,7 +36,7 @@ describe('RideController', () => {
   let createdRideId: string | null = null;
 
   const adminUser = {
-    id: '22222222-2222-4222-8222-222222222222',
+    id: '22222222-2222-4222-8222-222222222222' as UUID,
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
@@ -43,7 +44,7 @@ describe('RideController', () => {
   };
 
   const testDriver = {
-    id: '33333333-3333-4333-8333-333333333333',
+    id: '33333333-3333-4333-8333-333333333333' as UUID,
     firstName: 'Driver',
     lastName: 'Test',
     nationalId: 'driver-national-id-test',

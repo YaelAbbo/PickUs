@@ -1,3 +1,4 @@
+import type { UUID } from 'crypto';
 import { Point } from 'geojson';
 import {
   Check,
@@ -32,7 +33,7 @@ export class Ride extends BaseEntity {
   organization: Organization;
 
   @Column({ name: 'org_id' })
-  orgId: string;
+  orgId: UUID;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({
@@ -42,7 +43,7 @@ export class Ride extends BaseEntity {
   driver: User;
 
   @Column({ name: 'driver_id' })
-  driverId: string;
+  driverId: UUID;
 
   @Column({ type: 'timestamptz', name: 'starts_at' })
   startsAt: Date;

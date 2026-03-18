@@ -6,29 +6,10 @@ import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { HelperText } from 'react-native-paper';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** "HH:MM" → Date at that time today */
-function timeStringToDate(time: string): Date {
-  const [hours = 0, minutes = 0] = time.split(':').map(Number);
-  const d = new Date();
-  d.setHours(hours, minutes, 0, 0);
-  return d;
-}
-
-/** Date → "HH:MM" */
-function dateToTimeString(date: Date): string {
-  const hh = String(date.getHours()).padStart(2, '0');
-  const mm = String(date.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export type TimeInputProps = {
   label?: string;
-  value: string; // "HH:MM"
-  onChange: (value: string) => void;
+  value: Date;
+  onChange: (value: Date | undefined) => void;
   error?: string;
 };
 
@@ -39,8 +20,11 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
     // On Android the picker closes itself; on iOS we close on confirm
     if (Platform.OS === 'android') setShowPicker(false);
-    if (selected) onChange(dateToTimeString(selected));
+
+    onChange(selected);
   };
+
+  const displayValue = value ? value.toLocaleTimeString('he-IL', { timeStyle: 'short' }) : 'בחירת זמן';
 
   return (
     <View style={styles.container}>
@@ -59,7 +43,7 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
           style={styles.icon}
         />
 
-        <Text style={[styles.value, !value && styles.placeholder]}>{value || '00:00'}</Text>
+        <Text style={[styles.value, !value && styles.placeholder]}>{displayValue}</Text>
       </Pressable>
 
       {hasError && (
@@ -70,7 +54,7 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
 
       {showPicker && (
         <DateTimePicker
-          value={timeStringToDate(value || '00:00')}
+          value={value}
           mode='time'
           is24Hour
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
@@ -82,8 +66,6 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
     </View>
   );
 };
-
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {

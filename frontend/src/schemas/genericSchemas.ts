@@ -1,3 +1,4 @@
+import { REQUIRED } from '@constants';
 import type { UUID } from 'crypto';
 import { z } from 'zod';
 
@@ -8,3 +9,7 @@ export const entityMetadata = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
+
+export const dateSchema = z.date(REQUIRED);
+
+export const locationSchema = z.string(REQUIRED).min(3, 'יש להזין מיקום');

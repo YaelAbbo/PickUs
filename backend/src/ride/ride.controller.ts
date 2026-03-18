@@ -1,4 +1,4 @@
-import { UseAccessAuth } from '@/auth/auth.decorator';
+import { UseAccessAuth } from '@/auth/decorators';
 import { Organization, Ride, User } from '@/database/entities';
 import {
   Body,
