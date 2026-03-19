@@ -4,7 +4,7 @@ import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { type PlaceResult, useLocationSearch } from '../hooks/useLocationSearch';
+import { type PlaceResult, useLocationSearch } from '../hooks';
 
 export type { PlaceResult };
 

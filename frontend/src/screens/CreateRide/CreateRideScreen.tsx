@@ -5,13 +5,13 @@ import { useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AddStopButton, DateInput, LocationRow, ReturnTripToggle, SeatsSlider, SectionCard } from './components';
-import { useCreateRideForm } from './hooks/useCreateRideForm';
+import { AddStopButton, DateInput, LocationRow, SeatsCounter, SectionCard, TripTypeSegment } from './components';
+import { useCreateRideForm } from './hooks';
 
 export const CreateRideScreen: FC = () => {
   const router = useRouter();
   const {
-    form: { control },
+    form: { control, reset },
     stops,
     addStop,
     removeStop,
@@ -20,12 +20,17 @@ export const CreateRideScreen: FC = () => {
     mutationError,
   } = useCreateRideForm();
 
+  const onExit = () => {
+    router.back();
+
+    reset();
+  };
+
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
       <View style={styles.inner}>
         <Text style={styles.screenTitle}>יצירת נסיעה</Text>
 
-        {/* ── General Details ── */}
         <SectionCard title='פרטים כלליים' style={{ zIndex: 20 }}>
           <View style={{ gap: spacing.md }}>
             <Controller
@@ -82,13 +87,12 @@ export const CreateRideScreen: FC = () => {
           </View>
 
           <View>
-            <Controller control={control} name='seats' render={({ field }) => <SeatsSlider {...field} />} />
+            <Controller control={control} name='seats' render={({ field }) => <SeatsCounter {...field} />} />
 
-            <Controller control={control} name='isReturnTrip' render={({ field }) => <ReturnTripToggle {...field} />} />
+            <Controller control={control} name='isReturnTrip' render={({ field }) => <TripTypeSegment {...field} />} />
           </View>
         </SectionCard>
 
-        {/* ── Stops ── */}
         <SectionCard title='תחנות עצירה'>
           <View style={{ gap: spacing.md }}>
             {stops.map((stop, index) => (
@@ -121,16 +125,14 @@ export const CreateRideScreen: FC = () => {
           </View>
         </SectionCard>
 
-        {/* ── Mutation error ── */}
         {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
 
-        {/* ── Actions ── */}
         <View style={styles.actions}>
           <AppButton label='אישור' onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
 
           <AppButton
             label='ביטול'
-            onPress={() => router.back()}
+            onPress={onExit}
             disabled={isPending}
             style={styles.cancelBtn}
             labelStyle={{ color: colors.textPrimary }}
