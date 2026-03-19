@@ -1,6 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { getTomorrowAt8AM } from '@helpers';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, {
+  type AndroidNativeProps,
+  type DateTimePickerEvent,
+  type IOSNativeProps,
+  type WindowsNativeProps,
+} from '@react-native-community/datetimepicker';
 import { colors, radii, spacing, typography } from '@theme';
 import type { ComponentProps, FC } from 'react';
 import { useState } from 'react';
@@ -62,7 +67,7 @@ export const DateInput: FC<DateInputProps> = ({
           locale='he'
           onChange={handleChange}
           {...(Platform.OS === 'ios' && { onTouchCancel: () => setShowPicker(false) })}
-          {...(props as unknown)}
+          {...(props as Partial<IOSNativeProps | AndroidNativeProps | WindowsNativeProps>)}
         />
       )}
     </View>
