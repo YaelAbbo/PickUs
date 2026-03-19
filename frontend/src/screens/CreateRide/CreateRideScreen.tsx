@@ -23,7 +23,7 @@ export const CreateRideScreen: FC = () => {
   const onExit = () => {
     router.back();
 
-    reset();
+    setTimeout(() => reset(), 100);
   };
 
   return (
