@@ -109,6 +109,7 @@ export class UserService {
   ): Promise<{ data: User[]; total: number; hasNextPage: boolean }> {
     const query = this.usersRepository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.organization', 'organization')
       .where('user.organization = :organizationId', { organizationId })
       .andWhere('user.isDeleted = false');
 

@@ -1,4 +1,5 @@
 import { i18n } from '@/i18n';
+import { colors } from '@theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -8,60 +9,64 @@ interface ActionItemProps {
   label: string;
   onPress: () => void;
   color: string;
+  disabled?: boolean;
 }
 
-const ActionItem: React.FC<ActionItemProps> = ({ icon, label, onPress, color }) => (
-  <TouchableOpacity style={styles.actionButton} onPress={onPress} activeOpacity={0.7}>
-    <View style={[styles.iconContainer, { backgroundColor: actionColorVariants[color] || '#F0F4F8' }]}>
-      <MaterialIcons name={icon} size={28} color={color} />
+const ActionItem: React.FC<ActionItemProps> = ({ icon, label, onPress, color, disabled }) => (
+  <TouchableOpacity
+    style={[styles.actionButton, disabled && { opacity: 0.4 }]}
+    onPress={onPress}
+    activeOpacity={0.7}
+    disabled={disabled}
+  >
+    <View style={[styles.iconContainer, { backgroundColor: colors.inputBg }]}>
+      <MaterialIcons name={icon} size={28} color={disabled ? colors.textMuted : color} />
     </View>
-    <Text style={styles.actionLabel}>{label}</Text>
+    <Text style={[styles.actionLabel, disabled && { color: colors.textMuted }]}>{label}</Text>
   </TouchableOpacity>
 );
-
-const actionColorVariants: Record<string, string> = {
-  '#1A73E8': '#E8F0FE', // Google Blue
-  '#188038': '#E6F4EA', // Google Green
-  '#D93025': '#FCE8E6', // Google Red
-  '#F29900': '#FEF7E0', // Google Yellow
-};
 
 interface UserActionsProps {
   onCreate?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onExport?: () => void;
+  hasUsers?: boolean;
 }
 
-const UserActions: React.FC<UserActionsProps> = ({ onCreate, onEdit, onDelete, onExport }) => {
+const UserActions: React.FC<UserActionsProps> = ({ onCreate, onEdit, onDelete, onExport, hasUsers = false }) => {
   const actions = [
     {
       id: '1',
       label: i18n.hr_actions.create_user,
       icon: 'person-add' as const,
-      color: '#1A73E8', // Google Blue
+      color: colors.yellow,
       onPress: () => onCreate?.(),
+      disabled: false,
     },
     {
       id: '2',
       label: i18n.hr_actions.edit_user,
       icon: 'edit' as const,
-      color: '#188038', // Google Green
+      color: colors.white,
       onPress: () => onEdit?.(),
+      disabled: !hasUsers,
     },
     {
       id: '3',
       label: i18n.hr_actions.delete_user,
       icon: 'delete' as const,
-      color: '#D93025', // Google Red
+      color: colors.error,
       onPress: () => onDelete?.(),
+      disabled: !hasUsers,
     },
     {
       id: '4',
       label: i18n.hr_actions.export_to_excel,
       icon: 'table-chart' as const,
-      color: '#F29900', // Google Yellow
+      color: colors.yellowLight,
       onPress: () => onExport?.(),
+      disabled: !hasUsers,
     },
   ];
 
@@ -77,6 +82,7 @@ const UserActions: React.FC<UserActionsProps> = ({ onCreate, onEdit, onDelete, o
               label={action.label}
               onPress={action.onPress}
               color={action.color}
+              disabled={action.disabled}
             />
           ))}
         </View>
@@ -94,22 +100,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.purpleCard,
     borderRadius: 24,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 8,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#202124', // Google Dark Gray
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 20,
     textAlign: 'right',
   },
@@ -124,17 +127,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28, // fully rounded like FABs
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   actionLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#3C4043',
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textLight,
     textAlign: 'center',
   },
 });

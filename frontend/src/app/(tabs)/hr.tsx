@@ -2,24 +2,27 @@ import { createUser, deleteUser, fetchUsers, updateUser, User } from '@/api/user
 import Toast from '@/components/common/Toast';
 import EmployeeTable from '@/components/hr/EmployeeTable';
 import HRActionsPopup, { PopupMode } from '@/components/hr/HRActionsPopup';
+import DeleteConfirmationPopup from '@/components/hr/DeleteConfirmationPopup';
 import UserActions from '@/components/hr/UserActions';
+import { AppBackground } from '@/components/ui/AppBackground';
 import { i18n } from '@/i18n';
 import { useAuth } from '@services';
+import { colors } from '@theme';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HRPage() {
   const queryClient = useQueryClient();
 
   const [activeQuery, setActiveQuery] = useState('');
-  const {user} = useAuth();
-  const orgId = user?.organizationId;
-  
+  const { user } = useAuth();
+  const orgId = user?.orgId;
+
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMode, setPopupMode] = useState<PopupMode>(null);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [actionMode, setActionMode] = useState<'idle' | 'edit' | 'delete'>('idle');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
     message: '',
@@ -33,7 +36,7 @@ export default function HRPage() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
     enabled: !!orgId,
     queryKey: ['users', activeQuery, orgId],
-    queryFn: ({ pageParam = 1 }) => fetchUsers(orgId, pageParam, activeQuery),
+    queryFn: ({ pageParam = 1 }) => fetchUsers(orgId!, pageParam, activeQuery),
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.hasNextPage ? allPages.length + 1 : undefined;
     },
@@ -48,6 +51,8 @@ export default function HRPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast(i18n.hr_popup.delete_success, 'success');
       setActionMode('idle');
+      setDeleteDialogVisible(false);
+      setSelectedUser(null);
     },
     onError: (err) => {
       console.error('Delete error:', err);
@@ -116,7 +121,8 @@ export default function HRPage() {
       setPopupVisible(true);
       setActionMode('idle');
     } else if (actionMode === 'delete') {
-      deleteMutation.mutate(user.id);
+      setSelectedUser(user);
+      setDeleteDialogVisible(true);
     }
   };
 
@@ -124,7 +130,7 @@ export default function HRPage() {
     if (popupMode === 'create') {
       createMutation.mutate({
         ...formData,
-        organizationId: orgId,
+        organizationId: orgId!,
       });
     } else if (popupMode === 'update' && selectedUser) {
       updateMutation.mutate({
@@ -134,20 +140,28 @@ export default function HRPage() {
     }
   };
 
+  const handleConfirmDelete = () => {
+    if (selectedUser) {
+      deleteMutation.mutate(selectedUser.id);
+    }
+  };
+
   const handleExport = () => {
     alert('Export to Excel not implemented yet');
   };
 
   if (isError) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Error: {(error as Error).message}</Text>
-      </View>
+      <AppBackground>
+        <View style={styles.center}>
+          <Text style={styles.errorText}>Error: {(error as Error).message}</Text>
+        </View>
+      </AppBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <AppBackground>
       <View style={styles.header}>
         <Text style={styles.headerText}>{i18n.hr_dashboard.title}</Text>
       </View>
@@ -171,9 +185,16 @@ export default function HRPage() {
         onSubmit={handlePopupSubmit}
       />
 
+      <DeleteConfirmationPopup
+        visible={deleteDialogVisible}
+        userName={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ''}
+        onClose={() => setDeleteDialogVisible(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
       {isLoading && users.length === 0 ? (
         <View style={styles.center}>
-          <ActivityIndicator size='large' color='#4F46E5' />
+          <ActivityIndicator size='large' color={colors.yellow} />
         </View>
       ) : (
         <FlatList
@@ -187,6 +208,7 @@ export default function HRPage() {
                 onEdit={handleUpdateUser}
                 onDelete={handleDeleteUser}
                 onExport={handleExport}
+                hasUsers={users.length > 0}
               />
               <EmployeeTable
                 users={users}
@@ -201,7 +223,7 @@ export default function HRPage() {
           ListFooterComponent={() =>
             isFetchingNextPage ? (
               <View style={styles.loaderContainer}>
-                <ActivityIndicator size='small' color='#4F46E5' />
+                <ActivityIndicator size='small' color={colors.yellow} />
                 <Text style={styles.loaderText}>{i18n.hr_table.load_more}</Text>
               </View>
             ) : null
@@ -216,29 +238,23 @@ export default function HRPage() {
         visible={toast.visible}
         onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
       />
-    </SafeAreaView>
+    </AppBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F1F3F4', // Google Material light background
-  },
   header: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0', // Material light divider
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
   headerText: {
-    fontSize: 22,
-    fontWeight: '400', // Google Material regular weight for headers
-    color: '#1F1F1F',
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -251,7 +267,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#EF4444',
+    color: colors.error,
     textAlign: 'center',
   },
   loaderContainer: {
@@ -262,37 +278,34 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textLight,
     marginRight: 8,
   },
   modeIndicator: {
-    backgroundColor: '#FFFFFF', // Clean white background
-    padding: 16,
+    backgroundColor: colors.yellow,
+    padding: 12,
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E8EAED', // Google Light Gray Border
+    marginBottom: 16,
+    borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   modeText: {
-    color: '#202124', // Google Dark Gray
-    fontWeight: '500',
-    fontSize: 16,
+    color: colors.textDark,
+    fontWeight: '700',
+    fontSize: 14,
   },
   cancelModeText: {
-    color: '#D93025', // Google Red for Cancel
-    fontWeight: '600',
-    fontSize: 14,
+    color: colors.error,
+    fontWeight: '700',
+    fontSize: 12,
     paddingHorizontal: 8,
-    paddingVertical: 4,
     textTransform: 'uppercase',
   },
 });

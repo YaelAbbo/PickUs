@@ -15,7 +15,12 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
-  organizationId: string;
+  orgId: string;
+  organization?: {
+    id: string;
+    name: string;
+    imageUrl?: string;
+  };
   isTempPassword: boolean;
   profileImageUrl?: string;
   createdAt: string;

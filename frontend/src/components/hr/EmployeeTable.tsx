@@ -1,5 +1,6 @@
 import { User } from '@/api/user.api';
 import { i18n } from '@/i18n';
+import { colors } from '@theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity } from 'react-native';
@@ -25,11 +26,15 @@ const UserRow: React.FC<{ item: User; onPress?: () => void; isActionMode?: boole
     disabled={!onPress}
     activeOpacity={isActionMode ? 0.5 : 1}
   >
-    <Text style={[styles.cell, { width: 100, fontWeight: '500', color: '#202124' }]}>{item.firstName}</Text>
-    <Text style={[styles.cell, { width: 100, color: '#3C4043' }]}>{item.lastName}</Text>
-    <Text style={[styles.cell, { width: 120, color: '#5F6368' }]}>{item.role}</Text>
-    <Text style={[styles.cell, { width: 150, color: '#5F6368' }]}>{item.organizationId}</Text>
-    <Text style={[styles.cell, { width: 150, color: '#5F6368' }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: colors.textPrimary }]}>{item.firstName}</Text>
+    <Text style={[styles.cell, { width: 100, color: colors.textLight }]}>{item.lastName}</Text>
+    <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
+      {i18n.roles[item.role] || item.role}
+    </Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
+      {item.organization?.name || item.orgId}
+    </Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
   </TouchableOpacity>
 );
 
@@ -55,11 +60,11 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
       <Text style={styles.title}>{i18n.hr_table.title}</Text>
 
       <View style={styles.searchContainer}>
-        <MaterialIcons name='search' size={24} color='#5F6368' />
+        <MaterialIcons name='search' size={24} color={colors.textLight} />
         <TextInput
           style={styles.searchInput}
           placeholder={i18n.hr_table.search_placeholder}
-          placeholderTextColor='#5F6368'
+          placeholderTextColor={colors.textMuted}
           value={localSearch}
           onChangeText={setLocalSearch}
           returnKeyType='search'
@@ -87,63 +92,65 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.purpleCard,
     borderRadius: 24,
     marginHorizontal: 16,
     marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 8,
   },
   title: {
     fontSize: 20,
-    fontWeight: '500',
-    color: '#202124',
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 20,
     textAlign: 'right',
   },
   searchContainer: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    backgroundColor: '#F1F3F4',
-    borderRadius: 28,
+    backgroundColor: colors.inputBg,
+    borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 24,
-    height: 56,
+    height: 48,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   searchInput: {
     flex: 1,
     textAlign: 'right',
     fontSize: 16,
-    color: '#202124',
+    color: colors.textPrimary,
     marginRight: 12,
   },
   tableHeader: {
     flexDirection: 'row-reverse',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.inputBorder,
   },
   headerCell: {
     paddingHorizontal: 12,
     fontSize: 13,
-    fontWeight: '600',
-    color: '#5F6368',
+    fontWeight: '700',
+    color: colors.yellow,
     textAlign: 'right',
   },
   tableRow: {
     flexDirection: 'row-reverse',
     paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
   },
   cell: {
     paddingHorizontal: 12,
     fontSize: 14,
-    color: '#3C4043',
+    color: colors.textPrimary,
     textAlign: 'right',
   },
 });

@@ -1,5 +1,6 @@
 import { UserRole } from '@/api/user.api';
 import { i18n } from '@/i18n';
+import { colors } from '@theme';
 import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -78,6 +79,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <TextInput
               style={[styles.input, errors.firstName && styles.inputError]}
               value={firstName}
+              placeholderTextColor={colors.textLight}
               onChangeText={(text) => {
                 setFirstName(text);
                 setErrors((prev) => ({ ...prev, firstName: '' }));
@@ -91,6 +93,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <TextInput
               style={[styles.input, errors.lastName && styles.inputError]}
               value={lastName}
+              placeholderTextColor={colors.textLight}
               onChangeText={(text) => {
                 setLastName(text);
                 setErrors((prev) => ({ ...prev, lastName: '' }));
@@ -105,6 +108,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
               <TextInput
                 style={[styles.input, errors.nationalId && styles.inputError]}
                 value={nationalId}
+                placeholderTextColor={colors.textLight}
                 onChangeText={(text) => {
                   setNationalId(text);
                   setErrors((prev) => ({ ...prev, nationalId: '' }));
@@ -124,7 +128,9 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
                   style={[styles.roleButton, role === r && styles.roleButtonActive]}
                   onPress={() => setRole(r)}
                 >
-                  <Text style={[styles.roleText, role === r && styles.roleTextActive]}>{r}</Text>
+                  <Text style={[styles.roleText, role === r && styles.roleTextActive]}>
+                    {i18n.roles[r as keyof typeof i18n.roles] || r}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -147,52 +153,52 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     padding: 20,
   },
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.purpleDark,
     borderRadius: 28,
     padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.3,
+    shadowRadius: 48,
+    elevation: 12,
   },
   title: {
     fontSize: 24,
-    fontWeight: '400',
+    fontWeight: '700',
     marginBottom: 24,
     textAlign: 'right',
-    color: '#1F1F1F',
+    color: colors.textPrimary,
   },
   inputGroup: {
     marginBottom: 16,
   },
   label: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#444746',
-    marginBottom: 4,
+    fontWeight: '600',
+    color: colors.textLight,
+    marginBottom: 6,
     textAlign: 'right',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#747775',
-    borderRadius: 4,
+    borderColor: colors.inputBorder,
+    borderRadius: 12,
     padding: 14,
     fontSize: 16,
     textAlign: 'right',
-    backgroundColor: '#FFFFFF',
-    color: '#1F1F1F',
+    backgroundColor: colors.inputBg,
+    color: colors.textPrimary,
   },
   inputError: {
-    borderColor: '#EF4444',
+    borderColor: colors.error,
   },
   errorText: {
-    color: '#EF4444',
+    color: colors.error,
     fontSize: 12,
     marginTop: 4,
     textAlign: 'right',
@@ -206,51 +212,53 @@ const styles = StyleSheet.create({
   roleButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#747775',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.inputBorder,
+    backgroundColor: colors.inputBg,
   },
   roleButtonActive: {
-    borderColor: 'transparent',
-    backgroundColor: '#D3E3FD', // M3 Secondary Container (Google Blue tinted)
+    borderColor: colors.yellow,
+    backgroundColor: 'rgba(245, 200, 66, 0.15)',
   },
   roleText: {
     fontSize: 14,
-    color: '#444746',
+    color: colors.textLight,
     fontWeight: '500',
   },
   roleTextActive: {
-    color: '#041E49', // M3 On-Secondary Container
-    fontWeight: '600',
+    color: colors.yellow,
+    fontWeight: '700',
   },
   actions: {
     flexDirection: 'row',
-    justifyContent: 'flex-start', // In left-to-right flex, this pushes them to the left (which is correct for RTL actions)
+    justifyContent: 'flex-start',
     marginTop: 32,
-    gap: 8,
+    gap: 12,
   },
   button: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 100, // Pill shape
+    borderRadius: 12,
     alignItems: 'center',
-    minWidth: 80,
+    minWidth: 100,
   },
   cancelBtn: {
     backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   submitBtn: {
-    backgroundColor: '#1A73E8', // Google Blue
+    backgroundColor: colors.yellow,
   },
   cancelText: {
-    color: '#1A73E8',
-    fontWeight: '500',
+    color: colors.textLight,
+    fontWeight: '600',
     fontSize: 14,
   },
   submitText: {
-    color: '#FFF',
-    fontWeight: '500',
+    color: colors.textDark,
+    fontWeight: '700',
     fontSize: 14,
   },
 });

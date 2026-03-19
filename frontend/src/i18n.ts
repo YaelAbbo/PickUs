@@ -37,6 +37,14 @@ export const i18n = {
     create_success: 'העובד/ת נוספ/ה בהצלחה',
     update_success: 'העובד/ת עודכנ/ה בהצלחה',
     delete_success: 'העובד/ת נמחק/ה בהצלחה',
+    delete_confirm_title: 'אישור מחיקה',
+    delete_confirm_message: 'האם אתה בטוח שברצונך למחוק את {name}?',
     error: 'אירעה שגיאה. נסה שנית.',
+  },
+  roles: {
+    BASIC_USER: 'משתמש/ת',
+    HR_MANAGER: 'מנהל/ת משאבי אנוש',
+    ADMIN: 'מנהל/ת',
+    AI: 'AI',
   },
 };
