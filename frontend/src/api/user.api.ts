@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { tokenStorage } from './tokenStorage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.100/api';
 
@@ -34,6 +35,21 @@ const userApi = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+userApi.interceptors.request.use(
+  async (config) => {
+    const token = await tokenStorage.getAccessToken(); 
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export interface PaginatedUsersResponse {
   data: User[];

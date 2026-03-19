@@ -1,21 +1,22 @@
 import { createUser, deleteUser, fetchUsers, updateUser, User } from '@/api/user.api';
+import Toast from '@/components/common/Toast';
 import EmployeeTable from '@/components/hr/EmployeeTable';
 import HRActionsPopup, { PopupMode } from '@/components/hr/HRActionsPopup';
-import Toast from '@/components/common/Toast';
 import UserActions from '@/components/hr/UserActions';
 import { i18n } from '@/i18n';
+import { useAuth } from '@services';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HRPage() {
   const queryClient = useQueryClient();
 
-  // Temporary placeholder for organization ID until authentication is implemented
-  const orgId = '58f8ea4b-4d8f-4d6f-9ce8-5621abeff8dd';
   const [activeQuery, setActiveQuery] = useState('');
-
+  const {user} = useAuth();
+  const orgId = user?.organizationId;
+  
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMode, setPopupMode] = useState<PopupMode>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -30,6 +31,7 @@ export default function HRPage() {
     setToast({ message, type, visible: true });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
+    enabled: !!orgId,
     queryKey: ['users', activeQuery, orgId],
     queryFn: ({ pageParam = 1 }) => fetchUsers(orgId, pageParam, activeQuery),
     getNextPageParam: (lastPage, allPages) => {
