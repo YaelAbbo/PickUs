@@ -39,6 +39,7 @@ export const i18n = {
     delete_success: 'העובד/ת נמחק/ה בהצלחה',
     delete_confirm_title: 'אישור מחיקה',
     delete_confirm_message: 'האם אתה בטוח שברצונך למחוק את {name}?',
+    cannot_delete_self: 'אינך יכול/ה למחוק את עצמך',
     error: 'אירעה שגיאה. נסה שנית.',
   },
   roles: {

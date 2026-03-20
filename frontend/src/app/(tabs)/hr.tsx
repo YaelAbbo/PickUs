@@ -114,14 +114,18 @@ export default function HRPage() {
     setActionMode((prev) => (prev === 'edit' ? 'idle' : 'edit'));
   };
 
-  const handleUserTap = (user: User) => {
+  const handleUserTap = (selectedUserItem: User) => {
     if (actionMode === 'edit') {
-      setSelectedUser(user);
+      setSelectedUser(selectedUserItem);
       setPopupMode('update');
       setPopupVisible(true);
       setActionMode('idle');
     } else if (actionMode === 'delete') {
-      setSelectedUser(user);
+      if (selectedUserItem.id === user?.id) {
+        showToast(i18n.hr_popup.cannot_delete_self, 'error');
+        return;
+      }
+      setSelectedUser(selectedUserItem);
       setDeleteDialogVisible(true);
     }
   };
