@@ -1,192 +1,41 @@
-import { createUser, deleteUser, fetchUsers, updateUser, User } from '@/api/user.api';
 import Toast from '@/components/common/Toast';
 import EmployeeTable from '@/components/hr/EmployeeTable';
-import HRActionsPopup, { PopupMode } from '@/components/hr/HRActionsPopup';
+import HRActionsPopup from '@/components/hr/HRActionsPopup';
 import DeleteConfirmationPopup from '@/components/hr/DeleteConfirmationPopup';
 import UserActions from '@/components/hr/UserActions';
 import { AppBackground } from '@/components/ui/AppBackground';
 import { i18n } from '@/i18n';
-import { useAuth } from '@services';
 import { colors } from '@theme';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import * as XLSX from 'xlsx';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useHRLogic } from '@/hooks/hr/useHRLogic';
 
 export default function HRPage() {
-  const queryClient = useQueryClient();
-
-  const [activeQuery, setActiveQuery] = useState('');
-  const { user } = useAuth();
-  const orgId = user?.orgId;
-
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupMode, setPopupMode] = useState<PopupMode>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [actionMode, setActionMode] = useState<'idle' | 'edit' | 'delete'>('idle');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
-    message: '',
-    type: 'success',
-    visible: false,
-  });
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') =>
-    setToast({ message, type, visible: true });
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
-    enabled: !!orgId,
-    queryKey: ['users', activeQuery, orgId],
-    queryFn: ({ pageParam = 1 }) => fetchUsers(orgId!, pageParam, activeQuery),
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.hasNextPage ? allPages.length + 1 : undefined;
-    },
-    initialPageParam: 1,
-  });
-
-  const users = data?.pages.flatMap((page) => page.data) || [];
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast(i18n.hr_popup.delete_success, 'success');
-      setActionMode('idle');
-      setDeleteDialogVisible(false);
-      setSelectedUser(null);
-    },
-    onError: (err) => {
-      console.error('Delete error:', err);
-      showToast(i18n.hr_popup.error, 'error');
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast(i18n.hr_popup.create_success, 'success');
-    },
-    onError: (err) => {
-      console.error('Create error:', err);
-      showToast(i18n.hr_popup.error, 'error');
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: updateUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast(i18n.hr_popup.update_success, 'success');
-    },
-    onError: (err) => {
-      console.error('Update error:', err);
-      showToast(i18n.hr_popup.error, 'error');
-    },
-  });
-
-  const handleApplySearch = (text: string) => {
-    if (text !== activeQuery) {
-      setActiveQuery(text);
-      if (text.length >= 3 || text.length === 0) {
-        Keyboard.dismiss();
-      }
-    }
-  };
-
-  const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  };
-
-  const handleDeleteUser = () => {
-    setActionMode((prev) => (prev === 'delete' ? 'idle' : 'delete'));
-  };
-
-  const handleCreateUser = () => {
-    setActionMode('idle');
-    setPopupMode('create');
-    setSelectedUser(null);
-    setPopupVisible(true);
-  };
-
-  const handleUpdateUser = () => {
-    setActionMode((prev) => (prev === 'edit' ? 'idle' : 'edit'));
-  };
-
-  const handleUserTap = (selectedUserItem: User) => {
-    if (actionMode === 'edit') {
-      setSelectedUser(selectedUserItem);
-      setPopupMode('update');
-      setPopupVisible(true);
-      setActionMode('idle');
-    } else if (actionMode === 'delete') {
-      if (selectedUserItem.id === user?.id) {
-        showToast(i18n.hr_popup.cannot_delete_self, 'error');
-        return;
-      }
-      setSelectedUser(selectedUserItem);
-      setDeleteDialogVisible(true);
-    }
-  };
-
-  const handlePopupSubmit = (formData: any) => {
-    if (popupMode === 'create') {
-      createMutation.mutate({
-        ...formData,
-        organizationId: orgId!,
-      });
-    } else if (popupMode === 'update' && selectedUser) {
-      updateMutation.mutate({
-        id: selectedUser.id,
-        ...formData,
-      });
-    }
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedUser) {
-      deleteMutation.mutate(selectedUser.id);
-    }
-  };
-
-  const handleExport = async () => {
-    if (users.length === 0) {
-      showToast(i18n.hr_popup.error, 'error');
-      return;
-    }
-
-    try {
-      const exportData = users.map((u) => ({
-        [i18n.hr_table.first_name]: u.firstName,
-        [i18n.hr_table.last_name]: u.lastName,
-        [i18n.hr_table.role]: (i18n.roles as any)[u.role] || u.role,
-        [i18n.hr_table.org_id]: u.orgId,
-        [i18n.hr_table.created_at]: new Date(u.createdAt).toLocaleDateString(),
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, i18n.hr_table.title);
-
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      const file = new File(Paths.cache, `pickus_employees_${Date.now()}.xlsx`);
-
-      file.write(wbout, { encoding: 'base64' });
-
-      await Sharing.shareAsync(file.uri, {
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        dialogTitle: i18n.hr_actions.export_to_excel,
-        UTI: 'com.microsoft.excel.xlsx',
-      });
-    } catch (err) {
-      console.error('Export error:', err);
-      showToast(i18n.hr_popup.error, 'error');
-    }
-  };
+  const {
+    users,
+    popupVisible,
+    popupMode,
+    selectedUser,
+    deleteDialogVisible,
+    actionMode,
+    toast,
+    isLoading,
+    isError,
+    error,
+    isFetchingNextPage,
+    setPopupVisible,
+    setDeleteDialogVisible,
+    setActionMode,
+    handleApplySearch,
+    handleLoadMore,
+    handleDeleteMode,
+    handleCreateUser,
+    handleUpdateMode,
+    handleUserTap,
+    handlePopupSubmit,
+    handleConfirmDelete,
+    handleExport,
+    hideToast,
+  } = useHRLogic();
 
   if (isError) {
     return (
@@ -243,8 +92,8 @@ export default function HRPage() {
             <>
               <UserActions
                 onCreate={handleCreateUser}
-                onEdit={handleUpdateUser}
-                onDelete={handleDeleteUser}
+                onEdit={handleUpdateMode}
+                onDelete={handleDeleteMode}
                 onExport={handleExport}
                 hasUsers={users.length > 0}
               />
@@ -274,7 +123,7 @@ export default function HRPage() {
         message={toast.message}
         type={toast.type}
         visible={toast.visible}
-        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+        onHide={hideToast}
       />
     </AppBackground>
   );
