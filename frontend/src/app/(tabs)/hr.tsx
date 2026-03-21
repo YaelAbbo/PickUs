@@ -9,8 +9,11 @@ import { i18n } from '@/i18n';
 import { useAuth } from '@services';
 import { colors } from '@theme';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as XLSX from 'xlsx';
 
 export default function HRPage() {
   const queryClient = useQueryClient();
@@ -150,8 +153,39 @@ export default function HRPage() {
     }
   };
 
-  const handleExport = () => {
-    alert('Export to Excel not implemented yet');
+  const handleExport = async () => {
+    if (users.length === 0) {
+      showToast(i18n.hr_popup.error, 'error');
+      return;
+    }
+
+    try {
+      const exportData = users.map((u) => ({
+        [i18n.hr_table.first_name]: u.firstName,
+        [i18n.hr_table.last_name]: u.lastName,
+        [i18n.hr_table.role]: (i18n.roles as any)[u.role] || u.role,
+        [i18n.hr_table.org_id]: u.orgId,
+        [i18n.hr_table.created_at]: new Date(u.createdAt).toLocaleDateString(),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, i18n.hr_table.title);
+
+      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      const file = new File(Paths.cache, `pickus_employees_${Date.now()}.xlsx`);
+
+      file.write(wbout, { encoding: 'base64' });
+
+      await Sharing.shareAsync(file.uri, {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: i18n.hr_actions.export_to_excel,
+        UTI: 'com.microsoft.excel.xlsx',
+      });
+    } catch (err) {
+      console.error('Export error:', err);
+      showToast(i18n.hr_popup.error, 'error');
+    }
   };
 
   if (isError) {

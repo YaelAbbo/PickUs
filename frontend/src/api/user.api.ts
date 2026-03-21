@@ -1,7 +1,8 @@
+import { BASE_URL } from '@/utils/constants';
 import axios from 'axios';
 import { tokenStorage } from './tokenStorage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.100/api';
+const API_URL = BASE_URL;
 
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
