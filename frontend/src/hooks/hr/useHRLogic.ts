@@ -83,9 +83,7 @@ export const useHRLogic = () => {
   const handleApplySearch = (text: string) => {
     if (text !== activeQuery) {
       setActiveQuery(text);
-      if (text.length >= 3 || text.length === 0) {
-        Keyboard.dismiss();
-      }
+      Keyboard.dismiss();
     }
   };
 

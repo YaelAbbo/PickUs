@@ -49,10 +49,13 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
   const [localSearch, setLocalSearch] = React.useState('');
 
   const handleSubmit = () => {
-    // Only search if empty (reset) or length >= 3
-    if (localSearch.length === 0 || localSearch.length >= 3) {
-      onSearch(localSearch);
-    }
+    // Search on any length if explicitly submitted, or clear if empty
+    onSearch(localSearch);
+  };
+
+  const handleClear = () => {
+    setLocalSearch('');
+    onSearch('');
   };
 
   return (
@@ -60,7 +63,9 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
       <Text style={styles.title}>{i18n.hr_table.title}</Text>
 
       <View style={styles.searchContainer}>
-        <MaterialIcons name='search' size={24} color={colors.textLight} />
+        <TouchableOpacity onPress={handleSubmit}>
+          <MaterialIcons name='search' size={24} color={colors.textLight} />
+        </TouchableOpacity>
         <TextInput
           style={styles.searchInput}
           placeholder={i18n.hr_table.search_placeholder}
@@ -70,6 +75,11 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
           returnKeyType='search'
           onSubmitEditing={handleSubmit}
         />
+        {localSearch.length > 0 && (
+          <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+            <MaterialIcons name='close' size={20} color={colors.textLight} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView horizontal persistentScrollbar>
@@ -152,6 +162,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textPrimary,
     textAlign: 'right',
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 });
 

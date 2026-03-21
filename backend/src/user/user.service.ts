@@ -115,7 +115,9 @@ export class UserService {
 
     if (searchQuery) {
       query.andWhere(
-        '(LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search) OR user.nationalId LIKE :search)',
+        '(LOWER(user.firstName) LIKE LOWER(:search) OR ' +
+          'LOWER(user.lastName) LIKE LOWER(:search) OR ' +
+          'user.nationalId LIKE :search)',
         { search: `%${searchQuery}%` },
       );
     }

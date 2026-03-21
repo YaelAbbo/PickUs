@@ -79,16 +79,12 @@ export default function HRPage() {
         onConfirm={handleConfirmDelete}
       />
 
-      {isLoading && users.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator size='large' color={colors.yellow} />
-        </View>
-      ) : (
+      <View style={{ flex: 1 }}>
         <FlatList
           data={[null]}
           keyExtractor={(_, index) => index.toString()}
           renderItem={null}
-          ListHeaderComponent={() => (
+          ListHeaderComponent={
             <>
               <UserActions
                 onCreate={handleCreateUser}
@@ -104,10 +100,10 @@ export default function HRPage() {
                 onUserTap={handleUserTap}
               />
             </>
-          )}
+          }
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={() =>
+          ListFooterComponent={
             isFetchingNextPage ? (
               <View style={styles.loaderContainer}>
                 <ActivityIndicator size='small' color={colors.yellow} />
@@ -117,7 +113,13 @@ export default function HRPage() {
           }
           contentContainerStyle={styles.scrollContent}
         />
-      )}
+
+        {isLoading && users.length === 0 && (
+          <View style={[StyleSheet.absoluteFill, styles.loaderOverlay]}>
+            <ActivityIndicator size='large' color={colors.yellow} />
+          </View>
+        )}
+      </View>
 
       <Toast
         message={toast.message}
@@ -156,6 +158,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.error,
     textAlign: 'center',
+  },
+  loaderOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 100,
   },
   loaderContainer: {
     flexDirection: 'row-reverse',
