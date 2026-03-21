@@ -7,6 +7,7 @@ import { Keyboard } from 'react-native';
 import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { exportEmployeesToExcel } from '@/utils/hr/export';
 import { AxiosError } from 'axios';
+import { UserErrorCode } from '@/api/user-error-codes';
 
 export const useHRLogic = () => {
   const queryClient = useQueryClient();
@@ -33,9 +34,9 @@ export const useHRLogic = () => {
   const getErrorMessage = (err: any) => {
     if (err instanceof AxiosError && err.response?.data?.message) {
       const msg = err.response.data.message;
-      if (msg === 'USER_ALREADY_EXISTS') return i18n.hr_popup.user_already_exists;
-      if (msg === 'USER_NOT_FOUND') return i18n.hr_popup.user_not_found;
-      if (msg === 'FAILED_TO_CREATE_USER') return i18n.hr_popup.failed_to_create_user;
+      if (msg === UserErrorCode.USER_ALREADY_EXISTS) return i18n.hr_popup.user_already_exists;
+      if (msg === UserErrorCode.USER_NOT_FOUND) return i18n.hr_popup.user_not_found;
+      if (msg === UserErrorCode.FAILED_TO_CREATE_USER) return i18n.hr_popup.failed_to_create_user;
     }
     return i18n.hr_popup.error;
   };

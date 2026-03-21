@@ -3,8 +3,6 @@ const { spawn } = require('child_process');
 
 function getLocalIp() {
   const interfaces = os.networkInterfaces();
-  // Filter for names that typically represent Wi-Fi or local ethernet
-  // We want to skip VPNs and virtual interfaces if possible
   const candidates = [];
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
@@ -13,8 +11,6 @@ function getLocalIp() {
       }
     }
   }
-  // If we have multiple, usually the first one on a non-virtual adapter is our LAN IP.
-  // 192.168.x.x or 10.x.x.x or 172.16.x.x - 172.31.x.x
   return candidates.find(ip => ip.startsWith('192.') || ip.startsWith('10.') || ip.startsWith('172.')) || candidates[0] || 'localhost';
 }
 

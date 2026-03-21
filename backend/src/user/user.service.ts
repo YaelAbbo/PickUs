@@ -10,6 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { User } from '../database/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserErrorCode } from './enums/user-error-code.enum';
+
+const POSTGRES_UNIQUE_VIOLATION = '23505';
 
 @Injectable()
 export class UserService {
@@ -47,10 +50,10 @@ export class UserService {
     try {
       return await this.usersRepository.save(user);
     } catch (err: any) {
-      if (err.code === '23505') {
-        throw new ConflictException('USER_ALREADY_EXISTS');
+      if (err.code === POSTGRES_UNIQUE_VIOLATION) {
+        throw new ConflictException(UserErrorCode.USER_ALREADY_EXISTS);
       }
-      throw new ConflictException('FAILED_TO_CREATE_USER');
+      throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
     }
   }
 
@@ -71,7 +74,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('USER_NOT_FOUND');
+      throw new NotFoundException(UserErrorCode.USER_NOT_FOUND);
     }
 
     if (isDeleted) {

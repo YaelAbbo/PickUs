@@ -1,9 +1,9 @@
 import { User } from '@/api/user.api';
 import { i18n } from '@/i18n';
-import { colors } from '@theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '@theme';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export const TableHeader: React.FC = () => (
   <View style={styles.tableHeader}>
@@ -49,7 +49,6 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
   const [localSearch, setLocalSearch] = React.useState('');
 
   const handleSubmit = () => {
-    // Search on any length if explicitly submitted, or clear if empty
     onSearch(localSearch);
   };
 

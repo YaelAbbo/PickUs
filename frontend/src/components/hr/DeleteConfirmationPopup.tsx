@@ -22,10 +22,9 @@ const DeleteConfirmationPopup: React.FC<DeleteConfirmationPopupProps> = ({
     <Modal visible={visible} transparent animationType='fade' onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>{i18n.hr_popup.delete_confirm_title || 'אישור מחיקה'}</Text>
+          <Text style={styles.title}>{i18n.hr_popup.delete_confirm_title}</Text>
           <Text style={styles.message}>
-            {i18n.hr_popup.delete_confirm_message?.replace('{name}', userName) ||
-              `האם אתה בטוח שברצונך למחוק את ${userName}?`}
+            {i18n.hr_popup.delete_confirm_message.replace('{name}', userName)}
           </Text>
 
           <View style={styles.actions}>
