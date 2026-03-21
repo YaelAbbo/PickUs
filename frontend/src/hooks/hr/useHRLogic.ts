@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Keyboard } from 'react-native';
 import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { exportEmployeesToExcel } from '@/utils/hr/export';
+import { AxiosError } from 'axios';
 
 export const useHRLogic = () => {
   const queryClient = useQueryClient();
@@ -29,6 +30,16 @@ export const useHRLogic = () => {
 
   const hideToast = () => setToast((prev) => ({ ...prev, visible: false }));
 
+  const getErrorMessage = (err: any) => {
+    if (err instanceof AxiosError && err.response?.data?.message) {
+      const msg = err.response.data.message;
+      if (msg === 'USER_ALREADY_EXISTS') return i18n.hr_popup.user_already_exists;
+      if (msg === 'USER_NOT_FOUND') return i18n.hr_popup.user_not_found;
+      if (msg === 'FAILED_TO_CREATE_USER') return i18n.hr_popup.failed_to_create_user;
+    }
+    return i18n.hr_popup.error;
+  };
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
     enabled: !!orgId,
     queryKey: ['users', activeQuery, orgId],
@@ -51,8 +62,7 @@ export const useHRLogic = () => {
       setSelectedUser(null);
     },
     onError: (err) => {
-      console.error('Delete error:', err);
-      showToast(i18n.hr_popup.error, 'error');
+      showToast(getErrorMessage(err), 'error');
     },
   });
 
@@ -63,8 +73,7 @@ export const useHRLogic = () => {
       showToast(i18n.hr_popup.create_success, 'success');
     },
     onError: (err) => {
-      console.error('Create error:', err);
-      showToast(i18n.hr_popup.error, 'error');
+      showToast(getErrorMessage(err), 'error');
     },
   });
 
@@ -75,8 +84,7 @@ export const useHRLogic = () => {
       showToast(i18n.hr_popup.update_success, 'success');
     },
     onError: (err) => {
-      console.error('Update error:', err);
-      showToast(i18n.hr_popup.error, 'error');
+      showToast(getErrorMessage(err), 'error');
     },
   });
 

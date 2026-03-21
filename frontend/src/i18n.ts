@@ -40,7 +40,10 @@ export const i18n = {
     delete_confirm_title: 'אישור מחיקה',
     delete_confirm_message: 'האם אתה בטוח שברצונך למחוק את {name}?',
     cannot_delete_self: 'אינך יכול/ה למחוק את עצמך',
-    error: 'אירעה שגיאה. נסה שנית.',
+    error: 'אירעה שגיאה. נסה/י שנית.',
+    user_already_exists: 'משתמש/ת עם תעודת זהות זו כבר קיים/ת במערכת',
+    user_not_found: 'המשתמש/ת לא נמצא/ה',
+    failed_to_create_user: 'יצירת המשתמש/ת נכשלה. נסה/י שנית.',
   },
   roles: {
     BASIC_USER: 'משתמש/ת',

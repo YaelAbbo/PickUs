@@ -46,9 +46,11 @@ export class UserService {
 
     try {
       return await this.usersRepository.save(user);
-    } catch (err) {
-      console.error(err);
-      throw new ConflictException('Failed to create user');
+    } catch (err: any) {
+      if (err.code === '23505') {
+        throw new ConflictException('USER_ALREADY_EXISTS');
+      }
+      throw new ConflictException('FAILED_TO_CREATE_USER');
     }
   }
 
@@ -69,7 +71,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('USER_NOT_FOUND');
     }
 
     if (isDeleted) {
