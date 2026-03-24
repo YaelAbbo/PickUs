@@ -23,6 +23,9 @@ export class User extends BaseEntity {
   @Column({ name: 'national_id', type: 'varchar', unique: true })
   nationalId: string;
 
+  @Column({ name: 'email', type: 'varchar', unique: true })
+  email: string;
+
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
 

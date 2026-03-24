@@ -21,4 +21,12 @@ export class UpsertUserDto {
   @IsString()
   @IsOptional()
   profileImageUrl?: string | null;
+
+  @IsString()
+  @IsOptional()
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
 }
