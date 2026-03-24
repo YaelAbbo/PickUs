@@ -8,11 +8,10 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../database/entities/user.entity';
+import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
-
-const POSTGRES_UNIQUE_VIOLATION = '23505';
 
 @Injectable()
 export class UserService {
@@ -49,13 +48,19 @@ export class UserService {
 
     try {
       return await this.usersRepository.save(user);
-    } catch (err: any) {
-      if (err.code === POSTGRES_UNIQUE_VIOLATION) {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === POSTGRES_UNIQUE_VIOLATION
+      ) {
         throw new ConflictException(UserErrorCode.USER_ALREADY_EXISTS);
       }
       throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
     }
   }
+
 
   async update(
     id: User['id'],
@@ -108,9 +113,9 @@ export class UserService {
 
   async findAllByOrganization(
     organizationId: string,
-    page: number = 1,
-    limit: number = 15,
-    searchQuery: string = '',
+    page = 1,
+    limit = 15,
+    searchQuery = '',
   ): Promise<{ data: User[]; total: number; hasNextPage: boolean }> {
     const query = this.usersRepository
       .createQueryBuilder('user')

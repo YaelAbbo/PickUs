@@ -1,4 +1,4 @@
-import { UserRole } from '@/api/user.api';
+import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/services/auth/AuthContext';
@@ -30,7 +30,7 @@ export default function TabLayout() {
 
   if (isUserLoading) return <SplashScreen />;
 
-  if (!user) return <Redirect href={'/(auth)/login' as any} />;
+  if (!user) return <Redirect href={'/(auth)/login'} />;
 
   return (
     <Tabs

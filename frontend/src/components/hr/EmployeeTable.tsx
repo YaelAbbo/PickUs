@@ -1,4 +1,4 @@
-import { User } from '@/api/user.api';
+import { User } from '@/api/user';
 import { i18n } from '@/i18n';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@theme';
@@ -7,11 +7,11 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 
 export const TableHeader: React.FC = () => (
   <View style={styles.tableHeader}>
-    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.first_name || 'First Name'}</Text>
-    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.last_name || 'Last Name'}</Text>
-    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.hr_table.role || 'Role'}</Text>
-    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.created_at || 'Created At'}</Text>
+    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
+    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.hr_table.role || 'Role'}</Text>
+    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.last_name || 'Last Name'}</Text>
+    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.first_name || 'First Name'}</Text>
   </View>
 );
 
@@ -26,15 +26,15 @@ const UserRow: React.FC<{ item: User; onPress?: () => void; isActionMode?: boole
     disabled={!onPress}
     activeOpacity={isActionMode ? 0.5 : 1}
   >
-    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: colors.textPrimary }]}>{item.firstName}</Text>
-    <Text style={[styles.cell, { width: 100, color: colors.textLight }]}>{item.lastName}</Text>
+<Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+<Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
+      {item.organization?.name || item.orgId}
+    </Text>
     <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
       {i18n.roles[item.role] || item.role}
     </Text>
-    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
-      {item.organization?.name || item.orgId}
-    </Text>
-    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+    <Text style={[styles.cell, { width: 100, color: colors.textLight }]}>{item.lastName}</Text>
+    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: colors.textPrimary }]}>{item.firstName}</Text>
   </TouchableOpacity>
 );
 
@@ -116,7 +116,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 20,
-    textAlign: 'right',
+    textAlign: 'center',
+    width: '100%',
   },
   searchContainer: {
     flexDirection: 'row-reverse',

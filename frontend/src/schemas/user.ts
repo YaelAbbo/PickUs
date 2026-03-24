@@ -7,7 +7,6 @@ export enum UserRole {
   BASIC_USER = 'BASIC_USER',
   HR_MANAGER = 'HR_MANAGER',
   ADMIN = 'ADMIN',
-  AI = 'AI',
 }
 
 export const userSchema = entityMetadata.extend({

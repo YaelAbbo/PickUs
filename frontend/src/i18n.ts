@@ -49,6 +49,5 @@ export const i18n = {
     BASIC_USER: 'משתמש/ת',
     HR_MANAGER: 'מנהל/ת משאבי אנוש',
     ADMIN: 'מנהל/ת',
-    AI: 'AI',
   },
 };

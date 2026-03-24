@@ -1,147 +1,180 @@
-import { UserRole } from '@/api/user.api';
+import { User, UserRole } from '@/api/user';
 import { i18n } from '@/i18n';
-import { colors } from '@theme';
-import React, { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { colors, popupStyles } from '@theme';
+import React, { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import * as z from 'zod';
 
 export type PopupMode = 'create' | 'update' | null;
+
+const formSchema = z.object({
+  firstName: z.string()
+    .min(1, { message: i18n.hr_popup.validation_required })
+    .max(20, { message: i18n.hr_popup.validation_name_length }),
+  lastName: z.string()
+    .min(1, { message: i18n.hr_popup.validation_required })
+    .max(20, { message: i18n.hr_popup.validation_name_length }),
+  nationalId: z.string().optional(),
+  role: z.nativeEnum(UserRole, { message: i18n.hr_popup.validation_required }),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
 
 interface HRActionsPopupProps {
   visible: boolean;
   mode: PopupMode;
-  initialData?: any;
+  initialData?: User | null;
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
 
 const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialData, onClose, onSubmit }) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [nationalId, setNationalId] = useState('');
-  const [role, setRole] = useState<UserRole>(UserRole.BASIC_USER);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const currentSchema = mode === 'create'
+    ? formSchema.extend({
+        nationalId: z.string()
+          .min(1, { message: i18n.hr_popup.validation_required })
+          .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
+      })
+    : formSchema;
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(currentSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      nationalId: '',
+      role: UserRole.BASIC_USER,
+    },
+  });
 
   useEffect(() => {
-    if (visible && mode === 'update' && initialData) {
-      setFirstName(initialData.firstName || '');
-      setLastName(initialData.lastName || '');
-      setRole(initialData.role || UserRole.BASIC_USER);
-    } else if (visible && mode === 'create') {
-      setFirstName('');
-      setLastName('');
-      setNationalId('');
-      setRole(UserRole.BASIC_USER);
+    if (visible) {
+      if (mode === 'update' && initialData) {
+        reset({
+          firstName: initialData.firstName || '',
+          lastName: initialData.lastName || '',
+          role: initialData.role || UserRole.BASIC_USER,
+          nationalId: '',
+        });
+      } else {
+        reset({
+          firstName: '',
+          lastName: '',
+          nationalId: '',
+          role: UserRole.BASIC_USER,
+        });
+      }
     }
-    setErrors({});
-  }, [visible, mode, initialData]);
+  }, [visible, mode, initialData, reset]);
 
   if (!visible) return null;
 
-  const handleSubmit = () => {
-    let newErrors: { [key: string]: string } = {};
-
-    if (!firstName.trim()) newErrors.firstName = i18n.hr_popup.validation_required;
-    else if (firstName.length > 20) newErrors.firstName = i18n.hr_popup.validation_name_length;
-
-    if (!lastName.trim()) newErrors.lastName = i18n.hr_popup.validation_required;
-    else if (lastName.length > 20) newErrors.lastName = i18n.hr_popup.validation_name_length;
-
-    if (mode === 'create') {
-      if (!nationalId.trim()) newErrors.nationalId = i18n.hr_popup.validation_required;
-      else if (nationalId.length !== 9 || !/^\d+$/.test(nationalId))
-        newErrors.nationalId = i18n.hr_popup.validation_national_id_length;
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    if (mode === 'create') {
-      onSubmit({ firstName, lastName, nationalId, role });
-    } else {
-      onSubmit({ firstName, lastName, role });
-    }
+  const onFormSubmit = (data: FormData) => {
+    onSubmit(data);
     onClose();
   };
+
 
   const title = mode === 'create' ? i18n.hr_popup.create_title : i18n.hr_popup.update_title;
   const submitText = mode === 'create' ? i18n.hr_popup.create : i18n.hr_popup.save;
 
   return (
     <Modal visible={visible} transparent animationType='fade' onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{title}</Text>
+      <View style={popupStyles.overlay}>
+        <View style={popupStyles.container}>
+          <Text style={popupStyles.title}>{title}</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{i18n.hr_popup.first_name}</Text>
-            <TextInput
-              style={[styles.input, errors.firstName && styles.inputError]}
-              value={firstName}
-              placeholderTextColor={colors.textLight}
-              onChangeText={(text) => {
-                setFirstName(text);
-                setErrors((prev) => ({ ...prev, firstName: '' }));
-              }}
+          <View style={popupStyles.inputGroup}>
+            <Text style={popupStyles.label}>{i18n.hr_popup.first_name}</Text>
+            <Controller
+              control={control}
+              name="firstName"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[popupStyles.input, errors.firstName && popupStyles.inputError]}
+                  value={value}
+                  placeholderTextColor={colors.textLight}
+                  onChangeText={onChange}
+                />
+              )}
             />
-            {errors.firstName && <Text style={styles.errorText}>{errors.firstName}</Text>}
+            {errors.firstName && <Text style={popupStyles.errorText}>{errors.firstName.message}</Text>}
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{i18n.hr_popup.last_name}</Text>
-            <TextInput
-              style={[styles.input, errors.lastName && styles.inputError]}
-              value={lastName}
-              placeholderTextColor={colors.textLight}
-              onChangeText={(text) => {
-                setLastName(text);
-                setErrors((prev) => ({ ...prev, lastName: '' }));
-              }}
+          <View style={popupStyles.inputGroup}>
+            <Text style={popupStyles.label}>{i18n.hr_popup.last_name}</Text>
+            <Controller
+              control={control}
+              name="lastName"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[popupStyles.input, errors.lastName && popupStyles.inputError]}
+                  value={value}
+                  placeholderTextColor={colors.textLight}
+                  onChangeText={onChange}
+                />
+              )}
             />
-            {errors.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
+            {errors.lastName && <Text style={popupStyles.errorText}>{errors.lastName.message}</Text>}
           </View>
 
           {mode === 'create' && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{i18n.hr_popup.national_id}</Text>
-              <TextInput
-                style={[styles.input, errors.nationalId && styles.inputError]}
-                value={nationalId}
-                placeholderTextColor={colors.textLight}
-                onChangeText={(text) => {
-                  setNationalId(text);
-                  setErrors((prev) => ({ ...prev, nationalId: '' }));
-                }}
-                keyboardType='number-pad'
+            <View style={popupStyles.inputGroup}>
+              <Text style={popupStyles.label}>{i18n.hr_popup.national_id}</Text>
+              <Controller
+                control={control}
+                name="nationalId"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    style={[popupStyles.input, errors.nationalId && popupStyles.inputError]}
+                    value={value}
+                    placeholderTextColor={colors.textLight}
+                    onChangeText={onChange}
+                    keyboardType='number-pad'
+                  />
+                )}
               />
-              {errors.nationalId && <Text style={styles.errorText}>{errors.nationalId}</Text>}
+              {errors.nationalId && <Text style={popupStyles.errorText}>{errors.nationalId.message}</Text>}
             </View>
           )}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{i18n.hr_popup.role}</Text>
-            <View style={styles.roleContainer}>
-              {Object.values(UserRole).map((r) => (
-                <TouchableOpacity
-                  key={r}
-                  style={[styles.roleButton, role === r && styles.roleButtonActive]}
-                  onPress={() => setRole(r)}
-                >
-                  <Text style={[styles.roleText, role === r && styles.roleTextActive]}>
-                    {i18n.roles[r as keyof typeof i18n.roles] || r}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+          <View style={popupStyles.inputGroup}>
+            <Text style={popupStyles.label}>{i18n.hr_popup.role}</Text>
+            <Controller
+              control={control}
+              name="role"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.roleContainer}>
+                  {Object.values(UserRole).map((r) => (
+                    <TouchableOpacity
+                      key={r}
+                      style={[styles.roleButton, value === r && styles.roleButtonActive]}
+                      onPress={() => onChange(r)}
+                    >
+                      <Text style={[styles.roleText, value === r && styles.roleTextActive]}>
+                        {i18n.roles[r as keyof typeof i18n.roles] || r}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
           </View>
 
-          <View style={styles.actions}>
-            <TouchableOpacity style={[styles.button, styles.cancelBtn]} onPress={onClose}>
-              <Text style={styles.cancelText}>{i18n.hr_popup.cancel}</Text>
+          <View style={popupStyles.actions}>
+            <TouchableOpacity style={[popupStyles.button, popupStyles.cancelBtn]} onPress={onClose}>
+              <Text style={popupStyles.cancelText}>{i18n.hr_popup.cancel}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.submitBtn]} onPress={handleSubmit}>
-              <Text style={styles.submitText}>{submitText}</Text>
+            <TouchableOpacity style={[popupStyles.button, popupStyles.submitBtn]} onPress={handleSubmit(onFormSubmit)}>
+              <Text style={popupStyles.submitText}>{submitText}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -150,64 +183,12 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  container: {
-    backgroundColor: colors.purpleDark,
-    borderRadius: 28,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.3,
-    shadowRadius: 48,
-    elevation: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 24,
-    textAlign: 'right',
-    color: colors.textPrimary,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textLight,
-    marginBottom: 6,
-    textAlign: 'right',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    textAlign: 'right',
-    backgroundColor: colors.inputBg,
-    color: colors.textPrimary,
-  },
-  inputError: {
-    borderColor: colors.error,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 12,
-    marginTop: 4,
-    textAlign: 'right',
-  },
+const styles = {
   roleContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   roleButton: {
     paddingVertical: 8,
@@ -230,37 +211,7 @@ const styles = StyleSheet.create({
     color: colors.yellow,
     fontWeight: '700',
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 32,
-    gap: 12,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    minWidth: 100,
-  },
-  cancelBtn: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-  },
-  submitBtn: {
-    backgroundColor: colors.yellow,
-  },
-  cancelText: {
-    color: colors.textLight,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  submitText: {
-    color: colors.textDark,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-});
+} as const;
 
 export default HRActionsPopup;
+

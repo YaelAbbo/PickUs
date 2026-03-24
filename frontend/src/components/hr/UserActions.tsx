@@ -1,6 +1,6 @@
 import { i18n } from '@/i18n';
-import { colors } from '@theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '@theme';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -114,7 +114,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 20,
-    textAlign: 'right',
+    textAlign: 'center',
+    width: '100%',
   },
   actionsGrid: {
     flexDirection: 'row-reverse',

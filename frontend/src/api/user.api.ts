@@ -1,39 +1,9 @@
 import { BASE_URL } from '@/utils/constants';
 import axios from 'axios';
 import { tokenStorage } from './tokenStorage';
+import { CreateUserDto, UpdateUserDto, User } from './user';
 
 const API_URL = BASE_URL;
-
-export enum UserRole {
-  BASIC_USER = 'BASIC_USER',
-  HR_MANAGER = 'HR_MANAGER',
-  ADMIN = 'ADMIN',
-  AI = 'AI',
-}
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  orgId: string;
-  organization?: {
-    id: string;
-    name: string;
-    imageUrl?: string;
-  };
-  isTempPassword: boolean;
-  profileImageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  isDeleted: boolean;
-}
-
-export type CreateUserDto = Omit<
-  User,
-  'id' | 'createdAt' | 'updatedAt' | 'isDeleted' | 'isTempPassword' | 'profileImageUrl'
-> & { nationalId: string };
-export type UpdateUserDto = Partial<CreateUserDto>;
 
 const userApi = axios.create({
   baseURL: `${API_URL}/users`,

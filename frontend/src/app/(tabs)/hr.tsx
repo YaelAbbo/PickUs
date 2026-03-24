@@ -1,13 +1,13 @@
 import Toast from '@/components/common/Toast';
+import ConfirmationPopup from '@/components/hr/ConfirmationPopup';
 import EmployeeTable from '@/components/hr/EmployeeTable';
 import HRActionsPopup from '@/components/hr/HRActionsPopup';
-import DeleteConfirmationPopup from '@/components/hr/DeleteConfirmationPopup';
 import UserActions from '@/components/hr/UserActions';
 import { AppBackground } from '@/components/ui/AppBackground';
+import { useHRLogic } from '@/hooks/hr/useHRLogic';
 import { i18n } from '@/i18n';
 import { colors } from '@theme';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useHRLogic } from '@/hooks/hr/useHRLogic';
 
 export default function HRPage() {
   const {
@@ -72,12 +72,24 @@ export default function HRPage() {
         onSubmit={handlePopupSubmit}
       />
 
-      <DeleteConfirmationPopup
+      <ConfirmationPopup
         visible={deleteDialogVisible}
-        userName={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ''}
+        title={i18n.hr_popup.delete_confirm_title}
+        message={
+          selectedUser
+            ? i18n.hr_popup.delete_confirm_message.replace(
+                '{name}',
+                `${selectedUser.firstName} ${selectedUser.lastName}`
+              )
+            : ''
+        }
+        confirmText={i18n.hr_actions.delete_user}
+        cancelText={i18n.hr_popup.cancel}
+
         onClose={() => setDeleteDialogVisible(false)}
         onConfirm={handleConfirmDelete}
       />
+
 
       <View style={{ flex: 1 }}>
         <FlatList
@@ -144,6 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.textPrimary,
+    textAlign: 'center',
   },
   scrollContent: {
     paddingBottom: 40,

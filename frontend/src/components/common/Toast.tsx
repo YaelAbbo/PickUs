@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 
 interface ToastProps {
@@ -8,19 +8,20 @@ interface ToastProps {
   onHide: () => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ message, type = 'success', visible, onHide }) => {
+const Toast: FC<ToastProps> = ({ message, type = 'success', visible, onHide }) => {
   const translateY = React.useRef(new Animated.Value(100)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
   const [isAnimating, setIsAnimating] = React.useState(false);
 
   useEffect(() => {
-    if (visible) {
-      setIsAnimating(true);
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
+    if (!visible) return;
+
+    setIsAnimating(true);
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 1,
@@ -46,7 +47,6 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', visible, onHid
           });
         }, 2500);
       });
-    }
   }, [visible]);
 
   if (!visible && !isAnimating) return null;

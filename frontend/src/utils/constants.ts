@@ -6,8 +6,6 @@ export const REQUIRED = 'שדה חובה';
 const getBaseUrl = () => {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
 
-  if (Platform.OS === 'web') return 'http://localhost/api';
-
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
     const host = hostUri.split(':').shift();

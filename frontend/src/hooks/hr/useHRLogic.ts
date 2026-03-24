@@ -1,25 +1,29 @@
-import { createUser, deleteUser, fetchUsers, updateUser, User } from '@/api/user.api';
+import { UserErrorCode } from '@/api/user-error-codes';
+import { createUser, deleteUser, fetchUsers, updateUser } from '@/api/user.api';
+import { User } from '@/api/user';
+
+import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { i18n } from '@/i18n';
+import { exportEmployeesToExcel } from '@/utils/hr/export';
 import { useAuth } from '@services';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { useState } from 'react';
 import { Keyboard } from 'react-native';
-import { PopupMode } from '@/components/hr/HRActionsPopup';
-import { exportEmployeesToExcel } from '@/utils/hr/export';
-import { AxiosError } from 'axios';
-import { UserErrorCode } from '@/api/user-error-codes';
+
+export type ActionMode = 'idle' | 'edit' | 'delete';
 
 export const useHRLogic = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const orgId = user?.orgId;
-
-  const [activeQuery, setActiveQuery] = useState('');
-  const [popupVisible, setPopupVisible] = useState(false);
+  const [activeQuery, setActiveQuery] = useState<string>('');
+  const [popupVisible, setPopupVisible] = useState<boolean>(false);
   const [popupMode, setPopupMode] = useState<PopupMode>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [actionMode, setActionMode] = useState<'idle' | 'edit' | 'delete'>('idle');
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState<boolean>(false);
+  const [actionMode, setActionMode] = useState<ActionMode>('idle');
+
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
     message: '',
     type: 'success',
@@ -140,9 +144,10 @@ export const useHRLogic = () => {
         organizationId: orgId!,
       });
     } else if (popupMode === 'update' && selectedUser) {
+      const { nationalId, ...updateData } = formData;
       updateMutation.mutate({
         id: selectedUser.id,
-        ...formData,
+        ...updateData,
       });
     }
   };
