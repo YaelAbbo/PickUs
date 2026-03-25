@@ -29,6 +29,13 @@ export class RideController {
     return await this.rideService.getAllRides();
   }
 
+  // Needs to be above @Get(':id') so 'available' won't be treated as a parameter
+  @UseAccessAuth()
+  @Get('available')
+  async getAvailableRides(): Promise<Ride[]> {
+    return await this.rideService.getAvailableRides();
+  }
+
   @UseAccessAuth()
   @Get(':id')
   async getRideById(@Param('id') id: Ride['id']): Promise<Ride> {

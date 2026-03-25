@@ -1,4 +1,9 @@
-import { Ride, type Organization, type User } from '@/database/entities';
+import {
+  Ride,
+  RideStatus,
+  type Organization,
+  type User,
+} from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -42,6 +47,25 @@ export class RideService {
       where: { isDeleted: false },
       relations: ['organization', 'driver', 'rideStops'],
     });
+  }
+
+  async getAvailableRides(): Promise<Ride[]> {
+    const rides = await this.ridesRepository.find({
+      where: { isDeleted: false, rideStatus: RideStatus.PENDING },
+      relations: ['organization', 'driver', 'rideStops', 'passengers'],
+    });
+
+    return rides
+      .map((ride) => {
+        const passengerCount = ride.passengers?.length || 0;
+        const availableSeats = ride.maxSeatsAmount - passengerCount;
+
+        return {
+          ...ride,
+          availableSeats,
+        } as Ride;
+      })
+      .filter((ride) => ride.availableSeats! > 0);
   }
 
   async getRideById(id: Ride['id']): Promise<Ride> {

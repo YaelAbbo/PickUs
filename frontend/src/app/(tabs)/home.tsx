@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, I18nManager } from 'react-native';
-import { IconButton, Chip, Card } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, I18nManager, StyleSheet, View } from 'react-native';
+import { Card, Chip, IconButton } from 'react-native-paper';
 
-// Importing from your existing architecture
-import { useAuth } from '@services';
-import { useAvailableRides } from '@/services/ride/rideQueries';
-import { AppTextInput } from '@/components/ui';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { colors } from '@/theme';
+import { AppTextInput } from '@/components/ui';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAvailableRides } from '@/services/ride/rideQueries';
 import type { Ride } from '@/services/ride/rideService';
+import { colors } from '@/theme';
+import { useAuth } from '@services';
 
-const FILTERS = ['הכל', 'מועדפים', 'לעבודה', 'הביתה'];
-const MAX_SEATS = 4;
+const FILTERS = ['הכל'];
+export const MAX_SEATS = 4;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -136,7 +135,7 @@ export default function HomeScreen() {
     <ThemedView style={[styles.container, { backgroundColor: themeStyles.background }]}>
       <View style={styles.header}>
         <ThemedText type='title' style={[styles.greeting, { color: themeStyles.accentDynamic }]}>
-          שלום, {user?.firstName || 'אורח'}!
+          שלום {user?.firstName || 'אורח'}
         </ThemedText>
         <View style={styles.headerActions}>
           <IconButton

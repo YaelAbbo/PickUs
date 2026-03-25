@@ -13,6 +13,7 @@ import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RideStop } from './ride-stop.entity';
 import { User } from './user.entity';
+import { RidePassenger } from './ride-passenger.entity';
 import type { UUID } from 'crypto';
 
 export enum RideStatus {
@@ -90,4 +91,9 @@ export class Ride extends BaseEntity {
 
   @OneToMany(() => RideStop, (stop) => stop.ride)
   rideStops: RideStop[];
+
+  @OneToMany(() => RidePassenger, (passenger) => passenger.ride)
+  passengers: RidePassenger[];
+
+  availableSeats?: number;
 }
