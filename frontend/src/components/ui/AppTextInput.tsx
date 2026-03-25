@@ -6,8 +6,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { HelperText, TextInput } from 'react-native-paper';
 import { useBoolean } from 'usehooks-ts';
 
-export type AppTextInputProps = Omit<ComponentProps<typeof TextInput>, 'style' | 'error'> & {
-  label: string;
+export type AppTextInputProps = Omit<ComponentProps<typeof TextInput>, 'error'> & {
+  label?: string;
   rightIconName?: ComponentProps<typeof Ionicons>['name'];
   isPassword?: boolean;
   error?: string;
@@ -20,6 +20,10 @@ export const AppTextInput: FC<AppTextInputProps> = ({
   value,
   onChangeText,
   error,
+  style,
+  contentStyle,
+  textColor,
+  placeholderTextColor,
   ...props
 }) => {
   const { value: showPassword, toggle: toggleShowPassword } = useBoolean();
@@ -50,9 +54,13 @@ export const AppTextInput: FC<AppTextInputProps> = ({
     />
   ) : undefined;
 
+  const finalTextColor = textColor || colors.textPrimary;
+
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>
+      {label ? (
+        <Text style={[styles.label, { color: hasError ? colors.error : colors.yellowLight }]}>{label}</Text>
+      ) : null}
 
       <TextInput
         mode='outlined'
@@ -62,13 +70,19 @@ export const AppTextInput: FC<AppTextInputProps> = ({
         error={hasError}
         secureTextEntry={isPassword && !showPassword}
         textAlign={isPassword && !showPassword ? 'left' : 'right'}
-        contentStyle={[styles.content, isPassword && !showPassword && { writingDirection: 'ltr', textAlign: 'left' }]}
-        placeholderTextColor={colors.textMuted}
+        contentStyle={[
+          styles.content,
+          isPassword && !showPassword && { writingDirection: 'ltr', textAlign: 'left' },
+          contentStyle,
+          { color: finalTextColor },
+        ]}
+        textColor={finalTextColor}
+        placeholderTextColor={placeholderTextColor || colors.textMuted}
         selectionColor={colors.yellow}
         selectionHandleColor={colors.yellow}
         right={IS_WEB ? startIcon : clearIcon}
         left={IS_WEB ? clearIcon : startIcon}
-        style={styles.input}
+        style={[styles.input, style]}
         theme={{
           roundness: radii.md,
           colors: {
@@ -76,6 +90,9 @@ export const AppTextInput: FC<AppTextInputProps> = ({
             error: colors.error,
             onSurfaceVariant: 'transparent',
             outline: colors.inputBorder,
+            text: finalTextColor,
+            onSurface: finalTextColor,
+            onBackground: finalTextColor,
           },
           fonts: {
             bodyLarge: { fontFamily: typography.fonts.regular },
@@ -110,7 +127,6 @@ const styles = StyleSheet.create({
   content: {
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.lg,
-    color: colors.textPrimary,
     writingDirection: 'rtl',
     textAlign: 'right',
   },

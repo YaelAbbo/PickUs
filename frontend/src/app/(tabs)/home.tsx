@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, I18nManager } from 'react-native';
 import { IconButton, Chip, Card } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+
+// Importing from your existing architecture
 import { useAuth } from '@services';
 import { useAvailableRides } from '@/services/ride/rideQueries';
 import { AppTextInput } from '@/components/ui';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { colors } from '@/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Ride } from '@/services/ride/rideService';
 
-const FILTERS = ['הכל', 'מועדפים', 'הלוך', 'חזור'];
+const FILTERS = ['הכל', 'מועדפים', 'לעבודה', 'הביתה'];
+const MAX_SEATS = 4;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,6 +35,20 @@ export default function HomeScreen() {
     category: activeFilter === 'הכל' ? undefined : activeFilter,
   });
 
+  const themeStyles = {
+    background: isDark ? '#121212' : '#F7F8FA',
+    cardSurface: isDark ? colors.purple : colors.yellowLight,
+    textPrimary: isDark ? '#FFFFFF' : '#11181C',
+    textSecondary: isDark ? '#A0A0A0' : '#687076',
+    searchContainerBg: 'transparent',
+    searchInputBg: isDark ? '#333333' : '#F0F0F0',
+    searchPlaceholder: isDark ? '#A0A0A0' : '#888888',
+    chipUnselectedBg: isDark ? '#1E1E1E' : colors.white,
+    chipUnselectedBorder: isDark ? '#333333' : '#E0E0E0',
+    seatInactive: isDark ? '#333333' : '#BDBDBD',
+    accentDynamic: isDark ? colors.yellow : colors.purple,
+  };
+
   const handleRidePress = (rideId: string) => {
     router.push({ pathname: '/modal', params: { rideId } });
   };
@@ -42,15 +62,15 @@ export default function HomeScreen() {
         style={[
           styles.filterChip,
           {
-            backgroundColor: isActive ? colors.yellow : colors.transparent,
-            borderColor: isActive ? colors.transparent : colors.purple,
+            backgroundColor: isActive ? colors.purple : themeStyles.chipUnselectedBg,
+            borderColor: isActive ? colors.purple : themeStyles.chipUnselectedBorder,
           },
         ]}
         textStyle={{
-          color: isActive ? colors.textDark : colors.purple,
+          color: isActive ? colors.white : themeStyles.textSecondary,
           fontWeight: isActive ? 'bold' : 'normal',
         }}
-        mode={isActive ? 'flat' : 'outlined'}
+        mode='flat'
       >
         {item}
       </Chip>
@@ -58,33 +78,53 @@ export default function HomeScreen() {
   };
 
   const renderRideCard = ({ item }: { item: Ride }) => (
-    <Card style={styles.card} onPress={() => handleRidePress(item.id)}>
-      <Card.Content>
-        <View style={styles.cardHeader}>
-          <ThemedText type='defaultSemiBold' style={{ color: colors.purpleDark }}>
-            {item.date}
-          </ThemedText>
+    <Card
+      style={[
+        styles.card,
+        {
+          backgroundColor: themeStyles.cardSurface,
+          borderWidth: 1,
+          borderColor: themeStyles.accentDynamic,
+        },
+      ]}
+      onPress={() => handleRidePress(item.id)}
+    >
+      <Card.Content style={styles.cardContentPadding}>
+        <View style={styles.cardRow}>
+          <View style={styles.routeContainer}>
+            <ThemedText style={{ color: themeStyles.accentDynamic, fontSize: 18, fontWeight: 'bold' }}>
+              {item.startDest}
+            </ThemedText>
+
+            <IconButton icon='arrow-left' size={18} iconColor={themeStyles.accentDynamic} style={styles.routeArrow} />
+
+            <ThemedText style={{ color: themeStyles.accentDynamic, fontSize: 18, fontWeight: 'bold' }}>
+              {item.endDest}
+            </ThemedText>
+          </View>
+
           <View style={styles.seatsContainer}>
-            {Array.from({ length: item.availableSeats }).map((_, i) => (
-              <IconButton
-                key={i}
-                icon='seat-passenger'
-                size={16}
-                iconColor={colors.yellowDark}
-                style={styles.seatIcon}
-              />
-            ))}
+            {Array.from({ length: MAX_SEATS }).map((_, i) => {
+              const isAvailable = i < item.availableSeats;
+              return (
+                <IconButton
+                  key={i}
+                  icon='account'
+                  size={18}
+                  iconColor={isAvailable ? themeStyles.accentDynamic : themeStyles.seatInactive}
+                  style={styles.seatIcon}
+                />
+              );
+            })}
           </View>
         </View>
 
-        <View style={styles.cardBody}>
-          <View style={styles.routeContainer}>
-            <ThemedText style={{ color: colors.textDark }}>{item.startDest}</ThemedText>
-            <IconButton icon='arrow-left' size={16} iconColor={colors.purple} />
-            <ThemedText style={{ color: colors.textDark }}>{item.endDest}</ThemedText>
-          </View>
+        <View style={styles.cardRow}>
+          <ThemedText type='defaultSemiBold' style={{ color: themeStyles.accentDynamic, fontSize: 15 }}>
+            {item.date}
+          </ThemedText>
 
-          <ThemedText style={{ color: colors.textMuted }}>
+          <ThemedText style={{ color: themeStyles.accentDynamic, fontSize: 14 }}>
             {item.startTime} - {item.endTime}
           </ThemedText>
         </View>
@@ -93,29 +133,36 @@ export default function HomeScreen() {
   );
 
   return (
-    <ThemedView style={styles.container}>
-      {/* Header */}
+    <ThemedView style={[styles.container, { backgroundColor: themeStyles.background }]}>
       <View style={styles.header}>
-        <ThemedText type='title' style={[styles.greeting, { color: colors.purpleDark }]}>
-          שלום, {user?.firstName || 'אורח'}! 👋
+        <ThemedText type='title' style={[styles.greeting, { color: themeStyles.accentDynamic }]}>
+          שלום, {user?.firstName || 'אורח'}!
         </ThemedText>
         <View style={styles.headerActions}>
           <IconButton
             icon='bell-outline'
             size={28}
-            iconColor={colors.purple}
+            iconColor={themeStyles.accentDynamic}
             onPress={() => console.log('Notifications pressed')}
           />
           <IconButton icon='logout' size={24} iconColor={colors.error} onPress={() => logout()} />
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: themeStyles.searchContainerBg }]}>
         <AppTextInput
           placeholder='🔍 חיפוש נסיעות...'
+          placeholderTextColor={themeStyles.searchPlaceholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          style={{ borderColor: colors.inputBorder, backgroundColor: colors.white }}
+          textColor={themeStyles.searchPlaceholder}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: themeStyles.searchInputBg,
+              color: themeStyles.searchPlaceholder,
+            },
+          ]}
         />
       </View>
 
@@ -126,16 +173,17 @@ export default function HomeScreen() {
           keyExtractor={(item) => item}
           horizontal
           showsHorizontalScrollIndicator={false}
-          inverted
+          inverted={true}
+          contentContainerStyle={styles.filtersListContent}
         />
       </View>
 
       {isLoading ? (
-        <ActivityIndicator size='large' color={colors.yellow} style={styles.loader} />
+        <ActivityIndicator size='large' color={colors.purple} style={styles.loader} />
       ) : isError ? (
         <ThemedText style={[styles.errorText, { color: colors.error }]}>שגיאה בטעינת נסיעות. אנא נסה שוב.</ThemedText>
       ) : rides?.length === 0 ? (
-        <ThemedText style={[styles.emptyText, { color: colors.textDark }]}>
+        <ThemedText style={[styles.emptyText, { color: themeStyles.textSecondary }]}>
           לא נמצאו נסיעות התואמות את החיפוש.
         </ThemedText>
       ) : (
@@ -157,63 +205,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 48,
+    paddingTop: 56,
   },
   header: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 0,
   },
   headerActions: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
     alignItems: 'center',
   },
   greeting: {
     fontWeight: 'bold',
+    fontSize: 32,
+    paddingHorizontal: 0,
   },
   searchContainer: {
-    marginBottom: 16,
+    marginBottom: 0,
+  },
+  searchInput: {
+    borderRadius: 12,
+    borderWidth: 0,
+    elevation: 0,
+    paddingHorizontal: 16,
+    height: 50,
   },
   filtersContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  filtersListContent: {
+    paddingLeft: 4,
   },
   filterChip: {
-    marginRight: 8,
-    borderRadius: 20,
+    marginLeft: 10,
+    borderRadius: 24,
     borderWidth: 1,
   },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 32,
   },
   card: {
-    marginBottom: 12,
-    elevation: 2,
-    backgroundColor: colors.white,
+    marginBottom: 16,
+    borderRadius: 16,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
-  cardHeader: {
-    flexDirection: 'row',
+  cardContentPadding: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  cardRow: {
+    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
+  routeContainer: {
+    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    alignItems: 'center',
+  },
+  routeArrow: {
+    marginHorizontal: -4,
+  },
   seatsContainer: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
   },
   seatIcon: {
-    margin: 0,
+    margin: -4,
     padding: 0,
     width: 24,
     height: 24,
-  },
-  cardBody: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  routeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   loader: {
     marginTop: 50,
