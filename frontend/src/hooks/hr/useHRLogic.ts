@@ -1,20 +1,18 @@
-import { UserErrorCode } from '@/api/user-error-codes';
-import { createUser, deleteUser, fetchUsers, updateUser } from '@/api/user.api';
 import { User } from '@/api/user';
+import { fetchUsers, getErrorMessage, useCreateUser, useDeleteUser, useUpdateUser } from '@/api/user.api';
 
 import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { i18n } from '@/i18n';
 import { exportEmployeesToExcel } from '@/utils/hr/export';
 import { useAuth } from '@services';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Keyboard } from 'react-native';
+import { useToast } from '@/hooks/useToast';
 
 export type ActionMode = 'idle' | 'edit' | 'delete';
 
 export const useHRLogic = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const orgId = user?.orgId;
   const [activeQuery, setActiveQuery] = useState<string>('');
@@ -24,26 +22,7 @@ export const useHRLogic = () => {
   const [deleteDialogVisible, setDeleteDialogVisible] = useState<boolean>(false);
   const [actionMode, setActionMode] = useState<ActionMode>('idle');
 
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
-    message: '',
-    type: 'success',
-    visible: false,
-  });
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') =>
-    setToast({ message, type, visible: true });
-
-  const hideToast = () => setToast((prev) => ({ ...prev, visible: false }));
-
-  const getErrorMessage = (err: any) => {
-    if (err instanceof AxiosError && err.response?.data?.message) {
-      const msg = err.response.data.message;
-      if (msg === UserErrorCode.USER_ALREADY_EXISTS) return i18n.hr_popup.user_already_exists;
-      if (msg === UserErrorCode.USER_NOT_FOUND) return i18n.hr_popup.user_not_found;
-      if (msg === UserErrorCode.FAILED_TO_CREATE_USER) return i18n.hr_popup.failed_to_create_user;
-    }
-    return i18n.hr_popup.error;
-  };
+  const { toast, showToast, hideToast } = useToast();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
     enabled: !!orgId,
@@ -57,10 +36,8 @@ export const useHRLogic = () => {
 
   const users = data?.pages.flatMap((page) => page.data) || [];
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
+  const deleteMutation = useDeleteUser({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast(i18n.hr_popup.delete_success, 'success');
       setActionMode('idle');
       setDeleteDialogVisible(false);
@@ -71,10 +48,8 @@ export const useHRLogic = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: createUser,
+  const createMutation = useCreateUser({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast(i18n.hr_popup.create_success, 'success');
     },
     onError: (err) => {
@@ -82,10 +57,8 @@ export const useHRLogic = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: updateUser,
+  const updateMutation = useUpdateUser({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast(i18n.hr_popup.update_success, 'success');
     },
     onError: (err) => {

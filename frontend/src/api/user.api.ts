@@ -1,33 +1,11 @@
-import { BASE_URL } from '@/utils/constants';
-import axios from 'axios';
-import { tokenStorage } from './tokenStorage';
+import { i18n } from '@/i18n';
+import { useMutation, UseMutationOptions, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { api as baseApi } from './api';
 import { CreateUserDto, UpdateUserDto, User } from './user';
+import { UserErrorCode } from './user-error-codes';
 
-const API_URL = BASE_URL;
-
-const userApi = axios.create({
-  baseURL: `${API_URL}/users`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-userApi.interceptors.request.use(
-  async (config) => {
-    const token = await tokenStorage.getAccessToken(); 
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-export interface PaginatedUsersResponse {
+export type PaginatedUsersResponse = {
   data: User[];
   total: number;
   hasNextPage: boolean;
@@ -38,22 +16,74 @@ export const fetchUsers = async (
   page: number = 1,
   search: string = '',
 ): Promise<PaginatedUsersResponse> => {
-  const { data } = await userApi.get<PaginatedUsersResponse>(`/organization/${orgId}`, {
+  const { data } = await baseApi.get<PaginatedUsersResponse>(`/users/organization/${orgId}`, {
     params: { page, limit: 15, search },
   });
   return data;
 };
 
 export const createUser = async (user: CreateUserDto): Promise<User> => {
-  const { data } = await userApi.post<User>('/', user);
+  const { data } = await baseApi.post<User>('/users', user);
   return data;
 };
 
 export const updateUser = async ({ id, ...user }: { id: string } & UpdateUserDto): Promise<User> => {
-  const { data } = await userApi.patch<User>(`/${id}`, user);
+  const { data } = await baseApi.patch<User>(`/users/${id}`, user);
   return data;
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-  await userApi.delete(`/${id}`);
+  await baseApi.delete(`/users/${id}`);
+};
+
+export const getErrorMessage = (err: any) => {
+  if (err instanceof AxiosError && err.response?.data?.message) {
+    const msg = err.response.data.message;
+    if (msg === UserErrorCode.USER_ALREADY_EXISTS) return i18n.hr_popup.user_already_exists;
+    if (msg === UserErrorCode.USER_NOT_FOUND) return i18n.hr_popup.user_not_found;
+    if (msg === UserErrorCode.FAILED_TO_CREATE_USER) return i18n.hr_popup.failed_to_create_user;
+  }
+  return i18n.hr_popup.error;
+};
+
+export const useCreateUser = (options?: UseMutationOptions<User, Error, CreateUserDto>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...options,
+    mutationFn: createUser,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (options?.onSuccess) {
+        (options.onSuccess as any)(data, variables, context);
+      }
+    },
+  });
+};
+
+export const useUpdateUser = (options?: UseMutationOptions<User, Error, { id: string } & UpdateUserDto>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...options,
+    mutationFn: updateUser,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (options?.onSuccess) {
+        (options.onSuccess as any)(data, variables, context);
+      }
+    },
+  });
+};
+
+export const useDeleteUser = (options?: UseMutationOptions<void, Error, string>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...options,
+    mutationFn: deleteUser,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (options?.onSuccess) {
+        (options.onSuccess as any)(data, variables, context);
+      }
+    },
+  });
 };

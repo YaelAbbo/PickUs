@@ -7,11 +7,11 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 
 export const TableHeader: React.FC = () => (
   <View style={styles.tableHeader}>
-    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.created_at || 'Created At'}</Text>
-    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
-    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.hr_table.role || 'Role'}</Text>
-    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.last_name || 'Last Name'}</Text>
     <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.first_name || 'First Name'}</Text>
+    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.last_name || 'Last Name'}</Text>
+    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.hr_table.role || 'Role'}</Text>
+    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
+    <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.created_at || 'Created At'}</Text>
   </View>
 );
 
@@ -26,15 +26,15 @@ const UserRow: React.FC<{ item: User; onPress?: () => void; isActionMode?: boole
     disabled={!onPress}
     activeOpacity={isActionMode ? 0.5 : 1}
   >
-<Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-<Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
+    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: colors.textPrimary }]}>{item.firstName}</Text>
+    <Text style={[styles.cell, { width: 100, color: colors.textLight }]}>{item.lastName}</Text>
+    <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
+      {i18n.roles[item.role as keyof typeof i18n.roles] || item.role}
+    </Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
       {item.organization?.name || item.orgId}
     </Text>
-    <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
-      {i18n.roles[item.role] || item.role}
-    </Text>
-    <Text style={[styles.cell, { width: 100, color: colors.textLight }]}>{item.lastName}</Text>
-    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: colors.textPrimary }]}>{item.firstName}</Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
   </TouchableOpacity>
 );
 
@@ -81,8 +81,12 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
         )}
       </View>
 
-      <ScrollView horizontal persistentScrollbar>
-        <View>
+      <ScrollView 
+        horizontal 
+        persistentScrollbar 
+        contentContainerStyle={{ justifyContent: 'center', minWidth: '100%' }}
+      >
+        <View style={{ alignItems: 'center' }}>
           <TableHeader />
           {users.map((user) => (
             <UserRow
@@ -138,30 +142,30 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   tableHeader: {
-    flexDirection: 'row-reverse',
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.inputBorder,
+    flexDirection: 'row',
   },
   headerCell: {
     paddingHorizontal: 12,
     fontSize: 13,
     fontWeight: '700',
     color: colors.yellow,
-    textAlign: 'right',
+    textAlign: 'center',
   },
   tableRow: {
-    flexDirection: 'row-reverse',
     paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   cell: {
     paddingHorizontal: 12,
     fontSize: 14,
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'center',
   },
   clearButton: {
     padding: 4,

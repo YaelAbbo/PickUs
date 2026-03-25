@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   modeIndicator: {
     backgroundColor: colors.yellow,
     padding: 12,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,

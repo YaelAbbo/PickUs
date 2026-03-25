@@ -1,3 +1,6 @@
+import type { UUID } from 'crypto';
+import type { Organization } from './organization';
+
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
   HR_MANAGER = 'HR_MANAGER',
@@ -5,18 +8,15 @@ export enum UserRole {
 }
 
 export interface User {
-  id: string;
+  id: UUID;
+  nationalId: string;
   firstName: string;
   lastName: string;
   role: UserRole;
-  orgId: string;
-  organization?: {
-    id: string;
-    name: string;
-    imageUrl?: string;
-  };
+  orgId: UUID;
+  organization?: Pick<Organization, 'id' | 'name' | 'imageUrl'>;
   isTempPassword: boolean;
-  profileImageUrl?: string;
+  profileImageUrl: string | null;
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
@@ -25,5 +25,5 @@ export interface User {
 export type CreateUserDto = Omit<
   User,
   'id' | 'createdAt' | 'updatedAt' | 'isDeleted' | 'isTempPassword' | 'profileImageUrl'
-> & { nationalId: string };
+>;
 export type UpdateUserDto = Partial<CreateUserDto>;
