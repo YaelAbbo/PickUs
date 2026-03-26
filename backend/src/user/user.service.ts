@@ -16,7 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
 
 const BCRYPT_SALT_ROUNDS = 10;
-const TEMP_PASSWORD_LENGTH = 18; // 18 raw bytes => 24 base64url chars
+const TEMP_PASSWORD_LENGTH = 18;
 
 @Injectable()
 export class UserService {
