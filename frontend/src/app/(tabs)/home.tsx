@@ -7,12 +7,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppTextInput } from '@/components/ui';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { i18n } from '@/i18n';
 import { useAvailableRides } from '@/services/ride/rideQueries';
 import type { Ride } from '@/services/ride/rideService';
 import { colors } from '@/theme';
 import { useAuth } from '@services';
 
-const FILTERS = ['הכל'];
+const FILTERS = [i18n.available_rides_screen.filter_all];
 export const MAX_SEATS = 4;
 
 export default function HomeScreen() {
@@ -31,7 +32,7 @@ export default function HomeScreen() {
     refetch,
   } = useAvailableRides({
     search: searchQuery,
-    category: activeFilter === 'הכל' ? undefined : activeFilter,
+    category: activeFilter === i18n.available_rides_screen.filter_all ? undefined : activeFilter,
   });
 
   const themeStyles = {
@@ -135,7 +136,7 @@ export default function HomeScreen() {
     <ThemedView style={[styles.container, { backgroundColor: themeStyles.background }]}>
       <View style={styles.header}>
         <ThemedText type='title' style={[styles.greeting, { color: themeStyles.accentDynamic }]}>
-          שלום {user?.firstName || 'אורח'}
+          {i18n.available_rides_screen.greeting} {user?.firstName || i18n.available_rides_screen.default_guest_name}
         </ThemedText>
         <View style={styles.headerActions}>
           <IconButton
@@ -150,7 +151,7 @@ export default function HomeScreen() {
 
       <View style={[styles.searchContainer, { backgroundColor: themeStyles.searchContainerBg }]}>
         <AppTextInput
-          placeholder='🔍 חיפוש נסיעות...'
+          placeholder={i18n.available_rides_screen.rides_search_placeholder}
           placeholderTextColor={themeStyles.searchPlaceholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -172,7 +173,7 @@ export default function HomeScreen() {
           keyExtractor={(item) => item}
           horizontal
           showsHorizontalScrollIndicator={false}
-          inverted={true}
+          inverted={!I18nManager.isRTL}
           contentContainerStyle={styles.filtersListContent}
         />
       </View>
@@ -180,10 +181,12 @@ export default function HomeScreen() {
       {isLoading ? (
         <ActivityIndicator size='large' color={colors.purple} style={styles.loader} />
       ) : isError ? (
-        <ThemedText style={[styles.errorText, { color: colors.error }]}>שגיאה בטעינת נסיעות. אנא נסה שוב.</ThemedText>
+        <ThemedText style={[styles.errorText, { color: colors.error }]}>
+          {i18n.available_rides_screen.error_loading_rides}
+        </ThemedText>
       ) : rides?.length === 0 ? (
         <ThemedText style={[styles.emptyText, { color: themeStyles.textSecondary }]}>
-          לא נמצאו נסיעות התואמות את החיפוש.
+          {i18n.available_rides_screen.no_rides_found_for_search}
         </ThemedText>
       ) : (
         <FlatList
@@ -207,19 +210,22 @@ const styles = StyleSheet.create({
     paddingTop: 56,
   },
   header: {
-    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    flexDirection: 'row',
+    direction: 'rtl',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 0,
   },
   headerActions: {
-    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    flexDirection: 'row',
+    direction: 'rtl',
     alignItems: 'center',
   },
   greeting: {
     fontWeight: 'bold',
     fontSize: 32,
     paddingHorizontal: 0,
+    textAlign: 'right',
   },
   searchContainer: {
     marginBottom: 0,
@@ -259,20 +265,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   cardRow: {
-    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    flexDirection: 'row',
+    direction: 'rtl',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
   routeContainer: {
-    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    flexDirection: 'row',
+    direction: 'rtl',
     alignItems: 'center',
   },
   routeArrow: {
     marginHorizontal: -4,
   },
   seatsContainer: {
-    flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
+    flexDirection: 'row',
+    direction: 'rtl',
   },
   seatIcon: {
     margin: -4,

@@ -50,4 +50,12 @@ export const i18n = {
     HR_MANAGER: 'מנהל/ת משאבי אנוש',
     ADMIN: 'מנהל/ת',
   },
+  available_rides_screen: {
+    filter_all: 'הכל',
+    greeting: 'שלום',
+    default_guest_name: 'אורח',
+    rides_search_placeholder: 'חיפוש נסיעות...',
+    error_loading_rides: 'שגיאה בטעינת נסיעות. אנא נסה שוב.',
+    no_rides_found_for_search: 'לא נמצאו נסיעות התואמות את החיפוש.',
+  },
 };
