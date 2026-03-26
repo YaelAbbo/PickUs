@@ -9,4 +9,5 @@ COPY . .
 
 EXPOSE 8081 19000 19001 19002
 
-CMD ["npx", "expo", "start"]
+# The --lan flag tells Expo to use the IP address we provided in docker-compose
+CMD ["npx", "expo", "start", "--lan", "--clear"] 
