@@ -7,8 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 import { MapModule } from './map/map.module';
+import { RidePassengerModule } from './ride-passenger/ride-passenger.module';
 import { RideModule } from './ride/ride.module';
 import { UserModule } from './user/user.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +23,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     RideModule,
     MapModule,
+    RidePassengerModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
