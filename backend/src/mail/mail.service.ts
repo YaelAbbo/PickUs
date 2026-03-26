@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
+import { MailConfigKey } from './mail.type';
 
 export interface SendTempPasswordParams {
   to: string;
@@ -17,16 +18,22 @@ export class MailService {
   private readonly frontendUrl: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.fromAddress = this.configService.getOrThrow<string>('SMTP_FROM');
-    this.frontendUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
+    this.fromAddress = this.configService.getOrThrow<string>(
+      MailConfigKey.SmtpFrom,
+    );
+    this.frontendUrl = this.configService.getOrThrow<string>(
+      MailConfigKey.FrontendUrl,
+    );
 
     this.transporter = nodemailer.createTransport({
-      host: this.configService.getOrThrow<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT', 587),
-      secure: this.configService.get<string>('SMTP_SECURE', 'false') === 'true',
+      host: this.configService.getOrThrow<string>(MailConfigKey.SmtpHost),
+      port: this.configService.get<number>(MailConfigKey.SmtpPort, 587),
+      secure:
+        this.configService.get<string>(MailConfigKey.SmtpSecure, 'false') ===
+        'true',
       auth: {
-        user: this.configService.getOrThrow<string>('SMTP_USER'),
-        pass: this.configService.getOrThrow<string>('SMTP_PASS'),
+        user: this.configService.getOrThrow<string>(MailConfigKey.SmtpUser),
+        pass: this.configService.getOrThrow<string>(MailConfigKey.SmtpPass),
       },
     });
   }
