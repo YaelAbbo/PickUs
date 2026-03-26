@@ -7,7 +7,7 @@ export enum UserRole {
   ADMIN = 'ADMIN',
 }
 
-export interface User {
+export type User = {
   id: UUID;
   nationalId: string;
   firstName: string;
@@ -20,7 +20,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
-}
+};
 
 export type CreateUserDto = Omit<
   User,

@@ -5,11 +5,11 @@ import { api as baseApi } from './api';
 import { CreateUserDto, UpdateUserDto, User } from './user';
 import { UserErrorCode } from './user-error-codes';
 
-export type PaginatedUsersResponse = {
+type PaginatedUsersResponse = {
   data: User[];
   total: number;
   hasNextPage: boolean;
-}
+};
 
 export const fetchUsers = async (
   orgId: string,
@@ -36,7 +36,7 @@ export const deleteUser = async (id: string): Promise<void> => {
   await baseApi.delete(`/users/${id}`);
 };
 
-export const getErrorMessage = (err: any) => {
+export const getErrorMessage = (err: Error) => {
   if (err instanceof AxiosError && err.response?.data?.message) {
     const msg = err.response.data.message;
     if (msg === UserErrorCode.USER_ALREADY_EXISTS) return i18n.hr_popup.user_already_exists;
@@ -51,11 +51,9 @@ export const useCreateUser = (options?: UseMutationOptions<User, Error, CreateUs
   return useMutation({
     ...options,
     mutationFn: createUser,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      if (options?.onSuccess) {
-        (options.onSuccess as any)(data, variables, context);
-      }
+      options?.onSuccess?.(...args);
     },
   });
 };
@@ -65,11 +63,9 @@ export const useUpdateUser = (options?: UseMutationOptions<User, Error, { id: st
   return useMutation({
     ...options,
     mutationFn: updateUser,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      if (options?.onSuccess) {
-        (options.onSuccess as any)(data, variables, context);
-      }
+      options?.onSuccess?.(...args);
     },
   });
 };
@@ -79,11 +75,9 @@ export const useDeleteUser = (options?: UseMutationOptions<void, Error, string>)
   return useMutation({
     ...options,
     mutationFn: deleteUser,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      if (options?.onSuccess) {
-        (options.onSuccess as any)(data, variables, context);
-      }
+      options?.onSuccess?.(...args);
     },
   });
 };
