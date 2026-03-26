@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
-import { MailConfigKey } from './mail.type';
+import { MailConfigKey } from './enums/mail-config-key.enum';
 
 export interface SendTempPasswordParams {
   to: string;
