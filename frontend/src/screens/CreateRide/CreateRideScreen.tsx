@@ -1,145 +1,162 @@
 import { AppButton } from '@components';
 import { IS_WEB } from '@constants';
 import { colors, spacing, typography } from '@theme';
-import { useRouter } from 'expo-router';
 import type { FC } from 'react';
-import { Controller } from 'react-hook-form';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Controller, useWatch, type FieldErrors } from 'react-hook-form';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AddStopButton, DateInput, LocationRow, SeatsCounter, SectionCard, TripTypeSegment } from './components';
-import { useCreateRideForm } from './hooks';
+import { useCreateRideForm, type PlaceResult } from './hooks';
+import type { CreateRideFormValues } from './schema';
+
+type StopError = FieldErrors<CreateRideFormValues['stops'][number]>;
+
+/**
+ * Updates both locationName (display) and locationPoint (GeoJSON) atomically.
+ */
+const createLocationChangeHandler =
+  (
+    currentStop: CreateRideFormValues['stops'][number],
+    onChange: (value: CreateRideFormValues['stops'][number]) => void,
+  ) =>
+  (locationName: string, place?: PlaceResult) => {
+    onChange({
+      ...currentStop,
+      locationName,
+      ...(place && {
+        locationPoint: {
+          type: 'Point',
+          coordinates: [place.lng, place.lat],
+        },
+      }),
+    });
+  };
 
 export const CreateRideScreen: FC = () => {
-  const router = useRouter();
   const {
-    form: { control, reset },
-    stops,
-    addStop,
-    removeStop,
+    form: { control },
+    waypointFields,
+    addWaypoint,
+    removeWaypoint,
     onSubmit,
     isPending,
     mutationError,
+    onExit,
   } = useCreateRideForm();
 
-  const onExit = () => {
-    router.back();
-
-    setTimeout(() => reset(), 100);
-  };
+  const stops = useWatch({ control, name: 'stops' });
+  const destinationIndex = stops.length - 1;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
-      <View style={styles.inner}>
-        <Text style={styles.screenTitle}>יצירת נסיעה</Text>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
+        <View style={styles.inner}>
+          <Text style={styles.screenTitle}>יצירת נסיעה</Text>
 
-        <SectionCard title='פרטים כלליים' style={{ zIndex: 20 }}>
-          <View style={{ gap: spacing.md }}>
-            <Controller
-              control={control}
-              name='rideDate'
-              render={({ field, fieldState: { error } }) => (
-                <DateInput label='תאריך נסיעה' {...field} error={error?.message} />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name='startTime'
-              render={({ field: startTimeField, fieldState: { error: startTimeError } }) => (
-                <Controller
-                  control={control}
-                  name='origin'
-                  render={({ field: originField, fieldState: { error: locationError } }) => (
-                    <LocationRow
-                      label='התחלה'
-                      timeValue={startTimeField.value}
-                      onTimeChange={startTimeField.onChange}
-                      timeError={startTimeError?.message}
-                      locationValue={originField.value}
-                      onLocationChange={originField.onChange}
-                      locationError={locationError?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name='endTime'
-              render={({ field: endTimeField, fieldState: { error: endTimeError } }) => (
-                <Controller
-                  control={control}
-                  name='destination'
-                  render={({ field: destinationField, fieldState: { error: destinationError } }) => (
-                    <LocationRow
-                      label='סיום'
-                      timeValue={endTimeField.value}
-                      onTimeChange={endTimeField.onChange}
-                      timeError={endTimeError?.message}
-                      locationValue={destinationField.value}
-                      onLocationChange={destinationField.onChange}
-                      locationError={destinationError?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-          </View>
-
-          <View>
-            <Controller control={control} name='seats' render={({ field }) => <SeatsCounter {...field} />} />
-
-            <Controller control={control} name='isReturnTrip' render={({ field }) => <TripTypeSegment {...field} />} />
-          </View>
-        </SectionCard>
-
-        <SectionCard title='תחנות עצירה'>
-          <View style={{ gap: spacing.md }}>
-            {stops.map((stop, index) => (
+          {/* ── General details ── */}
+          <SectionCard title='פרטים כלליים' style={{ zIndex: 30 }}>
+            <View style={{ gap: spacing.md }}>
               <Controller
-                key={stop.id}
                 control={control}
-                name={`stops.${index}.time`}
-                render={({ field: timeField, fieldState: { error: timeError } }) => (
-                  <Controller
-                    control={control}
-                    name={`stops.${index}.location`}
-                    render={({ field: locationField, fieldState: { error: locationError } }) => (
-                      <LocationRow
-                        label={`תחנה ${index + 1}`}
-                        timeValue={timeField.value}
-                        onTimeChange={timeField.onChange}
-                        timeError={timeError?.message}
-                        locationValue={locationField.value}
-                        onLocationChange={(text) => locationField.onChange(text)}
-                        locationError={locationError?.message}
-                        onRemove={() => removeStop(index)}
-                      />
-                    )}
+                name='rideDate'
+                render={({ field, fieldState: { error } }) => (
+                  <DateInput label='תאריך נסיעה' {...field} error={error?.message} />
+                )}
+              />
+
+              {/* Origin — stops[0] */}
+              <Controller
+                control={control}
+                name='stops.0'
+                render={({ field, fieldState: { error } }) => (
+                  <LocationRow
+                    label='מוצא'
+                    timeValue={field.value.time}
+                    onTimeChange={(time) => field.onChange({ ...field.value, time })}
+                    timeError={(error as StopError)?.time?.message}
+                    locationValue={field.value.locationName}
+                    onLocationChange={createLocationChangeHandler(field.value, field.onChange)}
+                    locationError={(error as StopError)?.locationName?.message}
                   />
                 )}
               />
-            ))}
 
-            <AddStopButton onPress={addStop} />
+              {/* Destination — The last stop in the array */}
+              <Controller
+                control={control}
+                name={`stops.${destinationIndex}`}
+                render={({ field, fieldState: { error } }) => (
+                  <LocationRow
+                    label='יעד'
+                    timeValue={field.value.time}
+                    onTimeChange={(time) => field.onChange({ ...field.value, time })}
+                    timeError={(error as StopError)?.time?.message}
+                    locationValue={field.value.locationName}
+                    onLocationChange={createLocationChangeHandler(field.value, field.onChange)}
+                    locationError={(error as StopError)?.locationName?.message}
+                  />
+                )}
+              />
+            </View>
+
+            <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+              <Controller control={control} name='seats' render={({ field }) => <SeatsCounter {...field} />} />
+              <Controller
+                control={control}
+                name='isReturnTrip'
+                render={({ field }) => <TripTypeSegment {...field} />}
+              />
+            </View>
+          </SectionCard>
+
+          {/* ── Waypoints ── */}
+          <SectionCard title='תחנות בדרך' style={{ zIndex: 10 }}>
+            <View style={{ gap: spacing.md }}>
+              {waypointFields.map((waypoint, index) => {
+                // Waypoint UI index 0 corresponds to stops[1]
+                const stopIndex = index + 1;
+
+                return (
+                  <Controller
+                    key={waypoint.id}
+                    control={control}
+                    name={`stops.${stopIndex}`}
+                    render={({ field, fieldState: { error } }) => (
+                      <LocationRow
+                        label={`תחנה ${stopIndex}`}
+                        timeValue={field.value.time}
+                        onTimeChange={(time) => field.onChange({ ...field.value, time })}
+                        timeError={(error as StopError)?.time?.message}
+                        locationValue={field.value.locationName}
+                        onLocationChange={createLocationChangeHandler(field.value, field.onChange)}
+                        locationError={(error as StopError)?.locationName?.message}
+                        onRemove={() => removeWaypoint(index)}
+                      />
+                    )}
+                  />
+                );
+              })}
+
+              <AddStopButton onPress={addWaypoint} />
+            </View>
+          </SectionCard>
+
+          {/* ── Errors ── */}
+          {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
+
+          {/* ── Actions ── */}
+          <View style={styles.actions}>
+            <AppButton label='אישור' onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
+            <AppButton
+              label='ביטול'
+              onPress={onExit}
+              disabled={isPending}
+              style={styles.cancelBtn}
+              labelStyle={{ color: colors.textPrimary }}
+            />
           </View>
-        </SectionCard>
-
-        {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
-
-        <View style={styles.actions}>
-          <AppButton label='אישור' onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
-
-          <AppButton
-            label='ביטול'
-            onPress={onExit}
-            disabled={isPending}
-            style={styles.cancelBtn}
-            labelStyle={{ color: colors.textPrimary }}
-          />
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

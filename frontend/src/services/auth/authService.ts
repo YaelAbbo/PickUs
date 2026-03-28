@@ -1,7 +1,8 @@
-import type { User } from '@/api/entities';
 import { parseRefreshCookie } from '@/api/refreshToken';
-import { isNative, tokenStorage } from '@/api/tokenStorage';
+import { tokenStorage } from '@/api/tokenStorage';
 import { api } from '@api';
+import { IS_MOBILE } from '@constants';
+import type { User } from '@schemas';
 import { jwtDecode } from 'jwt-decode';
 
 export type TokenResponse = { accessToken: string };
@@ -24,7 +25,7 @@ export const authService = {
 
     if (userId) await tokenStorage.setUserId(userId);
 
-    if (isNative) {
+    if (!IS_MOBILE) {
       const refreshToken = parseRefreshCookie(headers['set-cookie']);
 
       if (refreshToken) await tokenStorage.setRefreshToken(refreshToken);
@@ -34,6 +35,8 @@ export const authService = {
   logout: async () => {
     try {
       await api.post('/auth/logout');
+    } catch (error) {
+      console.log(error);
     } finally {
       await tokenStorage.clearAll();
     }

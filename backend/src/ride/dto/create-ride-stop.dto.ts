@@ -1,5 +1,6 @@
 import { IsPoint } from '@/utils/decorators/is-point.decorator';
-import { IsDate, IsInt, IsNotEmpty, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDate, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 import type { Point } from 'geojson';
 
 export class CreateRideStopDto {
@@ -7,6 +8,11 @@ export class CreateRideStopDto {
   @IsNotEmpty()
   location: Point;
 
+  @IsString()
+  @IsNotEmpty()
+  locationName: string;
+
+  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   estimatedArrivalAt: Date;

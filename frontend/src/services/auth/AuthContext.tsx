@@ -12,4 +12,4 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   return <AuthContext.Provider value={useAuthLogicContent}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useCustomContext({ context: AuthContext, contextName: 'AuthContext' });
+export const useAuthContext = () => useCustomContext({ context: AuthContext, contextName: 'AuthContext' });

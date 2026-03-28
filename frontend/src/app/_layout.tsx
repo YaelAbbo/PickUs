@@ -9,10 +9,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
 
-I18nManager.forceRTL(true);
-I18nManager.allowRTL(true);
+if (!I18nManager.isRTL) I18nManager.forceRTL(true);
 
 export const unstable_settings = { anchor: '(tabs)' };
 
@@ -28,15 +28,17 @@ export default function AppLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name='(auth)' options={{ headerShown: false, title: `${APP_NAME} - כניסה` }} />
-            <Stack.Screen name='(tabs)' options={{ headerShown: false, title: `${APP_NAME}` }} />
-            <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
+        <PaperProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name='(auth)' options={{ headerShown: false, title: `${APP_NAME} - כניסה` }} />
+              <Stack.Screen name='(tabs)' options={{ headerShown: false, title: `${APP_NAME}` }} />
+              <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
 
-          <StatusBar style='auto' />
-        </ThemeProvider>
+            <StatusBar style='auto' />
+          </ThemeProvider>
+        </PaperProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

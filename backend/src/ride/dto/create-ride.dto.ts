@@ -1,4 +1,4 @@
-import { RideStatus, type Ride } from '@/database/entities/ride.entity';
+import { RideStatus } from '@/database/entities/ride.entity';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -11,18 +11,17 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { Point } from 'geojson';
-import { IsPoint } from '../../utils/decorators/is-point.decorator';
+import type { UUID } from 'crypto';
 import { CreateRideStopDto } from './create-ride-stop.dto';
 
 export class CreateRideDto {
   @IsUUID()
   @IsNotEmpty()
-  organizationId: Ride['orgId'];
+  orgId: UUID;
 
   @IsUUID()
   @IsNotEmpty()
-  driverId: Ride['driverId'];
+  driverId: UUID;
 
   @Type(() => Date)
   @IsDate()
@@ -33,14 +32,6 @@ export class CreateRideDto {
   @IsDate()
   @IsNotEmpty()
   estimatedEndsAt: Date;
-
-  @IsPoint()
-  @IsNotEmpty()
-  startLocation: Point;
-
-  @IsPoint()
-  @IsNotEmpty()
-  endLocation: Point;
 
   @IsInt()
   @Min(1)
@@ -54,6 +45,6 @@ export class CreateRideDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateRideStopDto)
-  @IsOptional()
-  rideStops?: CreateRideStopDto[];
+  @IsNotEmpty()
+  rideStops: CreateRideStopDto[];
 }

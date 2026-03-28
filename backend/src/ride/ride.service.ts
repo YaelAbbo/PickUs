@@ -16,16 +16,12 @@ export class RideService {
     private ridesRepository: Repository<Ride>,
   ) {}
 
-  async createRide({
-    organizationId,
-    driverId,
-    ...rest
-  }: CreateRideDto): Promise<Ride> {
-    const newRide = this.ridesRepository.create({
-      ...rest,
-      organization: { id: organizationId },
-      driver: { id: driverId },
-    });
+  async createRide(createRideDto: CreateRideDto): Promise<Ride> {
+    console.log(createRideDto);
+
+    const newRide = this.ridesRepository.create(createRideDto);
+
+    console.log({ newRide });
 
     try {
       const createdRide = await this.ridesRepository.save(newRide);
@@ -75,14 +71,14 @@ export class RideService {
 
   async updateRide(
     id: Ride['id'],
-    { organizationId, driverId, rideStops, ...rest }: UpdateRideDto,
+    { orgId, driverId, rideStops, ...rest }: UpdateRideDto,
   ): Promise<Ride> {
     const preloadPayload: DeepPartial<Ride> = {
       id,
       ...rest,
     };
 
-    if (organizationId) preloadPayload.orgId = organizationId;
+    if (orgId) preloadPayload.orgId = orgId;
     if (driverId) preloadPayload.driverId = driverId;
     if (rideStops) preloadPayload.rideStops = rideStops;
 

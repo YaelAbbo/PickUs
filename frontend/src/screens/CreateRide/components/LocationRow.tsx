@@ -3,7 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LocationInput, type PlaceResult } from './LocationInput';
+import type { PlaceResult } from '../hooks';
+import { LocationInput } from './LocationInput';
 import { TimeInput } from './TimeInput';
 
 export type LocationRowProps = {
@@ -28,16 +29,13 @@ export const LocationRow: FC<LocationRowProps> = ({
   onRemove,
 }) => (
   <View style={styles.wrapper}>
-    {/* Label sits above the whole row, right-aligned */}
     <Text style={styles.rowLabel}>{label}</Text>
 
     <View style={styles.row}>
-      {/* Time — fixed width, no label of its own */}
       <View style={styles.timeWrapper}>
         <TimeInput value={timeValue} onChange={onTimeChange} error={timeError} />
       </View>
 
-      {/* Location — fills remaining space */}
       <View style={styles.locationWrapper}>
         <LocationInput value={locationValue} onChange={onLocationChange} error={locationError} placeholder={label} />
       </View>

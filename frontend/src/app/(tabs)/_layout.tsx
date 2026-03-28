@@ -1,6 +1,7 @@
 import { HapticTab } from '@/components/haptic-tab';
+import { WebAppCard } from '@/components/WebAppCard';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuth } from '@/services/auth/AuthContext';
+import { useAuthContext } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
 import { APP_NAME } from '@constants';
@@ -25,32 +26,34 @@ const tabBarBackground = () => (
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
-  const { isUserLoading, user } = useAuth();
+  const { isUserLoading, user } = useAuthContext();
 
   if (isUserLoading) return <SplashScreen />;
 
   if (!user) return <Redirect href='/(auth)/login' />;
 
   return (
-    <Tabs
-      initialRouteName='home'
-      screenOptions={{
-        title: APP_NAME,
-        tabBarActiveTintColor: ThemeColors[colorScheme].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        animation: 'shift',
-        tabBarBackground,
-      }}
-    >
-      {tabScreensConfigs.map(({ icon, name, title }) => (
-        <Tabs.Screen
-          key={name}
-          name={name}
-          options={{ title, tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} /> }}
-        />
-      ))}
-    </Tabs>
+    <WebAppCard>
+      <Tabs
+        initialRouteName='home'
+        screenOptions={{
+          title: APP_NAME,
+          tabBarActiveTintColor: ThemeColors[colorScheme].tint,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          animation: 'shift',
+          tabBarBackground,
+        }}
+      >
+        {tabScreensConfigs.map(({ icon, name, title }) => (
+          <Tabs.Screen
+            key={name}
+            name={name}
+            options={{ title, tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} /> }}
+          />
+        ))}
+      </Tabs>
+    </WebAppCard>
   );
 }
 

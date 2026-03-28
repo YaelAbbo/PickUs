@@ -2,11 +2,19 @@ import { AppTextInput } from '@components';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { type PlaceResult, useLocationSearch } from '../hooks';
-
-export type { PlaceResult };
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  FlatList,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+  type LayoutRectangle,
+} from 'react-native';
+import { Portal } from 'react-native-paper';
+import { useLocationSearch, type PlaceResult } from '../hooks';
 
 export type LocationInputProps = {
   label?: string;
@@ -33,6 +41,8 @@ const SkeletonRow: FC = () => (
 export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, error, placeholder }) => {
   const [localValue, setLocalValue] = useState(value);
   const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<LayoutRectangle | null>(null);
+  const containerRef = useRef<View>(null);
 
   const { results, isSearching, hasNoResults, fetchError, query, clear, toPlace } = useLocationSearch({});
 
@@ -40,11 +50,29 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
     setLocalValue(value);
   }, [value]);
 
+  const measureAnchor = useCallback(() => {
+    setTimeout(() => {
+      containerRef.current?.measureInWindow((x, y, width, height) => {
+        setAnchorRect({ x, y, width, height });
+      });
+    }, 50);
+  }, []);
+
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', measureAnchor);
+    return () => sub.remove();
+  }, [measureAnchor]);
+
   const handleChangeText = (text: string) => {
     setLocalValue(text);
     onChange(text);
     query(text);
-    setOpen(text.length >= 2);
+    if (text.length >= 2) {
+      measureAnchor();
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
   };
 
   const handleSelect = (item: (typeof results)[number]) => {
@@ -55,84 +83,99 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
     setOpen(false);
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    clear();
+  };
+
   const showDropdown = open && (isSearching || hasNoResults || !!fetchError || results.length > 0);
 
+  const dropdownTop = anchorRect ? anchorRect.y + anchorRect.height + (error ? spacing.sm : spacing.xl) : 0;
+  const dropdownEnd = anchorRect?.x ?? 0;
+  const dropdownWidth = anchorRect?.width ?? 0;
+
   return (
-    <View style={styles.container}>
+    <View ref={containerRef} style={styles.container} onLayout={measureAnchor}>
       <AppTextInput
         label={label ?? ''}
         value={localValue}
         onChangeText={handleChangeText}
-        onFocus={() => (results.length > 0 || isSearching) && setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onFocus={() => {
+          measureAnchor();
+          if (results.length > 0 || isSearching) setOpen(true);
+        }}
         placeholder={placeholder ?? label ?? ''}
-        isError={!!error}
-        helperText={error}
+        error={error}
         rightIconName='location-outline'
         autoCorrect={false}
         autoComplete='off'
       />
 
+      {/* Portal keeps us in the same React/native window — keyboard stays open */}
       {showDropdown && (
-        <View style={styles.dropdown}>
-          {/* Loading skeletons */}
-          {isSearching && (
-            <View style={styles.stateContainer}>
-              <SkeletonRow />
-              <View style={styles.separator} />
-              <SkeletonRow />
-              <View style={styles.separator} />
-              <SkeletonRow />
-            </View>
-          )}
-
-          {/* No results */}
-          {!isSearching && hasNoResults && (
-            <View style={styles.stateContainer}>
-              <Ionicons name='search-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.stateText}>לא נמצאו תוצאות</Text>
-            </View>
-          )}
-
-          {/* Fetch error */}
-          {!isSearching && !!fetchError && (
-            <View style={styles.stateContainer}>
-              <Ionicons name='alert-circle-outline' size={20} color={colors.error} />
-              <Text style={[styles.stateText, styles.stateTextError]}>שגיאה בחיפוש, נסה שנית</Text>
-            </View>
-          )}
-
-          {/* Results */}
-          {!isSearching && results.length > 0 && (
-            <FlatList
-              data={results}
-              keyExtractor={(item) => item.place_id}
-              keyboardShouldPersistTaps='handled'
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              renderItem={({ item }) => {
-                const parts = item.display_name.split(',');
-                const main = parts[0] ?? '';
-                const sub = parts.slice(1, 3).join(',').trim();
-                return (
-                  <Pressable style={styles.resultRow} onPress={() => handleSelect(item)}>
-                    <Ionicons name='location-outline' size={14} color={colors.textMuted} />
-                    <View style={styles.resultText}>
-                      <Text style={styles.resultMain} numberOfLines={1}>
-                        {main}
-                      </Text>
-                      {!!sub && (
-                        <Text style={styles.resultSub} numberOfLines={1}>
-                          {sub}
-                        </Text>
-                      )}
+        <Portal>
+          <TouchableWithoutFeedback onPress={handleClose}>
+            <View style={styles.backdrop}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={[styles.dropdown, { top: dropdownTop, end: dropdownEnd, width: dropdownWidth }]}>
+                  {isSearching && (
+                    <View style={styles.stateContainer}>
+                      <SkeletonRow />
+                      <View style={styles.separator} />
+                      <SkeletonRow />
+                      <View style={styles.separator} />
+                      <SkeletonRow />
                     </View>
-                  </Pressable>
-                );
-              }}
-            />
-          )}
-        </View>
+                  )}
+
+                  {!isSearching && hasNoResults && (
+                    <View style={styles.stateContainer}>
+                      <Ionicons name='search-outline' size={20} color={colors.textMuted} />
+                      <Text style={styles.stateText}>לא נמצאו תוצאות</Text>
+                    </View>
+                  )}
+
+                  {!isSearching && !!fetchError && (
+                    <View style={styles.stateContainer}>
+                      <Ionicons name='alert-circle-outline' size={20} color={colors.error} />
+                      <Text style={[styles.stateText, styles.stateTextError]}>שגיאה בחיפוש, נסה שנית</Text>
+                    </View>
+                  )}
+
+                  {!isSearching && results.length > 0 && (
+                    <FlatList
+                      data={results}
+                      keyExtractor={(item) => item.place_id}
+                      keyboardShouldPersistTaps='always'
+                      scrollEnabled={false}
+                      ItemSeparatorComponent={() => <View style={styles.separator} />}
+                      renderItem={({ item }) => {
+                        const parts = item.display_name.split(',');
+                        const main = parts[0] ?? '';
+                        const sub = parts.slice(1, 3).join(',').trim();
+                        return (
+                          <Pressable style={styles.resultRow} onPress={() => handleSelect(item)}>
+                            <Ionicons name='location-outline' size={14} color={colors.textMuted} />
+                            <View style={styles.resultText}>
+                              <Text style={styles.resultMain} numberOfLines={1}>
+                                {main}
+                              </Text>
+                              {!!sub && (
+                                <Text style={styles.resultSub} numberOfLines={1}>
+                                  {sub}
+                                </Text>
+                              )}
+                            </View>
+                          </Pressable>
+                        );
+                      }}
+                    />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Portal>
       )}
     </View>
   );
@@ -143,25 +186,26 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    // zIndex: 10,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
   },
   dropdown: {
     position: 'absolute',
-    top: 75 + spacing.xs,
-    left: 0,
-    right: 0,
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.inputBorder,
     backgroundColor: colors.purpleCard,
-    // zIndex: 50,
-    overflow: 'hidden',
-    elevation: 8,
+    elevation: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 
-  // ── State views (loading / empty / error) ──
+  // ── State views ──
   stateContainer: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
@@ -180,7 +224,7 @@ const styles = StyleSheet.create({
 
   // ── Skeleton ──
   skeletonRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -195,7 +239,7 @@ const styles = StyleSheet.create({
   },
   skeletonLines: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: 6,
   },
   skeletonLine: {

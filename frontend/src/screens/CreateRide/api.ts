@@ -1,16 +1,9 @@
-import type { CreateRideFormValues } from './schema';
+import type { Ride } from '@/schemas/ride';
+import { api } from '@api';
+import type { CreateRideDto } from './schema';
 
-export async function postCreateRide(payload: CreateRideFormValues): Promise<{ id: string }> {
-  const res = await fetch('/api/rides', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+export const postCreateRide = async (payload: CreateRideDto) => {
+  const { data: createdRide } = await api.post<Ride>('/rides', payload);
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.message ?? 'שגיאה ביצירת הנסיעה');
-  }
-
-  return res.json();
-}
+  return createdRide;
+};

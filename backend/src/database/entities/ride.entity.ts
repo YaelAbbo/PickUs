@@ -1,5 +1,6 @@
 import type { UUID } from 'crypto';
 import { Point } from 'geojson';
+import { maxBy, minBy } from 'lodash';
 import {
   Check,
   Column,
@@ -55,22 +56,6 @@ export class Ride extends BaseEntity {
     type: 'geography',
     spatialFeatureType: 'Point',
     srid: 4326,
-    name: 'start_location',
-  })
-  startLocation: Point;
-
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    name: 'end_location',
-  })
-  endLocation: Point;
-
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
     nullable: true,
     name: 'current_location',
   })
@@ -88,6 +73,14 @@ export class Ride extends BaseEntity {
   })
   rideStatus: RideStatus;
 
-  @OneToMany(() => RideStop, (stop) => stop.ride)
+  @OneToMany(() => RideStop, (stop) => stop.ride, { cascade: true })
   rideStops: RideStop[];
+
+  get startLocation(): RideStop | undefined {
+    return minBy(this.rideStops, 'orderIndex');
+  }
+
+  get endLocation() {
+    return maxBy(this.rideStops, 'orderIndex');
+  }
 }

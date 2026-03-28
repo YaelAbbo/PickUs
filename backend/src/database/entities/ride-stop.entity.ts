@@ -19,6 +19,9 @@ export class RideStop extends BaseEntity {
   @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326 })
   location: Point;
 
+  @Column({ name: 'location_name' })
+  locationName: string;
+
   @Column({ type: 'timestamptz', name: 'estimated_arrival_at' })
   estimatedArrivalAt: Date;
 

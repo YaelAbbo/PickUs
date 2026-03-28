@@ -1,9 +1,9 @@
 import { SplashScreen } from '@/components/SplashScreen';
-import { useAuth } from '@/services/auth/AuthContext';
+import { useAuthContext } from '@/services/auth/AuthContext';
 import { Redirect } from 'expo-router';
 
 export default function AppRoot() {
-  const { isUserLoading, user } = useAuth();
+  const { isUserLoading, user } = useAuthContext();
 
   if (isUserLoading) return <SplashScreen />;
 
