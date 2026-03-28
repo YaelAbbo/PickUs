@@ -1,3 +1,4 @@
+import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -11,11 +12,12 @@ import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
-type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName };
+type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName; role?: UserRole };
 
 const tabScreensConfigs: TabScreenConfig[] = [
   { name: 'home', title: 'Home', icon: 'home' },
   { name: 'create-ride', title: 'Create Ride', icon: 'car' },
+  { name: 'hr', title: 'HR', icon: 'user', role: UserRole.HR_MANAGER },
 ];
 
 const tabBarBackground = () => (
@@ -30,7 +32,7 @@ export default function TabLayout() {
 
   if (isUserLoading) return <SplashScreen />;
 
-  if (!user) return <Redirect href='/(auth)/login' />;
+  if (!user) return <Redirect href={'/(auth)/login'} />;
 
   return (
     <WebAppCard>
@@ -45,11 +47,15 @@ export default function TabLayout() {
           tabBarBackground,
         }}
       >
-        {tabScreensConfigs.map(({ icon, name, title }) => (
+        {tabScreensConfigs.map(({ icon, name, title, role }) => (
           <Tabs.Screen
             key={name}
             name={name}
-            options={{ title, tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} /> }}
+            options={{
+              title,
+              tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
+              href: role && user?.role !== role ? null : undefined,
+            }}
           />
         ))}
       </Tabs>

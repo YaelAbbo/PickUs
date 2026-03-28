@@ -10,9 +10,11 @@ export type TestApp = { app: INestApplication; dataSource: DataSource };
 export const createTestApp = async (
   ...featureModules: NonNullable<ModuleMetadata['imports']>
 ) => {
+  process.env.DB_HOST = 'localhost';
+
   const testingModule = await Test.createTestingModule({
     imports: [
-      ConfigModule.forRoot({ isGlobal: true }),
+      ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
       DatabaseModule,
       ...featureModules,
     ],

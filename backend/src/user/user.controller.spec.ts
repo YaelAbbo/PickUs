@@ -58,7 +58,7 @@ describe('UserController (e2e)', () => {
 
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ id: adminUser.id, password: adminUser.password });
+      .send({ nationalId: adminUser.nationalId, password: adminUser.password });
     adminAccessToken = loginRes.body.accessToken;
   }, 60000);
 

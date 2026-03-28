@@ -1,4 +1,3 @@
-import type { Organization } from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -9,8 +8,10 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../database/entities/user.entity';
+import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserErrorCode } from './enums/user-error-code.enum';
 
 @Injectable()
 export class UserService {
@@ -47,9 +48,16 @@ export class UserService {
 
     try {
       return await this.usersRepository.save(user);
-    } catch (err) {
-      console.error(err);
-      throw new ConflictException('Failed to create user');
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === POSTGRES_UNIQUE_VIOLATION
+      ) {
+        throw new ConflictException(UserErrorCode.USER_ALREADY_EXISTS);
+      }
+      throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
     }
   }
 
@@ -70,7 +78,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(UserErrorCode.USER_NOT_FOUND);
     }
 
     if (isDeleted) {
@@ -103,13 +111,37 @@ export class UserService {
   }
 
   async findAllByOrganization(
-    organizationId: Organization['id'],
-  ): Promise<User[]> {
-    return await this.usersRepository.find({
-      where: {
-        organization: { id: organizationId },
-        isDeleted: false,
-      },
-    });
+    organizationId: string,
+    page = 1,
+    limit = 15,
+    searchQuery = '',
+  ): Promise<{ data: User[]; total: number; hasNextPage: boolean }> {
+    const query = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.organization', 'organization')
+      .where('user.organization = :organizationId', { organizationId })
+      .andWhere('user.isDeleted = false');
+
+    if (searchQuery) {
+      query.andWhere(
+        '(LOWER(user.firstName) LIKE LOWER(:search) OR ' +
+          'LOWER(user.lastName) LIKE LOWER(:search) OR ' +
+          'user.nationalId LIKE :search)',
+        { search: `%${searchQuery}%` },
+      );
+    }
+
+    query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('user.createdAt', 'DESC');
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      hasNextPage: page * limit < total,
+    };
   }
 }

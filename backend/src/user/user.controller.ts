@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Organization, User } from '../database/entities';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -33,8 +34,16 @@ export class UserController {
   @Get('organization/:orgId')
   async findAllByOrganization(
     @Param('orgId') orgId: Organization['id'],
-  ): Promise<User[]> {
-    return await this.userService.findAllByOrganization(orgId);
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ): Promise<{ data: User[]; total: number; hasNextPage: boolean }> {
+    return await this.userService.findAllByOrganization(
+      orgId,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 15,
+      search,
+    );
   }
 
   @UseAccessAuth()

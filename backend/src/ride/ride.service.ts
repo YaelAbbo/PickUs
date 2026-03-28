@@ -1,4 +1,4 @@
-import { Ride, type Organization } from '@/database/entities';
+import { Ride, type Organization, type User } from '@/database/entities';
 import {
   ConflictException,
   Injectable,
@@ -53,16 +53,14 @@ export class RideService {
     return ride;
   }
 
-  async getRidesByOrganizationId(
-    organizationId: Organization['id'],
-  ): Promise<Ride[]> {
+  async getRidesByOrganizationId(orgId: Organization['id']): Promise<Ride[]> {
     return await this.ridesRepository.find({
-      where: { orgId: organizationId, isDeleted: false },
+      where: { orgId, isDeleted: false },
       relations: ['driver', 'rideStops'],
     });
   }
 
-  async getRidesByDriverId(driverId: Ride['driverId']): Promise<Ride[]> {
+  async getRidesByDriverId(driverId: User['id']): Promise<Ride[]> {
     return await this.ridesRepository.find({
       where: { driverId, isDeleted: false },
       relations: ['organization', 'rideStops'],
@@ -98,7 +96,7 @@ export class RideService {
     }
   }
 
-  async deleteRide(id: string): Promise<void> {
+  async deleteRide(id: Ride['id']): Promise<void> {
     const result = await this.ridesRepository.update(id, { isDeleted: true });
 
     if (result.affected === 0) {

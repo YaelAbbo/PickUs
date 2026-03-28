@@ -1,3 +1,4 @@
+import type { Organization, User } from '@/database/entities';
 import { RideStatus } from '@/database/entities/ride.entity';
 import { Type } from 'class-transformer';
 import {
@@ -11,17 +12,16 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import type { UUID } from 'crypto';
 import { CreateRideStopDto } from './create-ride-stop.dto';
 
 export class CreateRideDto {
   @IsUUID()
   @IsNotEmpty()
-  orgId: UUID;
+  orgId: Organization['id'];
 
   @IsUUID()
   @IsNotEmpty()
-  driverId: UUID;
+  driverId: User['id'];
 
   @Type(() => Date)
   @IsDate()
