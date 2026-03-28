@@ -1,4 +1,4 @@
-import { CreateRideScreen } from '@/screens/CreateRide/CreateRideScreen';
+import { RideForm } from '@/components/RideForm/RideForm';
 import { PageHead } from '@components';
 
 export default function CreateRidePage() {
@@ -6,7 +6,7 @@ export default function CreateRidePage() {
     <>
       <PageHead title='יצירת נסיעה' />
 
-      <CreateRideScreen />
+      <RideForm />
     </>
   );
 }

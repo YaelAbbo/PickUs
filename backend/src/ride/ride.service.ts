@@ -17,11 +17,7 @@ export class RideService {
   ) {}
 
   async createRide(createRideDto: CreateRideDto): Promise<Ride> {
-    console.log(createRideDto);
-
     const newRide = this.ridesRepository.create(createRideDto);
-
-    console.log({ newRide });
 
     try {
       const createdRide = await this.ridesRepository.save(newRide);

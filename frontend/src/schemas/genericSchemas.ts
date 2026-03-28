@@ -13,3 +13,11 @@ export const entityMetadata = z.object({
 export const dateSchema = z.date(REQUIRED);
 
 export const locationSchema = z.string(REQUIRED).min(3, 'יש להזין מיקום');
+
+export const longitudeSchema = z.number();
+export const latitudeSchema = z.number();
+
+export const pointSchema = z.object({
+  type: z.literal('Point'),
+  coordinates: z.tuple([longitudeSchema, latitudeSchema]),
+});

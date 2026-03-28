@@ -5,33 +5,26 @@ import type { FC } from 'react';
 import { Controller, useWatch, type FieldErrors } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AddStopButton, DateInput, LocationRow, SeatsCounter, SectionCard, TripTypeSegment } from './components';
-import { useCreateRideForm, type PlaceResult } from './hooks';
-import type { CreateRideFormValues } from './schema';
+import { useRideForm, type PlaceResult, type UseRideFormArgs } from './hooks';
+import type { RideFormValues } from './schema';
 
-type StopError = FieldErrors<CreateRideFormValues['stops'][number]>;
+type StopError = FieldErrors<RideFormValues['stops'][number]>;
 
 /**
  * Updates both locationName (display) and locationPoint (GeoJSON) atomically.
  */
 const createLocationChangeHandler =
-  (
-    currentStop: CreateRideFormValues['stops'][number],
-    onChange: (value: CreateRideFormValues['stops'][number]) => void,
-  ) =>
-  (locationName: string, place?: PlaceResult) => {
+  (currentStop: RideFormValues['stops'][number], onChange: (value: RideFormValues['stops'][number]) => void) =>
+  (locationName: string, place?: PlaceResult) =>
     onChange({
       ...currentStop,
       locationName,
-      ...(place && {
-        locationPoint: {
-          type: 'Point',
-          coordinates: [place.lng, place.lat],
-        },
-      }),
+      ...(place && { locationPoint: { type: 'Point', coordinates: [place.lng, place.lat] } }),
     });
-  };
 
-export const CreateRideScreen: FC = () => {
+export type RideFormProps = UseRideFormArgs;
+
+export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
   const {
     form: { control },
     waypointFields,
@@ -41,7 +34,7 @@ export const CreateRideScreen: FC = () => {
     isPending,
     mutationError,
     onExit,
-  } = useCreateRideForm();
+  } = useRideForm(useRideFormArgs);
 
   const stops = useWatch({ control, name: 'stops' });
   const destinationIndex = stops.length - 1;
@@ -52,7 +45,6 @@ export const CreateRideScreen: FC = () => {
         <View style={styles.inner}>
           <Text style={styles.screenTitle}>יצירת נסיעה</Text>
 
-          {/* ── General details ── */}
           <SectionCard title='פרטים כלליים' style={{ zIndex: 30 }}>
             <View style={{ gap: spacing.md }}>
               <Controller
@@ -63,7 +55,6 @@ export const CreateRideScreen: FC = () => {
                 )}
               />
 
-              {/* Origin — stops[0] */}
               <Controller
                 control={control}
                 name='stops.0'
@@ -80,7 +71,6 @@ export const CreateRideScreen: FC = () => {
                 )}
               />
 
-              {/* Destination — The last stop in the array */}
               <Controller
                 control={control}
                 name={`stops.${destinationIndex}`}
@@ -108,7 +98,6 @@ export const CreateRideScreen: FC = () => {
             </View>
           </SectionCard>
 
-          {/* ── Waypoints ── */}
           <SectionCard title='תחנות בדרך' style={{ zIndex: 10 }}>
             <View style={{ gap: spacing.md }}>
               {waypointFields.map((waypoint, index) => {
@@ -140,10 +129,8 @@ export const CreateRideScreen: FC = () => {
             </View>
           </SectionCard>
 
-          {/* ── Errors ── */}
           {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
 
-          {/* ── Actions ── */}
           <View style={styles.actions}>
             <AppButton label='אישור' onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
             <AppButton

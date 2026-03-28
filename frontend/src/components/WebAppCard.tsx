@@ -1,10 +1,10 @@
-import { IS_WEB } from '@constants';
+import { IS_MOBILE } from '@constants';
 import { colors } from '@theme';
 import type { FC, PropsWithChildren } from 'react';
 import { StyleSheet, View, type DimensionValue } from 'react-native';
 
 export const WebAppCard: FC<PropsWithChildren> = ({ children }) => {
-  if (!IS_WEB) return <>{children}</>;
+  if (IS_MOBILE) return <>{children}</>;
 
   return (
     <View style={styles.bg}>

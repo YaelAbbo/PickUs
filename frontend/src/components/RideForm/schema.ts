@@ -1,0 +1,50 @@
+import { dateSchema, pointSchema, uuidSchema } from '@/schemas/genericSchemas';
+import { rideSchema, rideStopSchema, type Ride } from '@/schemas/ride';
+import { z } from 'zod';
+
+export const stopSchema = z.object({
+  locationName: rideStopSchema.shape.locationName,
+  locationPoint: pointSchema,
+  time: dateSchema,
+});
+
+const rideStopsSchema = z
+  .array(stopSchema)
+  .min(2, 'יש להזין נקודת התחלה וסיום')
+  .superRefine((stops, ctx) => {
+    for (let i = 1; i < stops.length; i++) {
+      const currentStop = stops[i];
+      const previousStop = stops[i - 1];
+
+      if (!currentStop || !previousStop) continue;
+
+      if (currentStop.time <= previousStop.time)
+        ctx.addIssue({ code: 'custom', message: 'חייבת להיות אחרי הקודמת', path: [i, 'time'] });
+    }
+  });
+
+export const rideFormSchema = rideSchema.pick({ orgId: true, driverId: true }).extend({
+  id: uuidSchema.optional(),
+  rideDate: dateSchema,
+  seats: rideSchema.shape.maxSeatsAmount,
+  isReturnTrip: z.boolean(),
+  stops: rideStopsSchema,
+});
+
+export type RideFormValues = z.infer<typeof rideFormSchema>;
+
+export const rideStopDtoSchema = rideStopSchema.pick({
+  location: true,
+  locationName: true,
+  estimatedArrivalAt: true,
+  orderIndex: true,
+});
+
+export const createRideDtoSchema = rideSchema
+  .pick({ driverId: true, orgId: true, startsAt: true, estimatedEndsAt: true, maxSeatsAmount: true })
+  .extend({ rideStops: z.array(rideStopDtoSchema) });
+
+export type RideStopDto = z.infer<typeof rideStopDtoSchema>;
+export type CreateRideDto = z.infer<typeof createRideDtoSchema>;
+
+export type UpdateRideDto = Partial<CreateRideDto> & { rideId: Ride['id'] };
