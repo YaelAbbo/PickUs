@@ -3,7 +3,6 @@ import { BaseEntity } from './base.entity';
 import { RideStop } from './ride-stop.entity';
 import { Ride } from './ride.entity';
 import { User } from './user.entity';
-import type { UUID } from 'crypto';
 
 @Entity('ride_passenger')
 @Unique('ride_passenger_user_id_ride_id_key', ['user', 'ride'])
@@ -16,7 +15,7 @@ export class RidePassenger extends BaseEntity {
   user: User;
 
   @Column({ name: 'user_id' })
-  userId: UUID;
+  userId: User['id'];
 
   @ManyToOne(() => Ride, { nullable: false })
   @JoinColumn({
@@ -26,7 +25,7 @@ export class RidePassenger extends BaseEntity {
   ride: Ride;
 
   @Column({ name: 'ride_id' })
-  rideId: UUID;
+  rideId: Ride['id'];
 
   @ManyToOne(() => RideStop, { nullable: false })
   @JoinColumn({
@@ -36,5 +35,5 @@ export class RidePassenger extends BaseEntity {
   rideStop: RideStop;
 
   @Column({ name: 'ride_stop_id' })
-  rideStopId: UUID;
+  rideStopId: RideStop['id'];
 }
