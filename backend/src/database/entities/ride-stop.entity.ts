@@ -16,6 +16,9 @@ export class RideStop extends BaseEntity {
   })
   ride: Ride;
 
+  @Column('uuid', { name: 'ride_id' })
+  rideId: Ride['id'];
+
   @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326 })
   location: Point;
 

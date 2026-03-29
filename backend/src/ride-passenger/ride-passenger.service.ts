@@ -13,12 +13,9 @@ import { Repository } from 'typeorm';
 import { JoinRideDto } from './dto/join-ride.dto';
 import { UpdateRidePassengerDto } from './dto/update-ride-passenger.dto';
 
-/* Lock the ride row for the duration of join and update functions transaction. Any 
-   concurrent write on the same row will block here until the function is finished. */
-
 @Injectable()
 export class RidePassengerService {
-  private readonly logger: Logger = new Logger(RidePassengerService.name);
+  private readonly logger = new Logger(RidePassengerService.name);
 
   constructor(
     @InjectRepository(RidePassenger)
@@ -31,32 +28,17 @@ export class RidePassengerService {
     { rideStopId }: JoinRideDto,
   ): Promise<void> {
     await this.ridePassengerRepository.manager.transaction(async (manager) => {
-      const lockedRide = await manager.getRepository(Ride).findOne({
-        where: { id: rideId, isDeleted: false },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!lockedRide)
-        throw new NotFoundException(`Ride with ID ${rideId} not found`);
-
-      if (lockedRide.rideStatus !== RideStatus.PENDING)
-        throw new ForbiddenException(
-          `User ${userId} can only join rides that are in PENDING status, ride status ${lockedRide.rideStatus}`,
-        );
+      const lockedRide = await this.validateLockedRide(rideId, userId, manager);
 
       const rideStops = await manager
         .getRepository(RideStop)
-        .find({ where: { ride: { id: rideId }, isDeleted: false } });
+        .find({ where: { rideId, isDeleted: false } });
 
-      const rideStop = rideStops.find((stop) => stop.id === rideStopId);
-      if (!rideStop)
-        throw new ForbiddenException(
-          `Ride stop with ID ${rideStopId} not found on ride with ID ${rideId}`,
-        );
+      this.validateRideStop(rideStopId, rideStops, rideId);
 
       const existingPassenger = await manager
         .getRepository(RidePassenger)
-        .findOne({ where: { user: { id: userId }, ride: { id: rideId } } });
+        .findOne({ where: { userId, rideId } });
 
       if (existingPassenger)
         throw new ConflictException(
@@ -65,15 +47,15 @@ export class RidePassengerService {
 
       const passengerCount = await manager
         .getRepository(RidePassenger)
-        .count({ where: { ride: { id: rideId }, isDeleted: false } });
+        .count({ where: { rideId, isDeleted: false } });
 
       if (passengerCount >= lockedRide.maxSeatsAmount)
         throw new BadRequestException('Ride is full');
 
       try {
         const passenger = manager.getRepository(RidePassenger).create({
-          user: { id: userId },
-          ride: { id: rideId },
+          userId,
+          rideId,
           rideStop: { id: rideStopId },
         });
         await manager.getRepository(RidePassenger).save(passenger);
@@ -101,25 +83,12 @@ export class RidePassengerService {
     }
 
     await this.ridePassengerRepository.manager.transaction(async (manager) => {
-      const lockedRide = await manager.getRepository(Ride).findOne({
-        where: { id: rideId, isDeleted: false },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!lockedRide) {
-        throw new NotFoundException(`Ride with ID ${rideId} not found`);
-      }
-
-      if (lockedRide.rideStatus !== RideStatus.PENDING) {
-        throw new ForbiddenException(
-          `Can only update stop on rides that are in PENDING status, ride status ${lockedRide.rideStatus}`,
-        );
-      }
+      await this.validateLockedRide(rideId, userId, manager);
 
       const passenger = await manager.getRepository(RidePassenger).findOne({
         where: {
-          user: { id: userId },
-          ride: { id: rideId },
+          userId,
+          rideId,
           isDeleted: false,
         },
         relations: ['user'],
@@ -133,15 +102,13 @@ export class RidePassengerService {
 
       const rideStopsForUpdate = await manager
         .getRepository(RideStop)
-        .find({ where: { ride: { id: rideId }, isDeleted: false } });
-      const rideStop = rideStopsForUpdate.find(
-        (stop) => stop.id === rideStopId,
+        .find({ where: { rideId, isDeleted: false } });
+
+      const rideStop = this.validateRideStop(
+        rideStopId,
+        rideStopsForUpdate,
+        rideId,
       );
-      if (!rideStop) {
-        throw new ForbiddenException(
-          `Ride stop with ID ${rideStopId} not found on ride with ID ${rideId}`,
-        );
-      }
 
       passenger.rideStop = rideStop;
 
@@ -179,7 +146,7 @@ export class RidePassengerService {
       );
 
     const passenger = await this.ridePassengerRepository.findOne({
-      where: { user: { id: userId }, ride: { id: rideId }, isDeleted: false },
+      where: { userId, rideId, isDeleted: false },
     });
 
     if (!passenger)
@@ -197,5 +164,40 @@ export class RidePassengerService {
         `User ${currentUserId} could not leave ride ${rideId}`,
       );
     }
+  }
+
+  private validateRideStop(
+    rideStopId: RideStop['id'],
+    rideStops: RideStop[],
+    rideId: Ride['id'],
+  ): RideStop {
+    const rideStop = rideStops.find((stop) => stop.id === rideStopId);
+    if (!rideStop)
+      throw new NotFoundException(
+        `Ride stop with ID ${rideStopId} not found on ride with ID ${rideId}`,
+      );
+
+    return rideStop;
+  }
+
+  private async validateLockedRide(
+    rideId: Ride['id'],
+    userId: User['id'],
+    manager: Repository<RidePassenger>['manager'],
+  ): Promise<Ride> {
+    const lockedRide = await manager.getRepository(Ride).findOne({
+      where: { id: rideId, isDeleted: false },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!lockedRide)
+      throw new NotFoundException(`Ride with ID ${rideId} not found`);
+
+    if (lockedRide.rideStatus !== RideStatus.PENDING)
+      throw new ForbiddenException(
+        `User ${userId} can only join rides that are in PENDING status, ride status ${lockedRide.rideStatus}`,
+      );
+
+    return lockedRide;
   }
 }
