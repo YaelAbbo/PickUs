@@ -296,14 +296,14 @@ describe('RidePassengerController', () => {
       await userRepository.delete([secondPassenger.id, thirdPassenger.id]);
     });
 
-    it('should return 403 for invalid ride stop', async () => {
+    it('should return 404 for invalid ride stop', async () => {
       const fakeStopId = '22222222-2222-4222-8222-222222222222';
       const response = await request(httpServer)
         .post(`/rides/${rideId}/passengers`)
         .set('Authorization', `Bearer ${passengerAccessToken}`)
         .send({ rideStopId: fakeStopId });
 
-      expect(response.status).toEqual(403);
+      expect(response.status).toEqual(404);
       expect(response.body.message).toEqual(
         `Ride stop with ID ${fakeStopId} not found on ride with ID ${rideId}`,
       );
@@ -358,7 +358,7 @@ describe('RidePassengerController', () => {
       );
     });
 
-    it('should return 403 for trying to update to a stop not on this ride', async () => {
+    it('should return 404 for trying to update to a stop not on this ride', async () => {
       await request(httpServer)
         .post(`/rides/${rideId}/passengers`)
         .set('Authorization', `Bearer ${passengerAccessToken}`)
@@ -370,7 +370,7 @@ describe('RidePassengerController', () => {
         .set('Authorization', `Bearer ${passengerAccessToken}`)
         .send({ rideStopId: fakeStopId });
 
-      expect(response.status).toEqual(403);
+      expect(response.status).toEqual(404);
       expect(response.body.message).toEqual(
         `Ride stop with ID ${fakeStopId} not found on ride with ID ${rideId}`,
       );
