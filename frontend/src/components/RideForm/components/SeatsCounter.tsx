@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { useNativeDriver } from '@constants';
 import { colors, spacing, typography } from '@theme';
 import type { FC } from 'react';
@@ -7,27 +8,24 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 const MIN = 1;
 const MAX = 5;
 
-// ─── Seat silhouette ──────────────────────────────────────────────────────────
-
 const SeatIcon: FC<{ filled: boolean }> = ({ filled }) => {
-  const c = filled ? colors.yellow : colors.inputBorder;
+  const backgroundColor = filled ? colors.yellow : colors.inputBorder;
+
   return (
     <View style={{ alignItems: 'center', gap: 2, opacity: filled ? 1 : 0.4 }}>
-      <View style={{ width: 14, height: 8, borderRadius: 3, backgroundColor: c }} />
-      <View style={{ width: 14, height: 5, borderRadius: 2, backgroundColor: c }} />
+      <View style={{ width: 14, height: 8, borderRadius: 3, backgroundColor }} />
+      <View style={{ width: 14, height: 5, borderRadius: 2, backgroundColor }} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: 14 }}>
-        <View style={{ width: 3, height: 3, borderRadius: 1, backgroundColor: c }} />
-        <View style={{ width: 3, height: 3, borderRadius: 1, backgroundColor: c }} />
+        <View style={{ width: 3, height: 3, borderRadius: 1, backgroundColor }} />
+        <View style={{ width: 3, height: 3, borderRadius: 1, backgroundColor }} />
       </View>
     </View>
   );
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export type SeatsCounterProps = {
   value: number;
-  onChange: (v: number) => void;
+  onChange: (value: number) => void;
 };
 
 export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
@@ -49,12 +47,14 @@ export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
 
   const decrement = () => {
     if (value <= MIN) return;
+
     onChange(value - 1);
     pop();
   };
 
   const increment = () => {
     if (value >= MAX) return;
+
     onChange(value + 1);
     pop();
   };
@@ -69,7 +69,7 @@ export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
 
   return (
     <View>
-      <Text style={styles.label}>מקומות פנויים</Text>
+      <Text style={styles.label}>{i18n.rideForm.available_seats}</Text>
 
       <View style={styles.row}>
         <TouchableOpacity
@@ -107,9 +107,7 @@ export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
   );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const BTN = 46;
+const BUTTON_SIZE = 46;
 
 const styles = StyleSheet.create({
   label: {
@@ -123,9 +121,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   btn: {
-    width: BTN,
-    height: BTN,
-    borderRadius: BTN / 2,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    borderRadius: BUTTON_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

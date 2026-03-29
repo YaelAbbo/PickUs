@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { useNominatimSearch, type NominatimResult } from './useNominatimSearch';
 
 export type PlaceResult = {
@@ -6,6 +7,14 @@ export type PlaceResult = {
   description: string;
   lat: number;
   lng: number;
+};
+
+const QUERY_KEY = 'location-search';
+
+export const convertNominatimResultToPlaceResult = (item: NominatimResult): PlaceResult => {
+  const description = item.display_name.split(',').slice(0, 2).join(',').trim();
+
+  return { placeId: item.place_id, description, lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
 };
 
 export type UseLocationSearchArgs = {
@@ -17,69 +26,53 @@ export type UseLocationSearchArgs = {
 export type UseLocationSearchContent = ReturnType<typeof useLocationSearch>;
 
 export const useLocationSearch = ({ debounceMs = 400, countryCode, language }: UseLocationSearchArgs) => {
+  const queryClient = useQueryClient();
   const { search } = useNominatimSearch({ countryCode, language });
 
-  const [results, setResults] = useState<NominatimResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false); // true once a query has completed
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<number | null>(null);
+  const searchTextRef = useRef('');
 
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
+  const {
+    data: results = [],
+    isFetching,
+    isSuccess,
+    error,
+  } = useQuery<NominatimResult[], Error>({
+    queryKey: [QUERY_KEY, searchTextRef.current],
+    queryFn: () => search(searchTextRef.current),
+    enabled: searchTextRef.current.length >= 2,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
 
   const query = (text: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (text.length < 2) {
-      setResults([]);
-      setSearched(false);
-      setLoading(false);
+      searchTextRef.current = '';
+      queryClient.removeQueries({ queryKey: [QUERY_KEY] });
+
       return;
     }
 
-    // Show loading immediately when user types (before debounce fires)
-    setLoading(true);
-    setSearched(false);
+    debounceRef.current = setTimeout(() => {
+      searchTextRef.current = text;
 
-    debounceRef.current = setTimeout(async () => {
-      setFetchError(null);
-      try {
-        const data = await search(text);
-        setResults(data);
-      } catch (e) {
-        setFetchError(e instanceof Error ? e.message : 'שגיאה בחיפוש');
-        setResults([]);
-      } finally {
-        setLoading(false);
-        setSearched(true);
-      }
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, text] });
     }, debounceMs);
   };
 
   const clear = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setResults([]);
-    setSearched(false);
-    setLoading(false);
-    setFetchError(null);
+
+    searchTextRef.current = '';
+    queryClient.removeQueries({ queryKey: [QUERY_KEY] });
   };
 
-  const toPlace = (item: NominatimResult): PlaceResult => {
-    const short = item.display_name.split(',').slice(0, 2).join(',').trim();
-    return {
-      placeId: item.place_id,
-      description: short,
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon),
-    };
-  };
+  const isSearchDone = isSuccess && !isFetching;
+  const isSearching = isFetching;
+  const hasNoResults = isSearchDone && results.length === 0 && !error;
+  const fetchError = error?.message ?? null;
 
-  const isSearching = loading;
-  const hasNoResults = searched && !loading && results.length === 0 && !fetchError;
-
-  return { results, isSearching, hasNoResults, fetchError, query, clear, toPlace };
+  return { results, isSearching, hasNoResults, fetchError, query, clear };
 };

@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthContext } from '@services';
@@ -92,7 +93,7 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
   } = useMutation({
     mutationFn: createRide,
     onSuccess: clearFormAndExit,
-    onError: () => setError('root', { message: 'קרתה שגיאה ביצירת הנסיעה' }),
+    onError: () => setError('root', { message: i18n.rideForm.create_ride_error_happened }),
   });
 
   const {
@@ -103,7 +104,7 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
   } = useMutation({
     mutationFn: updateRide,
     onSuccess: clearFormAndExit,
-    onError: () => setError('root', { message: 'קרתה שגיאה ביצירת הנסיעה' }),
+    onError: () => setError('root', { message: i18n.rideForm.update_ride_error_happened }),
   });
 
   const isSubmitting = isCreateRideSubmitting || isUpdateRideSubmitting;

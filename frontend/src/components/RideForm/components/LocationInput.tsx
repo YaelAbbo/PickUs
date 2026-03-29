@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { AppTextInput } from '@components';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, spacing, typography } from '@theme';
@@ -14,7 +15,12 @@ import {
   type LayoutRectangle,
 } from 'react-native';
 import { Portal } from 'react-native-paper';
-import { useLocationSearch, type PlaceResult } from '../hooks';
+import {
+  convertNominatimResultToPlaceResult,
+  useLocationSearch,
+  type NominatimResult,
+  type PlaceResult,
+} from '../hooks';
 
 export type LocationInputProps = {
   label?: string;
@@ -23,8 +29,6 @@ export type LocationInputProps = {
   error?: string;
   placeholder?: string;
 };
-
-// ─── Skeleton row ─────────────────────────────────────────────────────────────
 
 const SkeletonRow: FC = () => (
   <View style={styles.skeletonRow}>
@@ -36,15 +40,13 @@ const SkeletonRow: FC = () => (
   </View>
 );
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, error, placeholder }) => {
   const [localValue, setLocalValue] = useState(value);
   const [open, setOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<LayoutRectangle | null>(null);
   const containerRef = useRef<View>(null);
 
-  const { results, isSearching, hasNoResults, fetchError, query, clear, toPlace } = useLocationSearch({});
+  const { results, isSearching, hasNoResults, fetchError, query, clear } = useLocationSearch({});
 
   useEffect(() => {
     setLocalValue(value);
@@ -59,14 +61,16 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
   }, []);
 
   useEffect(() => {
-    const sub = Keyboard.addListener('keyboardDidShow', measureAnchor);
-    return () => sub.remove();
+    const keyboardEmitterSubscription = Keyboard.addListener('keyboardDidShow', measureAnchor);
+
+    return () => keyboardEmitterSubscription.remove();
   }, [measureAnchor]);
 
   const handleChangeText = (text: string) => {
     setLocalValue(text);
     onChange(text);
     query(text);
+
     if (text.length >= 2) {
       measureAnchor();
       setOpen(true);
@@ -75,8 +79,9 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
     }
   };
 
-  const handleSelect = (item: (typeof results)[number]) => {
-    const place = toPlace(item);
+  const handleSelect = (nominatimResult: NominatimResult) => {
+    const place = convertNominatimResultToPlaceResult(nominatimResult);
+
     setLocalValue(place.description);
     onChange(place.description, place);
     clear();
@@ -102,6 +107,7 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
         onChangeText={handleChangeText}
         onFocus={() => {
           measureAnchor();
+
           if (results.length > 0 || isSearching) setOpen(true);
         }}
         placeholder={placeholder ?? label ?? ''}
@@ -111,7 +117,6 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
         autoComplete='off'
       />
 
-      {/* Portal keeps us in the same React/native window — keyboard stays open */}
       {showDropdown && (
         <Portal>
           <TouchableWithoutFeedback onPress={handleClose}>
@@ -131,14 +136,16 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
                   {!isSearching && hasNoResults && (
                     <View style={styles.stateContainer}>
                       <Ionicons name='search-outline' size={20} color={colors.textMuted} />
-                      <Text style={styles.stateText}>לא נמצאו תוצאות</Text>
+                      <Text style={styles.stateText}>{i18n.general.no_results_found}</Text>
                     </View>
                   )}
 
                   {!isSearching && !!fetchError && (
                     <View style={styles.stateContainer}>
                       <Ionicons name='alert-circle-outline' size={20} color={colors.error} />
-                      <Text style={[styles.stateText, styles.stateTextError]}>שגיאה בחיפוש, נסה שנית</Text>
+                      <Text style={[styles.stateText, styles.stateTextError]}>
+                        {i18n.general.search_error_please_try_again}
+                      </Text>
                     </View>
                   )}
 
@@ -153,6 +160,7 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
                         const parts = item.display_name.split(',');
                         const main = parts[0] ?? '';
                         const sub = parts.slice(1, 3).join(',').trim();
+
                         return (
                           <Pressable style={styles.resultRow} onPress={() => handleSelect(item)}>
                             <Ionicons name='location-outline' size={14} color={colors.textMuted} />
@@ -181,8 +189,6 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
   );
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -202,8 +208,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-
-  // ── State views ──
   stateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -221,8 +225,6 @@ const styles = StyleSheet.create({
   stateTextError: {
     color: colors.error,
   },
-
-  // ── Skeleton ──
   skeletonRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -255,8 +257,6 @@ const styles = StyleSheet.create({
     height: 10,
     width: '40%',
   },
-
-  // ── Results ──
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',

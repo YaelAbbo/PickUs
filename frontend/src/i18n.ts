@@ -1,4 +1,12 @@
 export const i18n = {
+  general: {
+    creation: 'יצירת',
+    date_pick: 'בחירת תאריך',
+    search_error: 'שגיאה בחיפוש',
+    search_error_please_try_again: 'שגיאה בחיפוש, אנא נסו שנית',
+    no_results_found: 'לא נמצאו תוצאות',
+    app_description: 'הדרך החכמה לנסוע ביחד',
+  },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
     edit_user: 'עריכת עובד/ת',
@@ -49,5 +57,16 @@ export const i18n = {
     BASIC_USER: 'משתמש/ת',
     HR_MANAGER: 'מנהל/ת משאבי אנוש',
     ADMIN: 'מנהל/ת',
+  },
+  rideForm: {
+    create_ride: 'יצירת נסיעה',
+    ride_stop: 'תחנה',
+    another_ride_stop: 'עוד תחנה',
+    return_trip: 'נסיעה חוזרת',
+    ride_type: 'סוג נסיעה',
+    ride_date: 'תאריך נסיעה',
+    create_ride_error_happened: 'קרתה שגיאה ביצירת הנסיעה',
+    update_ride_error_happened: 'קרתה שגיאה בעריכת הנסיעה',
+    available_seats: 'מקומות פנויים',
   },
 };

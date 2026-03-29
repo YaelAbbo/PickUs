@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { AppButton } from '@components';
 import { IS_WEB } from '@constants';
 import { colors, spacing, typography } from '@theme';
@@ -43,7 +44,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
         <View style={styles.inner}>
-          <Text style={styles.screenTitle}>יצירת נסיעה</Text>
+          <Text style={styles.screenTitle}>{i18n.rideForm.create_ride}</Text>
 
           <SectionCard title='פרטים כלליים' style={{ zIndex: 30 }}>
             <View style={{ gap: spacing.md }}>
@@ -51,7 +52,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
                 control={control}
                 name='rideDate'
                 render={({ field, fieldState: { error } }) => (
-                  <DateInput label='תאריך נסיעה' {...field} error={error?.message} />
+                  <DateInput label={i18n.rideForm.ride_date} {...field} error={error?.message} />
                 )}
               />
 
@@ -111,7 +112,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
                     name={`stops.${stopIndex}`}
                     render={({ field, fieldState: { error } }) => (
                       <LocationRow
-                        label={`תחנה ${stopIndex}`}
+                        label={`${i18n.rideForm.ride_stop} ${stopIndex}`}
                         timeValue={field.value.time}
                         onTimeChange={(time) => field.onChange({ ...field.value, time })}
                         timeError={(error as StopError)?.time?.message}

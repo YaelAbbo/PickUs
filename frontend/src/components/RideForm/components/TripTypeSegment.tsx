@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -17,7 +18,7 @@ export const TripTypeSegment: FC<TripTypeSegmentProps> = ({ value, onChange }) =
 
   return (
     <View style={styles.block}>
-      <Text style={styles.label}>סוג נסיעה</Text>
+      <Text style={styles.label}>{i18n.rideForm.ride_type}</Text>
 
       <View style={styles.track} onLayout={handleLayout}>
         {pillWidth > 0 && (

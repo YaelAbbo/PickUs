@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { getTomorrowAt8AM } from '@helpers';
 import DateTimePicker, {
@@ -35,7 +36,7 @@ export const DateInput: FC<DateInputProps> = ({
     onChange(selected);
   };
 
-  const displayValue = value ? value.toLocaleDateString('he-IL', { dateStyle: 'full' }) : 'בחירת תאריך';
+  const displayValue = value ? value.toLocaleDateString('he-IL', { dateStyle: 'full' }) : i18n.general.date_pick;
 
   return (
     <View style={styles.container}>
