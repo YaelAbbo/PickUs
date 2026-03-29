@@ -61,7 +61,6 @@ export class UserService {
     }
   }
 
-
   async update(
     id: User['id'],
     {

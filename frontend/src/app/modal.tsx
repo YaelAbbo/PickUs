@@ -2,11 +2,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
-import { Avatar, Card, IconButton } from 'react-native-paper';
+import { Avatar, Card, IconButton, Button } from 'react-native-paper';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { AppButton } from '@/components/ui';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRide } from '@/services/ride/rideQueries';
 import { colors } from '@/theme';
@@ -42,9 +41,14 @@ export default function ModalScreen() {
     return (
       <ThemedView style={[styles.centerContainer, { backgroundColor: themeStyles.background }]}>
         <ThemedText style={{ color: colors.error }}>שגיאה בטעינת נסיעה.</ThemedText>
-        <AppButton onPress={() => router.back()} style={{ marginTop: 20 }}>
+        <Button
+          mode='contained'
+          buttonColor={themeStyles.accentDynamic}
+          onPress={() => router.back()}
+          style={{ marginTop: 20 }}
+        >
           <ThemedText style={{ color: colors.white }}>חזור</ThemedText>
-        </AppButton>
+        </Button>
       </ThemedView>
     );
   }
@@ -75,24 +79,60 @@ export default function ModalScreen() {
                   {ride.rideStatus === 'ACTIVE' ? 'פעיל' : 'ממתין'}
                 </ThemedText>
               </View>
+              <ThemedText style={[styles.seatsRemainingText, { color: themeStyles.textSecondary }]}>
+                {ride.availableSeats} מקומות פנויים
+              </ThemedText>
             </View>
 
             <View style={styles.routeContainer}>
-              <View style={styles.routePoint}>
-                <View style={styles.routeIconWrapper}>
-                  <View style={[styles.dot, { backgroundColor: themeStyles.accentDynamic }]} />
-                </View>
-                <ThemedText style={[styles.routeText, { color: themeStyles.textPrimary }]}>{ride.startDest}</ThemedText>
-              </View>
+              {ride.stops?.map((stop, index) => {
+                const isFirst = index === 0;
+                const isLast = index === ride.stops.length - 1;
 
-              <View style={[styles.routeLine, { borderRightColor: themeStyles.border }]} />
+                return (
+                  <View key={stop.id} style={styles.stopRow}>
+                    <View style={styles.timelineWrapper}>
+                      <View
+                        style={[
+                          styles.timelineLine,
+                          isFirst && { backgroundColor: 'transparent' },
+                          { borderRightColor: themeStyles.border },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.timelineDot,
+                          { backgroundColor: isFirst || isLast ? themeStyles.accentDynamic : themeStyles.border },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.timelineLine,
+                          isLast && { backgroundColor: 'transparent' },
+                          { borderRightColor: themeStyles.border },
+                        ]}
+                      />
+                    </View>
 
-              <View style={styles.routePoint}>
-                <View style={styles.routeIconWrapper}>
-                  <MaterialCommunityIcons name='map-marker' size={20} color={themeStyles.accentDynamic} />
-                </View>
-                <ThemedText style={[styles.routeText, { color: themeStyles.textPrimary }]}>{ride.endDest}</ThemedText>
-              </View>
+                    <View style={styles.stopContent}>
+                      <View style={styles.stopHeader}>
+                        <ThemedText style={[styles.stopName, { color: themeStyles.textPrimary }]}>
+                          {stop.locationName}
+                        </ThemedText>
+                        <ThemedText style={[styles.stopTime, { color: themeStyles.textSecondary }]}>
+                          {stop.estimatedArrivalAt}
+                        </ThemedText>
+                      </View>
+
+                      {stop.passengerCount > 0 && (
+                        <ThemedText style={[styles.passengerJoinText, { color: themeStyles.accentDynamic }]}>
+                          + {stop.passengerCount} נוסעים יעלו כאן
+                        </ThemedText>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
             </View>
 
             <View style={[styles.divider, { backgroundColor: themeStyles.border }]} />
@@ -118,54 +158,26 @@ export default function ModalScreen() {
             <Avatar.Text size={44} label={driverInitials} style={{ backgroundColor: themeStyles.accentDynamic }} />
             <ThemedText style={[styles.personName, { color: themeStyles.textPrimary }]}>{driverName}</ThemedText>
           </View>
-
-          <View style={[styles.divider, { backgroundColor: themeStyles.border, marginVertical: 16 }]} />
-
-          <ThemedText style={[styles.sectionTitle, { color: themeStyles.textSecondary }]}>
-            נוסעים ({(ride.maxSeatsAmount || 4) - ride.availableSeats}/{ride.maxSeatsAmount || 4})
-          </ThemedText>
-
-          {ride.passengers && ride.passengers.length > 0 ? (
-            ride.passengers.map((p, index) => (
-              <View key={index} style={styles.personRow}>
-                <Avatar.Icon
-                  size={44}
-                  icon='account'
-                  style={{ backgroundColor: themeStyles.infoBoxBg }}
-                  color={themeStyles.textSecondary}
-                />
-                <ThemedText style={[styles.personName, { color: themeStyles.textPrimary }]}>
-                  נוסע {index + 1}
-                </ThemedText>
-              </View>
-            ))
-          ) : (
-            <ThemedText style={{ color: themeStyles.textSecondary, textAlign: 'right', marginTop: 8 }}>
-              אין נוסעים כרגע
-            </ThemedText>
-          )}
         </View>
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: themeStyles.border, backgroundColor: themeStyles.background }]}>
-        <AppButton onPress={() => console.log('Join Ride pressed!')}>
+        <Button
+          mode='contained'
+          buttonColor={themeStyles.accentDynamic}
+          onPress={() => console.log('Join Ride pressed!')}
+          contentStyle={{ paddingVertical: 8 }}
+        >
           <ThemedText style={{ color: colors.white, fontSize: 16, fontWeight: 'bold' }}>הצטרפות לנסיעה</ThemedText>
-        </AppButton>
+        </Button>
       </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    paddingTop: 48,
-  },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, paddingTop: 48 },
   header: {
     flexDirection: 'row',
     direction: 'rtl',
@@ -174,82 +186,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
-  headerSpacer: {
-    width: 48,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-  },
-  closeButton: {
-    margin: 0,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    elevation: 0,
-    marginBottom: 24,
-  },
+  headerSpacer: { width: 48 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', flex: 1 },
+  closeButton: { margin: 0 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 100 },
+  card: { borderRadius: 16, borderWidth: 1, elevation: 0, marginBottom: 24 },
+
   statusRow: {
     flexDirection: 'row',
     direction: 'rtl',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  routeContainer: {
-    marginVertical: 8,
-  },
-  routePoint: {
-    flexDirection: 'row',
-    direction: 'rtl',
-    alignItems: 'center',
-  },
-  routeIconWrapper: {
-    width: 24,
-    alignItems: 'center',
-    marginLeft: 12,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  routeLine: {
-    height: 30,
-    borderRightWidth: 2,
-    borderStyle: 'dashed',
-    marginRight: 11,
-    marginVertical: 4,
-  },
-  routeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  divider: {
-    height: 1,
-    width: '100%',
-    marginVertical: 16,
-  },
-  timeDateContainer: {
-    flexDirection: 'row',
-    direction: 'rtl',
-    justifyContent: 'space-between',
-  },
+  statusPill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  statusText: { fontSize: 12, fontWeight: 'bold' },
+  seatsRemainingText: { fontSize: 14, fontWeight: '500' },
+
+  routeContainer: { marginVertical: 8, paddingRight: 8 },
+  stopRow: { flexDirection: 'row', direction: 'rtl', minHeight: 44 },
+
+  timelineWrapper: { width: 24, alignItems: 'center', marginLeft: 16 },
+  timelineLine: { flex: 1, borderRightWidth: 2, borderStyle: 'dashed' },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, marginVertical: 4, zIndex: 1 },
+
+  stopContent: { flex: 1, justifyContent: 'center', paddingBottom: 16 },
+  stopHeader: { flexDirection: 'row', direction: 'rtl', justifyContent: 'space-between', alignItems: 'center' },
+  stopName: { fontSize: 18, fontWeight: 'bold' },
+  stopTime: { fontSize: 14, fontWeight: '600' },
+  passengerJoinText: { fontSize: 12, fontWeight: '600', marginTop: 4, textAlign: 'right' },
+
+  divider: { height: 1, width: '100%', marginVertical: 16 },
+  timeDateContainer: { flexDirection: 'row', direction: 'rtl', justifyContent: 'space-between' },
   infoBox: {
     flexDirection: 'row',
     direction: 'rtl',
@@ -260,37 +228,12 @@ const styles = StyleSheet.create({
     flex: 0.48,
     justifyContent: 'center',
   },
-  infoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 6,
-  },
-  peopleSection: {
-    paddingHorizontal: 8,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'right',
-  },
-  personRow: {
-    flexDirection: 'row',
-    direction: 'rtl',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  personName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 12,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    borderTopWidth: 1,
-  },
+  infoText: { fontSize: 14, fontWeight: '600', marginRight: 6 },
+
+  peopleSection: { paddingHorizontal: 8 },
+  sectionTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 12, textAlign: 'right' },
+  personRow: { flexDirection: 'row', direction: 'rtl', alignItems: 'center', marginBottom: 12 },
+  personName: { fontSize: 16, fontWeight: '600', marginRight: 12 },
+
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, borderTopWidth: 1 },
 });

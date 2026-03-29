@@ -26,15 +26,18 @@ export class RideService {
     driverId,
     ...rest
   }: CreateRideDto): Promise<Ride> {
+    const payload = { ...rest } as Record<string, unknown>;
+    delete payload.startLocation;
+    delete payload.endLocation;
+
     const newRide = this.ridesRepository.create({
-      ...rest,
+      ...payload,
       organization: { id: organizationId },
       driver: { id: driverId },
-    });
+    } as DeepPartial<Ride>);
 
     try {
       const createdRide = await this.ridesRepository.save(newRide);
-
       return await this.getRideById(createdRide.id);
     } catch (err) {
       console.error(err);
@@ -45,14 +48,26 @@ export class RideService {
   async getAllRides(): Promise<Ride[]> {
     return await this.ridesRepository.find({
       where: { isDeleted: false },
-      relations: ['organization', 'driver', 'rideStops'],
+      relations: [
+        'organization',
+        'driver',
+        'rideStops',
+        'passengers',
+        'passengers.rideStop',
+      ],
     });
   }
 
   async getAvailableRides(): Promise<Ride[]> {
     const rides = await this.ridesRepository.find({
       where: { isDeleted: false, rideStatus: RideStatus.PENDING },
-      relations: ['organization', 'driver', 'rideStops', 'passengers'],
+      relations: [
+        'organization',
+        'driver',
+        'rideStops',
+        'passengers',
+        'passengers.rideStop',
+      ],
     });
 
     return rides
@@ -71,7 +86,14 @@ export class RideService {
   async getRideById(id: Ride['id']): Promise<Ride> {
     const ride = await this.ridesRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['organization', 'driver', 'rideStops'],
+      relations: [
+        'organization',
+        'driver',
+        'rideStops',
+        'passengers',
+        'passengers.rideStop',
+        'passengers.user',
+      ],
     });
 
     if (!ride) {
@@ -101,10 +123,11 @@ export class RideService {
     id: Ride['id'],
     { organizationId, driverId, rideStops, ...rest }: UpdateRideDto,
   ): Promise<Ride> {
-    const preloadPayload: DeepPartial<Ride> = {
-      id,
-      ...rest,
-    };
+    const payload = { ...rest } as Record<string, unknown>;
+    delete payload.startLocation;
+    delete payload.endLocation;
+
+    const preloadPayload: DeepPartial<Ride> = { id, ...payload };
 
     if (organizationId) preloadPayload.orgId = organizationId;
     if (driverId) preloadPayload.driverId = driverId;
@@ -118,7 +141,6 @@ export class RideService {
 
     try {
       const updatedRide = await this.ridesRepository.save(ride);
-
       return await this.getRideById(updatedRide.id);
     } catch (err) {
       console.error(err);
@@ -128,7 +150,6 @@ export class RideService {
 
   async deleteRide(id: Ride['id']): Promise<void> {
     const result = await this.ridesRepository.update(id, { isDeleted: true });
-
     if (result.affected === 0) {
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }

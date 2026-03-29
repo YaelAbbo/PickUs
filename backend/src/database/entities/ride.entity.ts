@@ -1,4 +1,6 @@
+import type { UUID } from 'crypto';
 import { Point } from 'geojson';
+import { maxBy, minBy } from 'lodash';
 import {
   Check,
   Column,
@@ -13,8 +15,7 @@ import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RideStop } from './ride-stop.entity';
 import { User } from './user.entity';
-import { RidePassenger } from './ride-passenger.entity';
-import type { UUID } from 'crypto';
+import { RidePassenger } from './ride-passenger.entity'; // Added import
 
 export enum RideStatus {
   PENDING = 'PENDING',
@@ -56,22 +57,6 @@ export class Ride extends BaseEntity {
     type: 'geography',
     spatialFeatureType: 'Point',
     srid: 4326,
-    name: 'start_location',
-  })
-  startLocation: Point;
-
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    name: 'end_location',
-  })
-  endLocation: Point;
-
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Point',
-    srid: 4326,
     nullable: true,
     name: 'current_location',
   })
@@ -89,11 +74,17 @@ export class Ride extends BaseEntity {
   })
   rideStatus: RideStatus;
 
-  @OneToMany(() => RideStop, (stop) => stop.ride)
+  @OneToMany(() => RideStop, (stop) => stop.ride, { cascade: true })
   rideStops: RideStop[];
 
   @OneToMany(() => RidePassenger, (passenger) => passenger.ride)
   passengers: RidePassenger[];
 
-  availableSeats?: number;
+  get startLocation(): RideStop | undefined {
+    return minBy(this.rideStops, 'orderIndex');
+  }
+
+  get endLocation() {
+    return maxBy(this.rideStops, 'orderIndex');
+  }
 }
