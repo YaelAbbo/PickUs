@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useRef, useState } from 'react';
 import { useNominatimSearch, type NominatimResult } from './useNominatimSearch';
 
 export type PlaceResult = {
@@ -26,11 +26,10 @@ export type UseLocationSearchArgs = {
 export type UseLocationSearchContent = ReturnType<typeof useLocationSearch>;
 
 export const useLocationSearch = ({ debounceMs = 400, countryCode, language }: UseLocationSearchArgs) => {
-  const queryClient = useQueryClient();
   const { search } = useNominatimSearch({ countryCode, language });
 
+  const [searchText, setSearchText] = useState('');
   const debounceRef = useRef<number | null>(null);
-  const searchTextRef = useRef('');
 
   const {
     data: results = [],
@@ -38,9 +37,9 @@ export const useLocationSearch = ({ debounceMs = 400, countryCode, language }: U
     isSuccess,
     error,
   } = useQuery<NominatimResult[], Error>({
-    queryKey: [QUERY_KEY, searchTextRef.current],
-    queryFn: () => search(searchTextRef.current),
-    enabled: searchTextRef.current.length >= 2,
+    queryKey: [QUERY_KEY, searchText],
+    queryFn: () => search(searchText),
+    enabled: searchText.length >= 2,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
@@ -48,25 +47,15 @@ export const useLocationSearch = ({ debounceMs = 400, countryCode, language }: U
   const query = (text: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (text.length < 2) {
-      searchTextRef.current = '';
-      queryClient.removeQueries({ queryKey: [QUERY_KEY] });
+    if (text.length < 2) return setSearchText('');
 
-      return;
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchTextRef.current = text;
-
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, text] });
-    }, debounceMs);
+    debounceRef.current = setTimeout(() => setSearchText(text), debounceMs);
   };
 
   const clear = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    searchTextRef.current = '';
-    queryClient.removeQueries({ queryKey: [QUERY_KEY] });
+    setSearchText('');
   };
 
   const isSearchDone = isSuccess && !isFetching;

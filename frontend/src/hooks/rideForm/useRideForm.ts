@@ -20,7 +20,7 @@ const applyTimeToDate = (baseDate: Date, timeSource: Date) => {
 };
 
 const mapFormValuesToPayload = (values: RideFormValues) => {
-  const { rideDate, stops, seats, driverId, orgId } = values;
+  const { rideDate, stops, seats, driverId, organizationId } = values;
 
   const rideStops: RideStopDto[] = stops.map((stop, index) => ({
     location: stop.locationPoint,
@@ -35,7 +35,7 @@ const mapFormValuesToPayload = (values: RideFormValues) => {
   if (!origin || !destination) return undefined;
 
   const createRideDTO = {
-    orgId,
+    organizationId,
     driverId,
     startsAt: origin.estimatedArrivalAt,
     estimatedEndsAt: destination.estimatedArrivalAt,
@@ -66,7 +66,7 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
       rideDate: getTomorrowAt8AM(),
       seats: 3,
       isReturnTrip: false,
-      orgId: user?.orgId,
+      organizationId: user?.orgId,
       driverId: user?.id,
       stops: [createInitialStop(getTomorrowAt8AM()), createInitialStop(getTomorrowAt(9))],
       ...defaultValues,

@@ -24,8 +24,9 @@ const rideStopsSchema = z
     }
   });
 
-export const rideFormSchema = rideSchema.pick({ orgId: true, driverId: true }).extend({
+export const rideFormSchema = rideSchema.pick({ driverId: true }).extend({
   id: uuidSchema.optional(),
+  organizationId: uuidSchema,
   rideDate: dateSchema,
   seats: rideSchema.shape.maxSeatsAmount,
   isReturnTrip: z.boolean(),
@@ -42,8 +43,8 @@ export const rideStopDtoSchema = rideStopSchema.pick({
 });
 
 export const createRideDtoSchema = rideSchema
-  .pick({ driverId: true, orgId: true, startsAt: true, estimatedEndsAt: true, maxSeatsAmount: true })
-  .extend({ rideStops: z.array(rideStopDtoSchema) });
+  .pick({ driverId: true, startsAt: true, estimatedEndsAt: true, maxSeatsAmount: true })
+  .extend({ organizationId: uuidSchema, rideStops: z.array(rideStopDtoSchema) });
 
 export type RideStopDto = z.infer<typeof rideStopDtoSchema>;
 export type CreateRideDto = z.infer<typeof createRideDtoSchema>;
