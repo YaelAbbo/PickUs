@@ -1,9 +1,11 @@
 import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
+import { WebAppCard } from '@/components/WebAppCard';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
+import { APP_NAME } from '@constants';
 import { AntDesign } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
@@ -33,29 +35,31 @@ export default function TabLayout() {
   if (!user) return <Redirect href={'/(auth)/login'} />;
 
   return (
-    <Tabs
-      initialRouteName='home'
-      screenOptions={{
-        title: 'PickUs',
-        tabBarActiveTintColor: ThemeColors[colorScheme].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        animation: 'shift',
-        tabBarBackground,
-      }}
-    >
-      {tabScreensConfigs.map(({ icon, name, title, role }) => (
-        <Tabs.Screen
-          key={name}
-          name={name}
-          options={{
-            title,
-            tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
-            href: role && user?.role !== role ? null : undefined,
-          }}
-        />
-      ))}
-    </Tabs>
+    <WebAppCard>
+      <Tabs
+        initialRouteName='home'
+        screenOptions={{
+          title: APP_NAME,
+          tabBarActiveTintColor: ThemeColors[colorScheme].tint,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          animation: 'shift',
+          tabBarBackground,
+        }}
+      >
+        {tabScreensConfigs.map(({ icon, name, title, role }) => (
+          <Tabs.Screen
+            key={name}
+            name={name}
+            options={{
+              title,
+              tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
+              href: role && user?.role !== role ? null : undefined,
+            }}
+          />
+        ))}
+      </Tabs>
+    </WebAppCard>
   );
 }
 
