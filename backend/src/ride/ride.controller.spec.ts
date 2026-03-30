@@ -87,7 +87,11 @@ describe('RideController', () => {
         firstName: adminUser.firstName,
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
+<<<<<<< HEAD
         email: adminUser.email,
+=======
+        email: 'admin.ride@test.com',
+>>>>>>> 44e1398 (fix envs and tests)
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
