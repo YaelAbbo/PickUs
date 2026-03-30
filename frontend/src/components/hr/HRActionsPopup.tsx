@@ -29,7 +29,6 @@ interface HRActionsPopupProps {
   mode: PopupMode;
   initialData?: User | null;
   onClose: () => void;
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
   onSubmit: (data: any) => void;
 }
 

@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { colors, typography } from '@/theme';
 import { APP_NAME, useNativeDriver } from '@constants';
 import { Heebo_300Light, Heebo_500Medium, useFonts } from '@expo-google-fonts/heebo';
@@ -42,7 +43,7 @@ export function SplashScreen() {
         {isFontsLoaded && (
           <>
             <Text style={styles.appName}>{APP_NAME}</Text>
-            <Text style={styles.tagline}>הדרך החכמה לנסוע ביחד</Text>
+            <Text style={styles.tagline}>{i18n.general.app_description}</Text>
           </>
         )}
       </Animated.View>

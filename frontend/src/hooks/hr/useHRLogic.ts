@@ -110,7 +110,6 @@ export const useHRLogic = () => {
     }
   };
 
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const handlePopupSubmit = (formData: any) => {
     if (popupMode === 'create') {
       createMutation.mutate({
@@ -118,7 +117,6 @@ export const useHRLogic = () => {
         organizationId: orgId!,
       });
     } else if (popupMode === 'update' && selectedUser) {
-      /* eslint-disable  @typescript-eslint/no-unused-vars */
       const { nationalId, ...updateData } = formData;
       updateMutation.mutate({
         id: selectedUser.id,
@@ -136,7 +134,6 @@ export const useHRLogic = () => {
   const handleExport = async () => {
     try {
       await exportEmployeesToExcel(users);
-      /* eslint-disable  @typescript-eslint/no-unused-vars */
     } catch (err) {
       showToast(i18n.hr_popup.error, 'error');
     }
