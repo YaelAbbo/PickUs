@@ -193,6 +193,16 @@ describe('UserController (e2e)', () => {
       expect(deleteRes.body.profileImageUrl).toBe(null);
     });
 
+    it('PATCH /users/:id should set isTempPassword to false when password is updated', async () => {
+      const response = await request(httpServer)
+        .patch(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({ password: 'NewPassword123!' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.isTempPassword).toBe(false);
+    });
+
     it('DELETE /users/:id should soft delete user', async () => {
       const deleteResponse = await request(httpServer)
         .delete(`/users/${createdUserId}`)

@@ -86,6 +86,7 @@ describe('AuthController (e2e)', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('accessToken');
+    expect(response.body).toHaveProperty('isTempPassword', true);
 
     const cookies = response.get('Set-Cookie');
     expect(cookies).toBeDefined();
