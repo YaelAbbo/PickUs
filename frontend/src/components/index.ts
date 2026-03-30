@@ -3,6 +3,7 @@ export * from './haptic-tab';
 export * from './hello-wave';
 export * from './PageHead';
 export * from './parallax-scroll-view';
+export * from './RideForm';
 export * from './SplashScreen';
 export * from './themed-text';
 export * from './themed-view';

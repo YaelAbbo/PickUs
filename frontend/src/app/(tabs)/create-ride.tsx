@@ -1,6 +1,5 @@
-import { RideForm } from '@/components/RideForm/RideForm';
 import { i18n } from '@/i18n';
-import { PageHead } from '@components';
+import { PageHead, RideForm } from '@components';
 
 export default function CreateRidePage() {
   return (

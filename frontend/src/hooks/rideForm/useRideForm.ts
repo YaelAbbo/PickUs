@@ -1,3 +1,4 @@
+import { createRide, updateRide } from '@/api/rideForm';
 import { i18n } from '@/i18n';
 import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +8,6 @@ import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'd
 import { useRouter } from 'expo-router';
 import { first, last } from 'lodash';
 import { useFieldArray, useForm, type DefaultValues } from 'react-hook-form';
-import { createRide, updateRide } from '../../components/RideForm/rideForm';
 import {
   rideFormSchema,
   type CreateRideDto,
