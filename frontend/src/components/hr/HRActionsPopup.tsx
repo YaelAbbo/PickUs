@@ -10,12 +10,10 @@ import * as z from 'zod';
 export type PopupMode = 'create' | 'update' | null;
 
 const formSchema = z.object({
-  firstName: z
-    .string()
+  firstName: z.string()
     .min(1, { message: i18n.hr_popup.validation_required })
     .max(20, { message: i18n.hr_popup.validation_name_length }),
-  lastName: z
-    .string()
+  lastName: z.string()
     .min(1, { message: i18n.hr_popup.validation_required })
     .max(20, { message: i18n.hr_popup.validation_name_length }),
   nationalId: z.string().optional(),
@@ -23,6 +21,7 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
 
 interface HRActionsPopupProps {
   visible: boolean;
@@ -33,15 +32,13 @@ interface HRActionsPopupProps {
 }
 
 const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialData, onClose, onSubmit }) => {
-  const currentSchema =
-    mode === 'create'
-      ? formSchema.extend({
-          nationalId: z
-            .string()
-            .min(1, { message: i18n.hr_popup.validation_required })
-            .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
-        })
-      : formSchema;
+  const currentSchema = mode === 'create'
+    ? formSchema.extend({
+        nationalId: z.string()
+          .min(1, { message: i18n.hr_popup.validation_required })
+          .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
+      })
+    : formSchema;
 
   const {
     control,
@@ -85,6 +82,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
     onClose();
   };
 
+
   const title = mode === 'create' ? i18n.hr_popup.create_title : i18n.hr_popup.update_title;
   const submitText = mode === 'create' ? i18n.hr_popup.create : i18n.hr_popup.save;
 
@@ -98,7 +96,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.first_name}</Text>
             <Controller
               control={control}
-              name='firstName'
+              name="firstName"
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.firstName && popupStyles.inputError]}
@@ -115,7 +113,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.last_name}</Text>
             <Controller
               control={control}
-              name='lastName'
+              name="lastName"
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.lastName && popupStyles.inputError]}
@@ -133,7 +131,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
               <Text style={popupStyles.label}>{i18n.hr_popup.national_id}</Text>
               <Controller
                 control={control}
-                name='nationalId'
+                name="nationalId"
                 render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={[popupStyles.input, errors.nationalId && popupStyles.inputError]}
@@ -152,7 +150,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.role}</Text>
             <Controller
               control={control}
-              name='role'
+              name="role"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.roleContainer}>
                   {Object.values(UserRole).map((r) => (
