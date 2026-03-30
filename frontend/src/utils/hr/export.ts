@@ -1,4 +1,4 @@
-import type { User } from '@/api/user';
+import { User } from '@/api/user.api';
 import { i18n } from '@/i18n';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
