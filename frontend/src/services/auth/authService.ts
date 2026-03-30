@@ -35,8 +35,6 @@ export const authService = {
   logout: async () => {
     try {
       await api.post('/auth/logout');
-    } catch (error) {
-      console.log(error);
     } finally {
       await tokenStorage.clearAll();
     }
