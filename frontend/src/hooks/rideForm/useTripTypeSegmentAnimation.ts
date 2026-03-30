@@ -5,11 +5,11 @@ import { Animated, type LayoutChangeEvent } from 'react-native';
 const PADDING = 3;
 const GAP = 3;
 
-export type UseSegmentAnimationArgs = { activeIndex: number; segmentCount?: number };
+export type UseTripTypeSegmentAnimationArgs = { activeIndex: number; segmentCount?: number };
 
-export type UseSegmentAnimationReturn = ReturnType<typeof useSegmentAnimation>;
+export type UseTripTypeSegmentAnimationContent = ReturnType<typeof useTripTypeSegmentAnimation>;
 
-export const useSegmentAnimation = ({ activeIndex, segmentCount = 2 }: UseSegmentAnimationArgs) => {
+export const useTripTypeSegmentAnimation = ({ activeIndex, segmentCount = 2 }: UseTripTypeSegmentAnimationArgs) => {
   const [trackWidth, setTrackWidth] = useState(0);
   const translateX = useRef(new Animated.Value(0)).current;
 

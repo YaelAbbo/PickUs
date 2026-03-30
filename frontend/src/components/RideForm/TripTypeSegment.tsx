@@ -1,5 +1,5 @@
 import { i18n } from '@/i18n';
-import { useSegmentAnimation } from '@hooks';
+import { useTripTypeSegmentAnimation } from '@hooks';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -14,7 +14,7 @@ export type TripTypeSegmentProps = { value: boolean; onChange: (value: boolean) 
 export const TripTypeSegment: FC<TripTypeSegmentProps> = ({ value, onChange }) => {
   const activeIndex = SEGMENTS.findIndex((s) => s.value === value);
 
-  const { translateX, pillWidth, handleLayout } = useSegmentAnimation({ activeIndex });
+  const { translateX, pillWidth, handleLayout } = useTripTypeSegmentAnimation({ activeIndex });
 
   return (
     <View style={styles.block}>

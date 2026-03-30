@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     marginBottom: spacing.lg,
+    alignItems: 'flex-end',
   },
   cardTitle: {
     fontFamily: typography.fonts.medium,
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.textLight,
     opacity: 0.75,
+    marginTop: 4,
   },
   logoBlock: {
     alignItems: 'center',
