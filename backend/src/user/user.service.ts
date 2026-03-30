@@ -1,43 +1,52 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { User } from '../database/entities/user.entity';
 import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
+import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
 
+const BCRYPT_SALT_ROUNDS = 10;
+const TEMP_PASSWORD_LENGTH = 18;
+
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
+    private readonly mailService: MailService,
   ) {}
 
   async create({
     firstName,
     lastName,
     nationalId,
+    email,
     role,
     currentLocation,
     profileImageUrl,
     organizationId,
   }: CreateUserDto): Promise<User> {
-    // Default password for new users
-    const salt = await bcrypt.genSalt(10);
-    const password = uuidv4();
-    const passwordHash = await bcrypt.hash(password, salt);
+    const tempPassword = this.buildSecurePassword();
+    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(tempPassword, salt);
 
     const user = this.usersRepository.create({
       firstName,
       lastName,
       nationalId,
+      email,
       role,
       organization: { id: organizationId },
       currentLocation,
@@ -46,9 +55,11 @@ export class UserService {
       isTempPassword: true,
     });
 
+    let savedUser: User;
     try {
-      return await this.usersRepository.save(user);
-    } catch (error: unknown) {
+      savedUser = await this.usersRepository.save(user);
+    } catch (error) {
+      this.logger.error(`Failed to create user, error`, error);
       if (
         error &&
         typeof error === 'object' &&
@@ -59,6 +70,21 @@ export class UserService {
       }
       throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
     }
+
+    try {
+      await this.mailService.sendTempPasswordEmail({
+        to: email,
+        displayName: `${firstName} ${lastName}`,
+        tempPassword,
+      });
+    } catch (error) {
+      this.logger.error(
+        `User created but email delivery failed for ${email}`,
+        error,
+      );
+    }
+
+    return savedUser;
   }
 
   async update(
@@ -143,5 +169,9 @@ export class UserService {
       total,
       hasNextPage: page * limit < total,
     };
+  }
+
+  private buildSecurePassword(): string {
+    return randomBytes(TEMP_PASSWORD_LENGTH).toString('base64url');
   }
 }
