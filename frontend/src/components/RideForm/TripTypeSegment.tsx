@@ -1,8 +1,8 @@
 import { i18n } from '@/i18n';
+import { useSegmentAnimation } from '@hooks';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSegmentAnimation } from '../hooks';
 
 const SEGMENTS = [
   { label: i18n.rideForm.back_and_forth_ride, value: true },

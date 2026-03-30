@@ -36,12 +36,7 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
         accessibilityRole='button'
         accessibilityLabel={label ?? i18n.general.hour_pick}
       >
-        <Ionicons
-          name='time-outline'
-          size={18}
-          color={hasError ? colors.error : colors.textMuted}
-          style={styles.icon}
-        />
+        <Ionicons name='time-outline' size={18} color={hasError ? colors.error : colors.textMuted} />
 
         <Text style={[styles.value, !value && styles.placeholder]}>{displayValue}</Text>
       </Pressable>

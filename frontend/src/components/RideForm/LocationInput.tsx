@@ -1,6 +1,7 @@
 import { i18n } from '@/i18n';
 import { AppTextInput } from '@components';
 import { Ionicons } from '@expo/vector-icons';
+import { convertNominatimResultToPlaceResult, useLocationSearch, type NominatimResult, type PlaceResult } from '@hooks';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -15,12 +16,6 @@ import {
   type LayoutRectangle,
 } from 'react-native';
 import { Portal } from 'react-native-paper';
-import {
-  convertNominatimResultToPlaceResult,
-  useLocationSearch,
-  type NominatimResult,
-  type PlaceResult,
-} from '../hooks';
 
 export type LocationInputProps = {
   label?: string;

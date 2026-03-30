@@ -1,9 +1,9 @@
 import { IS_WEB } from '@constants';
 import { Ionicons } from '@expo/vector-icons';
+import type { PlaceResult } from '@hooks';
 import { colors, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import type { PlaceResult } from '../hooks';
 import { LocationInput } from './LocationInput';
 import { TimeInput } from './TimeInput';
 
