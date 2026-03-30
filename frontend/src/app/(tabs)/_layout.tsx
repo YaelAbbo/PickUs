@@ -18,6 +18,7 @@ const tabScreensConfigs: TabScreenConfig[] = [
   { name: 'home', title: 'Home', icon: 'home' },
   { name: 'create-ride', title: 'Create Ride', icon: 'car' },
   { name: 'hr', title: 'HR', icon: 'user', role: UserRole.HR_MANAGER },
+  { name: 'map', title: 'Map', icon: 'compass' },
 ];
 
 const tabBarBackground = () => (
