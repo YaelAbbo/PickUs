@@ -1,7 +1,6 @@
 import type { UseLoginFormContent } from '@/screens/Login/hooks';
 import { colors, radii, spacing, typography } from '@/theme';
 import { AppButton, AppTextInput } from '@components';
-import { APP_NAME } from '@constants';
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
@@ -27,7 +26,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
         <Animated.View style={[styles.logoBlock, { transform: [{ scale: bounceAnimationScale }] }]}>
           <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
 
-          <Text style={styles.appName}>{APP_NAME}</Text>
+          <Text style={styles.appName}>PickUs</Text>
           <Text style={styles.welcomeText}>ברוכים הבאים</Text>
         </Animated.View>
       )}
