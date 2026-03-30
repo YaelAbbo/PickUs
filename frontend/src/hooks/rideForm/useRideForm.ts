@@ -7,7 +7,7 @@ import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'd
 import { useRouter } from 'expo-router';
 import { first, last } from 'lodash';
 import { useFieldArray, useForm, type DefaultValues } from 'react-hook-form';
-import { createRide, updateRide } from '../../components/RideForm/api';
+import { createRide, updateRide } from '../../components/RideForm/rideForm';
 import {
   rideFormSchema,
   type CreateRideDto,
