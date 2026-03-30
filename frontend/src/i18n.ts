@@ -9,6 +9,8 @@ export const i18n = {
     enter: 'כניסה',
     time_pick: 'בחירת זמן',
     hour_pick: 'בחירת שעה',
+    accept: 'אישור',
+    cancel: 'ביטול',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
@@ -73,5 +75,9 @@ export const i18n = {
     available_seats: 'מקומות פנויים',
     back_and_forth_ride: 'הלוך-חזור',
     one_way_ride: 'חד-כיווני',
+    general_details: 'פרטים כלליים',
+    destination: 'יעד',
+    stops_in_the_way: 'תחנות בדרך',
+    enter_start_and_end_ride_stops: 'יש להזין נקודת התחלה וסיום',
   },
 };

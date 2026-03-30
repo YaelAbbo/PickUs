@@ -11,9 +11,6 @@ import type { RideFormValues } from './schema';
 
 type StopError = FieldErrors<RideFormValues['stops'][number]>;
 
-/**
- * Updates both locationName (display) and locationPoint (GeoJSON) atomically.
- */
 const createLocationChangeHandler =
   (currentStop: RideFormValues['stops'][number], onChange: (value: RideFormValues['stops'][number]) => void) =>
   (locationName: string, place?: PlaceResult) =>
@@ -46,7 +43,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
         <View style={styles.inner}>
           <Text style={styles.screenTitle}>{i18n.rideForm.create_ride}</Text>
 
-          <SectionCard title='פרטים כלליים' style={{ zIndex: 30 }}>
+          <SectionCard title={i18n.rideForm.general_details} style={{ zIndex: 30 }}>
             <View style={{ gap: spacing.md }}>
               <Controller
                 control={control}
@@ -77,7 +74,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
                 name={`stops.${destinationIndex}`}
                 render={({ field, fieldState: { error } }) => (
                   <LocationRow
-                    label='יעד'
+                    label={i18n.rideForm.general_details}
                     timeValue={field.value.time}
                     onTimeChange={(time) => field.onChange({ ...field.value, time })}
                     timeError={(error as StopError)?.time?.message}
@@ -99,10 +96,9 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
             </View>
           </SectionCard>
 
-          <SectionCard title='תחנות בדרך' style={{ zIndex: 10 }}>
+          <SectionCard title={i18n.rideForm.stops_in_the_way} style={{ zIndex: 10 }}>
             <View style={{ gap: spacing.md }}>
               {waypointFields.map((waypoint, index) => {
-                // Waypoint UI index 0 corresponds to stops[1]
                 const stopIndex = index + 1;
 
                 return (
@@ -133,9 +129,10 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
           {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
 
           <View style={styles.actions}>
-            <AppButton label='אישור' onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
+            <AppButton label={i18n.general.accept} onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
+
             <AppButton
-              label='ביטול'
+              label={i18n.general.cancel}
               onPress={onExit}
               disabled={isPending}
               style={styles.cancelBtn}
