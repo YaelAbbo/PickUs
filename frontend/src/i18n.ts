@@ -6,6 +6,7 @@ export const i18n = {
     search_error_please_try_again: 'שגיאה בחיפוש, אנא נסו שנית',
     no_results_found: 'לא נמצאו תוצאות',
     app_description: 'הדרך החכמה לנסוע ביחד',
+    enter: 'כניסה',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',

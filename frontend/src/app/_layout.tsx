@@ -1,8 +1,8 @@
 import '@/app/globals.css';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { i18n } from '@/i18n';
 import { AuthProvider } from '@/services/auth/AuthContext';
 import { SplashScreen } from '@components';
-import { APP_NAME } from '@constants';
 import { Heebo_300Light, Heebo_400Regular, Heebo_500Medium, Heebo_700Bold, useFonts } from '@expo-google-fonts/heebo';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,8 +31,8 @@ export default function AppLayout() {
         <PaperProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack>
-              <Stack.Screen name='(auth)' options={{ headerShown: false, title: `${APP_NAME} - כניסה` }} />
-              <Stack.Screen name='(tabs)' options={{ headerShown: false, title: `${APP_NAME}` }} />
+              <Stack.Screen name='(auth)' options={{ headerShown: false, title: `PickUs - ${i18n.general.enter}` }} />
+              <Stack.Screen name='(tabs)' options={{ headerShown: false, title: 'PickUs' }} />
               <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
             </Stack>
 
