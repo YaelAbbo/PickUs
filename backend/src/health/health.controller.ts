@@ -29,9 +29,9 @@ export class HealthController {
       // 3. Memory (RSS): Total memory allocated to the process
       () => this.memory.checkRSS('memory_rss', 300 * 1024 * 1024),
 
-      // 4. Disk: Ensure the container has at least 10% free space
+      // 4. Disk: Ensure the container has at least 10% free space (max 90% used)
       () =>
-        this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.1 }),
+        this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.9 }),
     ]);
   }
 }

@@ -74,8 +74,8 @@ export class AuthService {
   async login({ nationalId, password, response }: WithResponse<LoginDto>) {
     const user = (await this.usersRepository.findOne({
       where: { nationalId },
-      select: ['id', 'passwordHash'],
-    })) as Pick<User, 'id' | 'passwordHash'> | null;
+      select: ['id', 'passwordHash', 'isTempPassword'],
+    })) as Pick<User, 'id' | 'passwordHash' | 'isTempPassword'> | null;
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
@@ -94,7 +94,7 @@ export class AuthService {
 
     this.setRefreshTokenCookie(response, tokens.refreshToken);
 
-    return tokens;
+    return { ...tokens, isTempPassword: user.isTempPassword };
   }
 
   async logout({ id, response }: WithResponse<Pick<User, 'id'>>) {

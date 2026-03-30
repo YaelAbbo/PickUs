@@ -9,8 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
-import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { MailService } from '../mail/mail.service';
+import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
@@ -98,6 +98,7 @@ export class UserService {
       profileImageUrl,
       isDeleteImage,
       isDeleted,
+      password,
     }: UpdateUserDto & { isDeleted?: boolean },
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
@@ -121,6 +122,15 @@ export class UserService {
         user.profileImageUrl = null;
       } else if (profileImageUrl) {
         user.profileImageUrl = profileImageUrl;
+      }
+
+      if (password) {
+        const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
+        user.passwordHash = await bcrypt.hash(password, salt);
+
+        if (user.isTempPassword) {
+          user.isTempPassword = false;
+        }
       }
     }
 
