@@ -35,6 +35,8 @@ export default function TabLayout() {
 
   if (!user) return <Redirect href={'/(auth)/login'} />;
 
+  if (user.isTempPassword) return <Redirect href={'/(auth)/change-password'} />;
+
   return (
     <WebAppCard>
       <Tabs

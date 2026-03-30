@@ -12,11 +12,13 @@ const schema = userSchema.pick({ nationalId: true }).extend({ password: z.string
 
 export type LoginFormValues = z.infer<typeof schema>;
 
-export type UseLoginFormArgs = { onLoginSuccess: VoidFunction; startShake: VoidFunction };
+export type UseLoginFormArgs = {
+  startShake: VoidFunction;
+};
 
 export type UseLoginFormContent = ReturnType<typeof useLoginForm>;
 
-export const useLoginForm = ({ onLoginSuccess, startShake }: UseLoginFormArgs) => {
+export const useLoginForm = ({ startShake }: UseLoginFormArgs) => {
   const { login } = useAuth();
 
   const {
@@ -43,7 +45,6 @@ export const useLoginForm = ({ onLoginSuccess, startShake }: UseLoginFormArgs) =
   const onSubmit = handleSubmit(
     (formValues) =>
       login(formValues, {
-        onSuccess: onLoginSuccess,
         onError: () => {
           setError('root', { message: DEFAULT_ERROR });
 

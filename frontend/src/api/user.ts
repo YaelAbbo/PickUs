@@ -21,6 +21,7 @@ export type User = {
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
+  password: string;
 };
 
 export type CreateUserDto = Omit<

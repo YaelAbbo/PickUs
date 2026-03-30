@@ -1,11 +1,11 @@
 import { parseRefreshCookie } from '@/api/refreshToken';
 import { tokenStorage } from '@/api/tokenStorage';
+import type { User } from '@/api/user';
 import { api } from '@api';
 import { IS_MOBILE } from '@constants';
-import type { User } from '@schemas';
 import { jwtDecode } from 'jwt-decode';
 
-export type TokenResponse = { accessToken: string };
+export type TokenResponse = { accessToken: string; isTempPassword: boolean };
 
 export const calcIsTokenExpired = (token: string) => {
   const payload = jwtDecode(token);
@@ -30,6 +30,8 @@ export const authService = {
 
       if (refreshToken) await tokenStorage.setRefreshToken(refreshToken);
     }
+
+    return { isTempPassword: data.isTempPassword };
   },
 
   logout: async () => {
