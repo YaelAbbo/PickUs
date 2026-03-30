@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { REQUIRED } from '@constants';
 import type { UUID } from 'crypto';
 import { z } from 'zod';
@@ -12,7 +13,7 @@ export const entityMetadata = z.object({
 
 export const dateSchema = z.date(REQUIRED);
 
-export const locationSchema = z.string(REQUIRED).min(3, 'יש להזין מיקום');
+export const locationSchema = z.string(REQUIRED).min(3, i18n.general.must_enter_location);
 
 export const longitudeSchema = z.number();
 export const latitudeSchema = z.number();

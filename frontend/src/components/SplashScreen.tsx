@@ -1,6 +1,6 @@
 import { i18n } from '@/i18n';
 import { colors, typography } from '@/theme';
-import { APP_NAME, useNativeDriver } from '@constants';
+import { useNativeDriver } from '@constants';
 import { Heebo_300Light, Heebo_500Medium, useFonts } from '@expo-google-fonts/heebo';
 import { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
@@ -42,7 +42,7 @@ export function SplashScreen() {
 
         {isFontsLoaded && (
           <>
-            <Text style={styles.appName}>{APP_NAME}</Text>
+            <Text style={styles.appName}>PickUs</Text>
             <Text style={styles.tagline}>{i18n.general.app_description}</Text>
           </>
         )}

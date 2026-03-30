@@ -10,13 +10,13 @@ export enum UserRole {
 }
 
 export const userSchema = entityMetadata.extend({
-  firstName: z.string().nonempty(REQUIRED),
-  lastName: z.string().nonempty(REQUIRED),
   nationalId: z
     .string()
     .nonempty(REQUIRED)
     .max(9, { error: ({ maximum }) => `תעודת זהות בעלת ${maximum} ספרות` })
     .refine(isValidIsraeliId, 'תעודת זהות לא תקינה'),
+  firstName: z.string().nonempty(REQUIRED),
+  lastName: z.string().nonempty(REQUIRED),
   role: z.enum(UserRole, 'User role must be of type UserRole'),
   isTempPassword: z.boolean(),
   profileImageUrl: z.url().nullable(),

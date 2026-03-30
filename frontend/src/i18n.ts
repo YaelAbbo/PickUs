@@ -11,6 +11,7 @@ export const i18n = {
     hour_pick: 'בחירת שעה',
     accept: 'אישור',
     cancel: 'ביטול',
+    must_enter_location: 'יש להזין מיקום',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
