@@ -142,7 +142,7 @@ describe('RideController', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({
           ...newRideDto,
-          orgId: testOrgId,
+          organizationId: testOrgId,
           driverId: testDriverId,
         });
 

@@ -2,7 +2,7 @@ import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuthContext } from '@/services/auth/AuthContext';
+import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
 import { APP_NAME } from '@constants';
@@ -28,7 +28,7 @@ const tabBarBackground = () => (
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
-  const { isUserLoading, user } = useAuthContext();
+  const { isUserLoading, user } = useAuth();
 
   if (isUserLoading) return <SplashScreen />;
 

@@ -4,13 +4,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppButton, PageHead } from '@components';
 import { APP_NAME } from '@constants';
-import { useAuthContext } from '@services';
+import { useAuth } from '@services';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 export default function HomeScreen() {
-  const { logout } = useAuthContext();
+  const { logout } = useAuth();
   const [apiStatus, setApiStatus] = useState('Connecting...');
 
   useEffect(() => {

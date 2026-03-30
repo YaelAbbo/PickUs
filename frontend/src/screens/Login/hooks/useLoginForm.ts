@@ -1,7 +1,7 @@
 import { REQUIRED } from '@constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema } from '@schemas';
-import { useAuthContext } from '@services';
+import { useAuth } from '@services';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -17,7 +17,7 @@ export type UseLoginFormArgs = { onLoginSuccess: VoidFunction; startShake: VoidF
 export type UseLoginFormContent = ReturnType<typeof useLoginForm>;
 
 export const useLoginForm = ({ onLoginSuccess, startShake }: UseLoginFormArgs) => {
-  const { login } = useAuthContext();
+  const { login } = useAuth();
 
   const {
     handleSubmit,

@@ -17,7 +17,7 @@ import { CreateRideStopDto } from './create-ride-stop.dto';
 export class CreateRideDto {
   @IsUUID()
   @IsNotEmpty()
-  orgId: Organization['id'];
+  organizationId: Organization['id'];
 
   @IsUUID()
   @IsNotEmpty()

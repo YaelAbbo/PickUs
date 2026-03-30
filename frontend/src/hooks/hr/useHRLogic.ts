@@ -5,7 +5,7 @@ import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { useToast } from '@/hooks/useToast';
 import { i18n } from '@/i18n';
 import { exportEmployeesToExcel } from '@/utils/hr/export';
-import { useAuthContext } from '@services';
+import { useAuth } from '@services';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Keyboard } from 'react-native';
@@ -13,7 +13,7 @@ import { Keyboard } from 'react-native';
 export type ActionMode = 'idle' | 'edit' | 'delete';
 
 export const useHRLogic = () => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const orgId = user?.orgId;
   const [activeQuery, setActiveQuery] = useState<string>('');
   const [popupVisible, setPopupVisible] = useState<boolean>(false);

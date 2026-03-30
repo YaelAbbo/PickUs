@@ -1,7 +1,7 @@
 import { i18n } from '@/i18n';
 import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuthContext } from '@services';
+import { useAuth } from '@services';
 import { useMutation } from '@tanstack/react-query';
 import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import { useRouter } from 'expo-router';
@@ -58,7 +58,7 @@ export type UseRideFormContent = ReturnType<typeof useRideForm>;
 
 export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
   const router = useRouter();
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   const form = useForm<RideFormValues>({
     resolver: zodResolver(rideFormSchema),
