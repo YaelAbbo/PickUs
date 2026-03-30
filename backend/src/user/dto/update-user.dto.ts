@@ -19,4 +19,7 @@ export class UpdateUserDto extends UpsertUserDto {
   @IsOptional()
   @Transform(({ obj, value }) => (obj.profileImageUrl ? false : value))
   isDeleteImage?: boolean;
+
+  @IsOptional()
+  declare password?: string;
 }
