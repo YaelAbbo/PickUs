@@ -1,6 +1,6 @@
 import type { Ride } from '@/schemas/ride';
 import { api } from '@api';
-import type { CreateRideDto, UpdateRideDto } from '../components/RideForm/schema';
+import type { CreateRideDto, UpdateRideDto } from '../schemas/rideForm';
 
 export const createRide = async (payload: CreateRideDto) => {
   const { data: createdRide } = await api.post<Ride>('/rides', payload);

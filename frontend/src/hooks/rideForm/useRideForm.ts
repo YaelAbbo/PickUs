@@ -8,12 +8,7 @@ import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'd
 import { useRouter } from 'expo-router';
 import { first, last } from 'lodash';
 import { useFieldArray, useForm, type DefaultValues } from 'react-hook-form';
-import {
-  rideFormSchema,
-  type CreateRideDto,
-  type RideFormValues,
-  type RideStopDto,
-} from '../../components/RideForm/schema';
+import { rideFormSchema, type CreateRideDto, type RideFormValues, type RideStopDto } from '../../schemas/rideForm';
 
 const applyTimeToDate = (baseDate: Date, timeSource: Date) => {
   let result = setHours(baseDate, timeSource.getHours());
