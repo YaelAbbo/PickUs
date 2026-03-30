@@ -31,10 +31,10 @@ const UserRow: React.FC<{ item: User; onPress?: () => void; isActionMode?: boole
     <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
       {i18n.roles[item.role as keyof typeof i18n.roles] || item.role}
     </Text>
-    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{item.organization?.name || item.orgId}</Text>
     <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>
-      {new Date(item.createdAt).toLocaleDateString()}
+      {item.organization?.name || item.orgId}
     </Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
   </TouchableOpacity>
 );
 
@@ -81,7 +81,11 @@ const EmployeeTable: React.FC<UserTableProps> = ({ users, onSearch, actionMode =
         )}
       </View>
 
-      <ScrollView horizontal persistentScrollbar contentContainerStyle={{ justifyContent: 'center', minWidth: '100%' }}>
+      <ScrollView 
+        horizontal 
+        persistentScrollbar 
+        contentContainerStyle={{ justifyContent: 'center', minWidth: '100%' }}
+      >
         <View style={{ alignItems: 'center' }}>
           <TableHeader />
           {users.map((user) => (
