@@ -7,6 +7,8 @@ export const i18n = {
     no_results_found: 'לא נמצאו תוצאות',
     app_description: 'הדרך החכמה לנסוע ביחד',
     enter: 'כניסה',
+    time_pick: 'בחירת זמן',
+    hour_pick: 'בחירת שעה',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',

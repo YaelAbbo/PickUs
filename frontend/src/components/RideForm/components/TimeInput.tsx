@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors, radii, spacing, typography } from '@theme';
@@ -24,7 +25,7 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
     onChange(selected);
   };
 
-  const displayValue = value ? value.toLocaleTimeString('he-IL', { timeStyle: 'short' }) : 'בחירת זמן';
+  const displayValue = value ? value.toLocaleTimeString('he-IL', { timeStyle: 'short' }) : i18n.general.time_pick;
 
   return (
     <View style={styles.container}>
@@ -34,7 +35,7 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
         style={[styles.field, hasError && styles.fieldError]}
         onPress={() => setShowPicker(true)}
         accessibilityRole='button'
-        accessibilityLabel={label ?? 'בחר שעה'}
+        accessibilityLabel={label ?? i18n.general.hour_pick}
       >
         <Ionicons
           name='time-outline'

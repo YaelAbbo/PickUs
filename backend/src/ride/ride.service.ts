@@ -18,11 +18,13 @@ export class RideService {
 
   async createRide({
     organizationId,
-    ...createRideDto
+    driverId,
+    ...rest
   }: CreateRideDto): Promise<Ride> {
     const newRide = this.ridesRepository.create({
-      orgId: organizationId,
-      ...createRideDto,
+      ...rest,
+      organization: { id: organizationId },
+      driver: { id: driverId },
     });
 
     try {
