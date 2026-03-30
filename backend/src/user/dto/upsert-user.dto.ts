@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Point } from 'geojson';
 import { UserRole } from '../../database/entities/user.entity';
 import { IsPoint } from '../../utils/decorators/is-point.decorator';
@@ -26,7 +26,7 @@ export class UpsertUserDto {
   @IsOptional()
   password?: string;
 
-  @IsString()
+  @IsEmail()
   @IsOptional()
   email?: string;
 }
