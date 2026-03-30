@@ -79,5 +79,6 @@ export const i18n = {
     destination: 'יעד',
     stops_in_the_way: 'תחנות בדרך',
     enter_start_and_end_ride_stops: 'יש להזין נקודת התחלה וסיום',
+    must_be_after_the_prev: 'חייבת להיות אחרי הקודמת',
   },
 };

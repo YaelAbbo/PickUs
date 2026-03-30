@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { dateSchema, pointSchema, uuidSchema } from '@/schemas/genericSchemas';
 import { rideSchema, rideStopSchema, type Ride } from '@/schemas/ride';
 import { z } from 'zod';
@@ -10,7 +11,7 @@ export const stopSchema = z.object({
 
 const rideStopsSchema = z
   .array(stopSchema)
-  .min(2, 'יש להזין נקודת התחלה וסיום')
+  .min(2, i18n.rideForm.enter_start_and_end_ride_stops)
   .superRefine((stops, ctx) => {
     for (let i = 1; i < stops.length; i++) {
       const currentStop = stops[i];
@@ -19,7 +20,7 @@ const rideStopsSchema = z
       if (!currentStop || !previousStop) continue;
 
       if (currentStop.time <= previousStop.time)
-        ctx.addIssue({ code: 'custom', message: 'חייבת להיות אחרי הקודמת', path: [i, 'time'] });
+        ctx.addIssue({ code: 'custom', message: i18n.rideForm.must_be_after_the_prev, path: [i, 'time'] });
     }
   });
 
