@@ -19,7 +19,6 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
   const hasError = !!error;
 
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
-    // On Android the picker closes itself; on iOS we close on confirm
     if (Platform.OS === 'android') setShowPicker(false);
 
     onChange(selected);
@@ -60,7 +59,6 @@ export const TimeInput: FC<TimeInputProps> = ({ label, value, onChange, error })
           is24Hour
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
-          // On iOS wrap in a modal-style inline; on Android it's a dialog automatically
           {...(Platform.OS === 'ios' && { onTouchCancel: () => setShowPicker(false) })}
         />
       )}
@@ -95,9 +93,6 @@ const styles = StyleSheet.create({
   },
   fieldError: {
     borderColor: colors.error,
-  },
-  icon: {
-    // icon sits to the right; row is centered so this pairs naturally with the value
   },
   value: {
     fontFamily: typography.fonts.medium,

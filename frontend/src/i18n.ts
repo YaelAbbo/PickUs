@@ -71,5 +71,7 @@ export const i18n = {
     create_ride_error_happened: 'קרתה שגיאה ביצירת הנסיעה',
     update_ride_error_happened: 'קרתה שגיאה בעריכת הנסיעה',
     available_seats: 'מקומות פנויים',
+    back_and_forth_ride: 'הלוך-חזור',
+    one_way_ride: 'חד-כיווני',
   },
 };

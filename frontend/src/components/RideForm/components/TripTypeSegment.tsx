@@ -5,8 +5,8 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { useSegmentAnimation } from '../hooks';
 
 const SEGMENTS = [
-  { label: 'הלוך-חזור', value: true },
-  { label: 'חד-כיווני', value: false },
+  { label: i18n.rideForm.back_and_forth_ride, value: true },
+  { label: i18n.rideForm.one_way_ride, value: false },
 ] as const;
 
 export type TripTypeSegmentProps = { value: boolean; onChange: (value: boolean) => void };
