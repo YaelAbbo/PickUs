@@ -32,6 +32,7 @@ export const i18n = {
     created_at: 'תאריך יצירה',
     search_placeholder: 'חיפוש עובד/ת...',
     load_more: 'טעינת עובדים נוספים...',
+    resend_mail_success: 'מייל איפוס סיסמה נשלח בהצלחה',
   },
   hr_dashboard: {
     title: 'לוח HR',

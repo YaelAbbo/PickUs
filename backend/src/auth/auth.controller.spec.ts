@@ -17,6 +17,7 @@ describe('AuthController (e2e)', () => {
   const testUser = {
     id: '36b8f84d-df4e-4d49-b662-bcde71a8764f' as UUID,
     password: 'Password123!',
+    nationalId: '123456789',
     firstName: 'Test',
     lastName: 'User',
   };
