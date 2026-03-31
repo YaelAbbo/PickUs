@@ -1,5 +1,3 @@
-import { addHours, startOfTomorrow } from 'date-fns';
-
 const DEFAULT_NATIONAL_ID = '123456789';
 
 /**
@@ -23,6 +21,3 @@ export const isValidIsraeliId = (id: string) => {
 
   return sum % 10 === 0;
 };
-
-export const getTomorrowAt = (hours: number) => addHours(startOfTomorrow(), hours);
-export const getTomorrowAt8AM = () => getTomorrowAt(8);

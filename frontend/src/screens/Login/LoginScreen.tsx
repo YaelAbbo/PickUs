@@ -1,5 +1,6 @@
 import { AppBackground } from '@components';
 import { IS_WEB } from '@constants';
+import { Heebo_300Light, Heebo_400Regular, Heebo_500Medium, Heebo_700Bold, useFonts } from '@expo-google-fonts/heebo';
 import { colors, spacing } from '@theme';
 import type { FC } from 'react';
 import {
@@ -23,11 +24,15 @@ export const LoginScreen: FC<LoginScreenProps> = (useLoginFormArgs) => {
   const { width } = useWindowDimensions();
   const isWide = width >= WIDE_WIDTH_BREAKPOINT;
 
+  const [isFontsLoaded] = useFonts({ Heebo_300Light, Heebo_400Regular, Heebo_500Medium, Heebo_700Bold });
+
   const { bounceAnimationScale, fadeAnimationOpacity, startShake, shakeAnimation } = useLoginAnimation();
 
   const useLoginFormContent = useLoginForm({ ...useLoginFormArgs, startShake });
 
   const isWideWeb = IS_WEB && isWide;
+
+  if (!isFontsLoaded) return <AppBackground style={isWideWeb ? styles.webRoot : undefined} />;
 
   if (isWideWeb) {
     return (

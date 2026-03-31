@@ -9,11 +9,7 @@ const isAuthRoute = (url?: string) => AUTH_ROUTES.some((route) => url?.includes(
 const setAccessTokenInRequestHeaders = (config: InternalAxiosRequestConfig, accessToken: string) =>
   (config.headers.Authorization = `Bearer ${accessToken}`);
 
-export const api = axios.create({
-  baseURL: BASE_URL,
-  withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
-});
+export const api = axios.create({ baseURL: BASE_URL, withCredentials: true });
 
 api.interceptors.request.use(async (config) => {
   const [accessToken, userId] = await Promise.all([tokenStorage.getAccessToken(), tokenStorage.getUserId()]);

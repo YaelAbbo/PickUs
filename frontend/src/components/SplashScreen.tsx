@@ -1,4 +1,3 @@
-import { i18n } from '@/i18n';
 import { colors, typography } from '@/theme';
 import { useNativeDriver } from '@constants';
 import { Heebo_300Light, Heebo_500Medium, useFonts } from '@expo-google-fonts/heebo';
@@ -36,14 +35,14 @@ export function SplashScreen() {
   }, [dot1, dot2, dot3, fadeAnim, scaleAnim]);
 
   return (
-    <AppBackground style={{ alignItems: 'center', justifyContent: 'center' }}>
+    <AppBackground>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
 
         {isFontsLoaded && (
           <>
             <Text style={styles.appName}>PickUs</Text>
-            <Text style={styles.tagline}>{i18n.general.app_description}</Text>
+            <Text style={styles.tagline}>הדרך החכמה לנסוע ביחד</Text>
           </>
         )}
       </Animated.View>

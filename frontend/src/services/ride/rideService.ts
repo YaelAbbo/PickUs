@@ -42,7 +42,6 @@ export type RideFilters = {
   category?: string;
 };
 
-// --- NEW: Raw DTO Interfaces to satisfy ESLint ---
 interface RawRideStop {
   id: string;
   locationName: string;
@@ -67,7 +66,6 @@ interface RawRideResponse {
   rideStops?: RawRideStop[];
   passengers?: RawRidePassenger[];
 }
-// ------------------------------------------------
 
 const mapRideResponse = (data: RawRideResponse): Ride => {
   const safeDate = (dateStr: string | undefined) => {
@@ -126,22 +124,12 @@ const mapRideResponse = (data: RawRideResponse): Ride => {
 
 export const rideService = {
   getAvailableRides: async (filters?: RideFilters): Promise<Ride[]> => {
-    try {
-      const { data } = await api.get<RawRideResponse[]>('/rides/available', { params: filters });
-      return data.map(mapRideResponse);
-    } catch (error) {
-      console.error('Failed to fetch actual rides from backend:', error);
-      throw error;
-    }
+    const { data } = await api.get<RawRideResponse[]>('/rides/available', { params: filters });
+    return data.map(mapRideResponse);
   },
 
   getRideById: async (id: string): Promise<Ride> => {
-    try {
-      const { data } = await api.get<RawRideResponse>(`/rides/${id}`);
-      return mapRideResponse(data);
-    } catch (error) {
-      console.error(`Failed to fetch ride ${id} from backend:`, error);
-      throw error;
-    }
+    const { data } = await api.get<RawRideResponse>(`/rides/${id}`);
+    return mapRideResponse(data);
   },
 };
