@@ -13,7 +13,11 @@ import type { Ride } from '@/services/ride/rideService';
 import { colors } from '@/theme';
 import { useAuth } from '@services';
 
-const FILTERS = [i18n.available_rides_screen.filter_all];
+const FILTER_ALL = i18n.available_rides_screen.filter_all;
+const FILTER_START = 'התחלה';
+const FILTER_DEST = 'יעד';
+const FILTERS = [FILTER_ALL, FILTER_START, FILTER_DEST];
+
 export const MAX_SEATS = 4;
 
 export default function HomeScreen() {
@@ -22,18 +26,11 @@ export default function HomeScreen() {
   const isDark = colorScheme === 'dark';
 
   const { user, logout } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('הכל');
 
-  const {
-    data: rides,
-    isLoading,
-    isError,
-    refetch,
-  } = useAvailableRides({
-    search: searchQuery,
-    category: activeFilter === i18n.available_rides_screen.filter_all ? undefined : activeFilter,
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState(FILTER_ALL);
+
+  const { data: rides, isLoading, isError, refetch } = useAvailableRides();
 
   const themeStyles = {
     background: isDark ? '#121212' : '#F7F8FA',
@@ -143,7 +140,7 @@ export default function HomeScreen() {
             icon='bell-outline'
             size={28}
             iconColor={themeStyles.accentDynamic}
-            onPress={() => console.log('Notifications pressed')}
+            onPress={() => console.log('Notifications')}
           />
           <IconButton icon='logout' size={24} iconColor={colors.error} onPress={() => logout()} />
         </View>
@@ -158,10 +155,7 @@ export default function HomeScreen() {
           textColor={themeStyles.searchPlaceholder}
           style={[
             styles.searchInput,
-            {
-              backgroundColor: themeStyles.searchInputBg,
-              color: themeStyles.searchPlaceholder,
-            },
+            { backgroundColor: themeStyles.searchInputBg, color: themeStyles.searchPlaceholder },
           ]}
         />
       </View>
@@ -204,11 +198,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 56,
-  },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 56 },
   header: {
     flexDirection: 'row',
     direction: 'rtl',
@@ -216,41 +206,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 0,
   },
-  headerActions: {
-    flexDirection: 'row',
-    direction: 'rtl',
-    alignItems: 'center',
-  },
-  greeting: {
-    fontWeight: 'bold',
-    fontSize: 32,
-    paddingHorizontal: 0,
-    textAlign: 'right',
-  },
-  searchContainer: {
-    marginBottom: 0,
-  },
-  searchInput: {
-    borderRadius: 12,
-    borderWidth: 0,
-    elevation: 0,
-    paddingHorizontal: 16,
-    height: 50,
-  },
-  filtersContainer: {
-    marginBottom: 20,
-  },
-  filtersListContent: {
-    paddingLeft: 4,
-  },
-  filterChip: {
-    marginLeft: 10,
-    borderRadius: 24,
-    borderWidth: 1,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
+  headerActions: { flexDirection: 'row', direction: 'rtl', alignItems: 'center' },
+  greeting: { fontWeight: 'bold', fontSize: 32, paddingHorizontal: 0, textAlign: 'right' },
+  searchContainer: { marginBottom: 0 },
+  searchInput: { borderRadius: 12, borderWidth: 0, elevation: 0, paddingHorizontal: 16, height: 50 },
+  filtersContainer: { marginBottom: 20 },
+  filtersListContent: { paddingLeft: 4 },
+  filterChip: { marginLeft: 10, borderRadius: 24, borderWidth: 1 },
+  listContent: { paddingBottom: 32 },
   card: {
     marginBottom: 16,
     borderRadius: 16,
@@ -260,10 +223,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },
-  cardContentPadding: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
+  cardContentPadding: { paddingVertical: 12, paddingHorizontal: 16 },
   cardRow: {
     flexDirection: 'row',
     direction: 'rtl',
@@ -271,33 +231,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  routeContainer: {
-    flexDirection: 'row',
-    direction: 'rtl',
-    alignItems: 'center',
-  },
-  routeArrow: {
-    marginHorizontal: -4,
-  },
-  seatsContainer: {
-    flexDirection: 'row',
-    direction: 'rtl',
-  },
-  seatIcon: {
-    margin: -4,
-    padding: 0,
-    width: 24,
-    height: 24,
-  },
-  loader: {
-    marginTop: 50,
-  },
-  errorText: {
-    textAlign: 'center',
-    marginTop: 50,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 50,
-  },
+  routeContainer: { flexDirection: 'row', direction: 'rtl', alignItems: 'center' },
+  routeArrow: { marginHorizontal: -4 },
+  seatsContainer: { flexDirection: 'row', direction: 'rtl' },
+  seatIcon: { margin: -4, padding: 0, width: 24, height: 24 },
+  loader: { marginTop: 50 },
+  errorText: { textAlign: 'center', marginTop: 50 },
+  emptyText: { textAlign: 'center', marginTop: 50 },
 });

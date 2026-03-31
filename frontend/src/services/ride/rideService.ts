@@ -1,5 +1,22 @@
 import { api } from '@/api/api';
 
+export interface RideStopInfo {
+  id: string;
+  locationName: string;
+  estimatedArrivalAt: string;
+  orderIndex: number;
+  passengerCount: number;
+}
+
+export interface RidePassengerInfo {
+  id: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
+}
+
 export interface Ride {
   id: string;
   date: string;
@@ -16,44 +33,102 @@ export interface Ride {
     lastName: string;
     avatar?: string;
   };
-  passengers?: string[];
+  stops: RideStopInfo[];
+  passengers?: RidePassengerInfo[];
 }
 
 export type RideFilters = {
   search?: string;
   category?: string;
 };
-export type RideResponse = {
+
+// --- NEW: Raw DTO Interfaces to satisfy ESLint ---
+interface RawRideStop {
+  id: string;
+  locationName: string;
+  estimatedArrivalAt: string;
+  orderIndex: number;
+}
+
+interface RawRidePassenger {
+  id: string;
+  rideStop?: { id: string };
+  user?: { firstName: string; lastName: string; avatar?: string };
+}
+
+interface RawRideResponse {
   id: string;
   startsAt: string;
   estimatedEndsAt: string;
-  availableSeats: number;
+  availableSeats?: number;
+  maxSeatsAmount: number;
+  rideStatus?: string;
+  driver?: { id: string; firstName: string; lastName: string; avatar?: string };
+  rideStops?: RawRideStop[];
+  passengers?: RawRidePassenger[];
+}
+// ------------------------------------------------
+
+const mapRideResponse = (data: RawRideResponse): Ride => {
+  const safeDate = (dateStr: string | undefined) => {
+    if (!dateStr) return new Date();
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const startDate = safeDate(data.startsAt);
+  const endDate = safeDate(data.estimatedEndsAt);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const formatTime = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+  const sortedStops = (data.rideStops || []).sort((a, b) => a.orderIndex - b.orderIndex);
+
+  const stops: RideStopInfo[] = sortedStops.map((stop) => {
+    const stopPassengers = (data.passengers || []).filter((p) => p.rideStop?.id === stop.id);
+    return {
+      id: stop.id,
+      locationName: stop.locationName,
+      estimatedArrivalAt: stop.estimatedArrivalAt ? formatTime(safeDate(stop.estimatedArrivalAt)) : 'לא ידוע',
+      orderIndex: stop.orderIndex,
+      passengerCount: stopPassengers.length,
+    };
+  });
+
+  const startDest = stops.length > 0 ? stops[0]?.locationName || 'לא ידוע' : 'לא ידוע';
+  const endDest = stops.length > 0 ? stops[stops.length - 1]?.locationName || 'לא ידוע' : 'לא ידוע';
+
+  const mappedPassengers = (data.passengers || []).map((p) => ({
+    id: p.id,
+    user: p.user
+      ? {
+          firstName: p.user.firstName,
+          lastName: p.user.lastName,
+          avatar: p.user.avatar,
+        }
+      : undefined,
+  }));
+
+  return {
+    id: data.id,
+    date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,
+    startTime: formatTime(startDate),
+    endTime: formatTime(endDate),
+    availableSeats: data.availableSeats ?? data.maxSeatsAmount - mappedPassengers.length,
+    maxSeatsAmount: data.maxSeatsAmount ?? 4,
+    startDest,
+    endDest,
+    rideStatus: data.rideStatus || 'PENDING',
+    driver: data.driver,
+    stops,
+    passengers: mappedPassengers,
+  };
 };
 
 export const rideService = {
   getAvailableRides: async (filters?: RideFilters): Promise<Ride[]> => {
     try {
-      const { data } = await api.get<RideResponse[]>('/rides/available', { params: filters });
-
-      return data.map((ride: RideResponse) => {
-        const startDate = new Date(ride.startsAt);
-        const endDate = new Date(ride.estimatedEndsAt);
-        const pad = (n: number) => n.toString().padStart(2, '0');
-
-        return {
-          id: ride.id,
-          date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,
-          startTime: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`,
-          endTime: `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`,
-          availableSeats: Math.min(ride.availableSeats, 4),
-          // maxSeatsAmount: ride.maxSeatsAmount,
-          startDest: 'נקודת איסוף',
-          endDest: 'נקודת הורדה',
-          // rideStatus: ride.rideStatus,
-          // driver: ride.driver,
-          // passengers: ride.passengers,
-        };
-      });
+      const { data } = await api.get<RawRideResponse[]>('/rides/available', { params: filters });
+      return data.map(mapRideResponse);
     } catch (error) {
       console.error('Failed to fetch actual rides from backend:', error);
       throw error;
@@ -62,25 +137,8 @@ export const rideService = {
 
   getRideById: async (id: string): Promise<Ride> => {
     try {
-      const { data } = await api.get<RideResponse>(`/rides/${id}`);
-
-      const startDate = new Date(data.startsAt);
-      const endDate = new Date(data.estimatedEndsAt);
-      const pad = (n: number) => n.toString().padStart(2, '0');
-
-      return {
-        id: data.id,
-        date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,
-        startTime: `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`,
-        endTime: `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`,
-        // availableSeats: data.availableSeats ?? data.maxSeatsAmount ?? 4,
-        // maxSeatsAmount: data.maxSeatsAmount ?? 4,
-        startDest: 'נקודת איסוף',
-        endDest: 'נקודת הורדה',
-        // rideStatus: data.rideStatus || 'PENDING',
-        // driver: data.driver,
-        // passengers: data.passengers || [],
-      };
+      const { data } = await api.get<RawRideResponse>(`/rides/${id}`);
+      return mapRideResponse(data);
     } catch (error) {
       console.error(`Failed to fetch ride ${id} from backend:`, error);
       throw error;
