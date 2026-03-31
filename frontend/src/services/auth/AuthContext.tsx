@@ -1,4 +1,4 @@
-import { useCustomContext } from '@hooks';
+import { useCustomContext } from '@/hooks/useCustomContext';
 import { createContext, type PropsWithChildren } from 'react';
 import { useAuthLogic, type UseAuthLogicContent } from './useAuthLogic';
 
