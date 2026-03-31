@@ -1,6 +1,6 @@
-import { BASE_URL } from '@constants';
+import { BASE_URL, IS_MOBILE } from '@constants';
 import axios from 'axios';
-import { isNative, tokenStorage } from './tokenStorage';
+import { tokenStorage } from './tokenStorage';
 
 export const parseRefreshCookie = (header: string | string[] | undefined): string | null => {
   if (!header) return null;
@@ -14,7 +14,7 @@ export const parseRefreshCookie = (header: string | string[] | undefined): strin
 export const refreshAccessToken = async () => {
   const headers: Record<string, string> = {};
 
-  if (isNative) {
+  if (IS_MOBILE) {
     const refreshToken = await tokenStorage.getRefreshToken();
 
     if (!refreshToken) throw new Error('No refresh token stored');
@@ -29,7 +29,7 @@ export const refreshAccessToken = async () => {
 
   await tokenStorage.setAccessToken(accessToken);
 
-  if (isNative) {
+  if (IS_MOBILE) {
     const refreshToken = parseRefreshCookie(responseHeaders['set-cookie']);
 
     if (refreshToken) await tokenStorage.setRefreshToken(refreshToken);

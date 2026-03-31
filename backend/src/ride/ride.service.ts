@@ -7,6 +7,7 @@ import {
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +17,8 @@ import { UpdateRideDto } from './dto/update-ride.dto';
 
 @Injectable()
 export class RideService {
+  private readonly logger = new Logger(RideService.name);
+
   constructor(
     @InjectRepository(Ride)
     private ridesRepository: Repository<Ride>,
@@ -36,8 +39,11 @@ export class RideService {
       const createdRide = await this.ridesRepository.save(newRide);
 
       return await this.getRideById(createdRide.id);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      this.logger.error(
+        `Failed to create ride, ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       throw new ConflictException('Failed to create ride');
     }
   }
@@ -120,8 +126,11 @@ export class RideService {
       const updatedRide = await this.ridesRepository.save(ride);
 
       return await this.getRideById(updatedRide.id);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      this.logger.error(
+        `Failed to update ride with ID ${id}, ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       throw new ConflictException(`Failed to update ride with ID ${id}`);
     }
   }
@@ -130,6 +139,7 @@ export class RideService {
     const result = await this.ridesRepository.update(id, { isDeleted: true });
 
     if (result.affected === 0) {
+      this.logger.error(`Ride with ID ${id} not found`);
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
   }

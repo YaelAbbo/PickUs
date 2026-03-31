@@ -11,7 +11,13 @@ function getLocalIp() {
       }
     }
   }
-  return candidates.find(ip => ip.startsWith('192.') || ip.startsWith('10.') || ip.startsWith('172.')) || candidates[0] || 'localhost';
+
+  const candidateLocalIp = candidates
+    .toSorted()
+    .find((ip) => ip.startsWith('192.') || ip.startsWith('10.') || ip.startsWith('172.'));
+  const localIp = candidateLocalIp ?? candidates[0] ?? 'localhost';
+
+  return localIp;
 }
 
 const ip = getLocalIp();

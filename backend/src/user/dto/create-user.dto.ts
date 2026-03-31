@@ -1,5 +1,5 @@
 import type { User } from '@/database/entities';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { UpsertUserDto } from './upsert-user.dto';
 
 export class CreateUserDto extends UpsertUserDto {
@@ -12,6 +12,10 @@ export class CreateUserDto extends UpsertUserDto {
   @IsString()
   @IsNotEmpty()
   nationalId: User['nationalId'];
+
+  @IsEmail()
+  @IsNotEmpty()
+  declare email: User['email'];
 
   @IsString()
   @IsNotEmpty()
