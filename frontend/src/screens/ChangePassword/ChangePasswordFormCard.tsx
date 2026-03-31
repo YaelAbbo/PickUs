@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     marginBottom: spacing.lg,
-    alignItems: 'flex-end',
   },
   cardTitle: {
     fontFamily: typography.fonts.medium,

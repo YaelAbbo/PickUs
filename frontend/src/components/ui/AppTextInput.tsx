@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.md,
     textAlign: 'right',
-    alignSelf: IS_WEB ? 'auto' : 'flex-start',
   },
   input: {
     backgroundColor: colors.inputBg,
@@ -125,6 +124,5 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     paddingHorizontal: 0,
     paddingVertical: 0,
-    alignSelf: IS_WEB ? 'auto' : 'flex-start',
   },
 });
