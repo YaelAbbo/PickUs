@@ -56,7 +56,7 @@ export class RidePassengerService {
         const passenger = manager.getRepository(RidePassenger).create({
           userId,
           rideId,
-          rideStop: { id: rideStopId },
+          rideStopId,
         });
         await manager.getRepository(RidePassenger).save(passenger);
       } catch (error) {
