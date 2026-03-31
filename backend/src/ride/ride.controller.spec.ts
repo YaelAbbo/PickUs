@@ -33,6 +33,7 @@ describe('RideController', () => {
     firstName: 'Admin',
     lastName: 'User',
     nationalId: 'admin-national-id-ride-test',
+    email: 'admin.ride@test.com',
   };
 
   const testDriver = {
@@ -40,6 +41,7 @@ describe('RideController', () => {
     firstName: 'Driver',
     lastName: 'Test',
     nationalId: 'driver-national-id-test',
+    email: 'driver.ride@test.com',
   };
 
   const newRideDto = {
@@ -70,6 +72,7 @@ describe('RideController', () => {
       firstName: testDriver.firstName,
       lastName: testDriver.lastName,
       nationalId: testDriver.nationalId,
+      email: testDriver.email,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -84,6 +87,7 @@ describe('RideController', () => {
         firstName: adminUser.firstName,
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
+        email: adminUser.email,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
