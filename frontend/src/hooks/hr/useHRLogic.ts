@@ -1,5 +1,12 @@
 import { CreateUserDto, User } from '@/api/user';
-import { fetchUsers, getErrorMessage, useCreateUser, useDeleteUser, useUpdateUser } from '@/api/user.api';
+import {
+  fetchUsers,
+  getErrorMessage,
+  resendTempPasswordMail,
+  useCreateUser,
+  useDeleteUser,
+  useUpdateUser,
+} from '@/api/user.api';
 import { type HRFormData } from '@/components/hr/hr.schema';
 import { PopupMode } from '@/components/hr/HRActionsPopup';
 import { useToast } from '@/hooks/useToast';
@@ -140,6 +147,15 @@ export const useHRLogic = () => {
     }
   };
 
+  const handleResendMail = async (user: User) => {
+    try {
+      await resendTempPasswordMail(user.id);
+      showToast(i18n.hr_table.resend_mail_success, 'success');
+    } catch {
+      showToast(i18n.hr_popup.error, 'error');
+    }
+  };
+
   return {
     users,
     activeQuery,
@@ -165,6 +181,7 @@ export const useHRLogic = () => {
     handlePopupSubmit,
     handleConfirmDelete,
     handleExport,
+    handleResendMail,
     hideToast,
   };
 };

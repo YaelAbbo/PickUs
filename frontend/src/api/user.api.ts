@@ -36,6 +36,10 @@ export const deleteUser = async (id: string): Promise<void> => {
   await baseApi.delete(`/users/${id}`);
 };
 
+export const resendTempPasswordMail = async (userId: string): Promise<void> => {
+  await baseApi.post(`/users/${userId}/resend-temp-password`);
+};
+
 export const getErrorMessage = (err: Error) => {
   if (err instanceof AxiosError && err.response?.data?.message) {
     const msg = err.response.data.message;

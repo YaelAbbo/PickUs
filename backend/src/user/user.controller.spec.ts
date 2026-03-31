@@ -203,6 +203,56 @@ describe('UserController (e2e)', () => {
       expect(response.body.isTempPassword).toBe(false);
     });
 
+    it('POST /users/:id/resend-temp-password should reset password and resend email', async () => {
+      const mailService = app.get(MailService);
+      const sendMailSpy = jest
+        .spyOn(mailService, 'sendTempPasswordEmail')
+        .mockResolvedValue(undefined);
+
+      const response = await request(httpServer)
+        .post(`/users/${createdUserId}/resend-temp-password`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toBe(201);
+      expect(sendMailSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ to: newUser.email }),
+      );
+
+      const getUserResponse = await request(httpServer)
+        .get(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(getUserResponse.body.isTempPassword).toBe(true);
+    });
+
+    it('POST /users/:id/resend-temp-password should return 404 for non-existent user', async () => {
+      const response = await request(httpServer)
+        .post(
+          '/users/00000000-0000-0000-0000-000000000000/resend-temp-password',
+        )
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('POST /users/:id/resend-temp-password should succeed even when email delivery fails', async () => {
+      const mailService = app.get(MailService);
+      jest
+        .spyOn(mailService, 'sendTempPasswordEmail')
+        .mockRejectedValueOnce(new Error('SMTP connection refused'));
+
+      const response = await request(httpServer)
+        .post(`/users/${createdUserId}/resend-temp-password`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toBe(201);
+
+      const getResponse = await request(httpServer)
+        .get(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+      expect(getResponse.body.isTempPassword).toBe(true);
+    });
+
     it('DELETE /users/:id should soft delete user', async () => {
       const deleteResponse = await request(httpServer)
         .delete(`/users/${createdUserId}`)
@@ -223,10 +273,14 @@ describe('UserController (e2e)', () => {
     const res2 = await request(httpServer).get('/users/some-id');
     const res3 = await request(httpServer).patch('/users/some-id').send({});
     const res4 = await request(httpServer).delete('/users/some-id');
+    const res5 = await request(httpServer).post(
+      '/users/some-id/resend-temp-password',
+    );
 
     expect(res1.status).toBe(401);
     expect(res2.status).toBe(401);
     expect(res3.status).toBe(401);
     expect(res4.status).toBe(401);
+    expect(res5.status).toBe(401);
   });
 });

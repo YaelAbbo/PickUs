@@ -38,9 +38,7 @@ export class UserService {
     profileImageUrl,
     orgId,
   }: CreateUserDto): Promise<User> {
-    const tempPassword = this.buildSecurePassword();
-    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-    const passwordHash = await bcrypt.hash(tempPassword, salt);
+    const { tempPassword, passwordHash } = await this.createTemporaryPassword();
 
     const user = this.usersRepository.create({
       firstName,
@@ -85,6 +83,35 @@ export class UserService {
     }
 
     return savedUser;
+  }
+
+  async resendTempPassword(id: User['id']): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { id, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException(UserErrorCode.USER_NOT_FOUND);
+    }
+
+    const { tempPassword, passwordHash } = await this.createTemporaryPassword();
+    user.passwordHash = passwordHash;
+    user.isTempPassword = true;
+
+    await this.usersRepository.save(user);
+
+    try {
+      await this.mailService.sendTempPasswordEmail({
+        to: user.email,
+        displayName: `${user.firstName} ${user.lastName}`,
+        tempPassword,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Resend temp password email failed for ${user.email}`,
+        error,
+      );
+    }
   }
 
   async update(
@@ -185,5 +212,16 @@ export class UserService {
 
   private buildSecurePassword(): string {
     return randomBytes(TEMP_PASSWORD_LENGTH).toString('base64url');
+  }
+
+  private async createTemporaryPassword(): Promise<{
+    passwordHash: string;
+    tempPassword: string;
+  }> {
+    const tempPassword = this.buildSecurePassword();
+    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(tempPassword, salt);
+
+    return { passwordHash, tempPassword };
   }
 }
