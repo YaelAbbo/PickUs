@@ -1,15 +1,34 @@
 import { useRouter } from 'expo-router';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { i18n } from '@/i18n';
-import { useAvailableRides } from '@/services/ride/rideQueries';
 import { useAuth } from '@/services/auth/AuthContext';
+import { useAvailableRides } from '@/services/ride/rideQueries';
+import type { Ride } from '@/services/ride/rideService';
 
 export const MAX_SEATS = 4;
 export const FILTER_ALL = i18n.available_rides_screen.filter_all;
 export const FILTER_START = 'התחלה';
 export const FILTER_DEST = 'יעד';
 export const FILTERS = [FILTER_ALL, FILTER_START, FILTER_DEST];
+
+function matchesRideFilter(ride: Ride, searchQuery: string, activeFilter: string): boolean {
+  const searchLower = searchQuery.toLowerCase().trim();
+
+  const matchesStart = ride.startDest.toLowerCase().includes(searchLower);
+  const matchesDest = ride.endDest.toLowerCase().includes(searchLower);
+
+  switch (activeFilter) {
+    case FILTER_START:
+      return matchesStart;
+    case FILTER_DEST:
+      return matchesDest;
+    case FILTER_ALL:
+      return matchesStart || matchesDest;
+    default:
+      return true;
+  }
+}
 
 export function useAvailableRidesLogic() {
   const router = useRouter();
@@ -22,19 +41,10 @@ export function useAvailableRidesLogic() {
 
   const filteredRides = useMemo(() => {
     if (!rides) return [];
+
     if (!searchQuery.trim()) return rides;
 
-    const searchLower = searchQuery.toLowerCase().trim();
-
-    return rides.filter((ride) => {
-      const matchStart = ride.startDest.toLowerCase().includes(searchLower);
-      const matchEnd = ride.endDest.toLowerCase().includes(searchLower);
-
-      if (activeFilter === FILTER_START) return matchStart;
-      if (activeFilter === FILTER_DEST) return matchEnd;
-
-      return matchStart || matchEnd;
-    });
+    return rides.filter((ride) => matchesRideFilter(ride, searchQuery, activeFilter));
   }, [rides, searchQuery, activeFilter]);
 
   const handleRidePress = (rideId: string) => {

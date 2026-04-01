@@ -11,7 +11,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, MoreThan, Repository } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 
@@ -65,8 +65,14 @@ export class RideService {
   }
 
   async getAvailableRides(): Promise<Ride[]> {
+    const now = new Date();
+
     const rides = await this.ridesRepository.find({
-      where: { isDeleted: false, rideStatus: RideStatus.PENDING },
+      where: {
+        isDeleted: false,
+        rideStatus: RideStatus.PENDING,
+        startsAt: MoreThan(now),
+      },
       relations: [
         'organization',
         'driver',
@@ -76,17 +82,11 @@ export class RideService {
       ],
     });
 
-    return rides
-      .map((ride) => {
-        const passengerCount = ride.passengers?.length || 0;
-        const availableSeats = ride.maxSeatsAmount - passengerCount;
-
-        return {
-          ...ride,
-          availableSeats,
-        } as Ride;
-      })
-      .filter((ride) => ride.availableSeats! > 0);
+    return rides.filter((ride) => {
+      const passengerCount = ride.passengers?.length || 0;
+      const availableSeats = ride.maxSeatsAmount - passengerCount;
+      return availableSeats > 0;
+    });
   }
 
   async getRideById(id: Ride['id']): Promise<Ride> {

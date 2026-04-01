@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginVertical: spacing.md,
   },
   greeting: {
     fontSize: 26,
@@ -112,9 +112,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputBg,
     paddingHorizontal: 16,
     paddingVertical: 6,
+    height: 28,
   },
-  filterChipActive: { backgroundColor: colors.yellow, borderColor: colors.yellow },
+  filterChipActive: { backgroundColor: colors.yellow, borderColor: colors.yellow, height: 32 },
   filterChipText: { color: colors.textMuted, fontWeight: '500', fontSize: 14 },
-  filterChipTextActive: { color: colors.textDark, fontWeight: '700' },
+  filterChipTextActive: { color: colors.textDark, fontWeight: '700', fontSize: 16 },
   centerText: { textAlign: 'center', color: colors.textMuted, marginTop: 50, fontSize: 16 },
 });

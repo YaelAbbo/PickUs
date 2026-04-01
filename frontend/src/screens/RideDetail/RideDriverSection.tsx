@@ -8,11 +8,12 @@ import { colors, spacing } from '@/theme';
 type RideDriverSectionProps = {
   name: string;
   initials: string;
+  isDriver?: boolean;
 };
 
-export const RideDriverSection: FC<RideDriverSectionProps> = ({ name, initials }) => (
+export const RideDriverSection: FC<RideDriverSectionProps> = ({ name, initials, isDriver }) => (
   <View style={styles.peopleSection}>
-    <Text style={styles.sectionTitle}>{i18n.ride_detail.driver_label}</Text>
+    {isDriver ? <Text style={styles.sectionTitle}>{i18n.ride_detail.driver_label}</Text> : null}
     <View style={styles.personRow}>
       <Avatar.Text
         size={44}

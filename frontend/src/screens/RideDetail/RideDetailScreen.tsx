@@ -7,6 +7,7 @@ import { AppBackground, AppButton } from '@/components/ui';
 import { useRide } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
 
+import { i18n } from '@/i18n';
 import { RideDriverSection } from './RideDriverSection';
 import { RideInfoBoxes } from './RideInfoBoxes';
 import { RideStopTimeline } from './RideStopTimeline';
@@ -28,14 +29,16 @@ export const RideDetailScreen: FC = () => {
   if (isError || !ride) {
     return (
       <AppBackground style={styles.centerContainer}>
-        <Text style={{ color: colors.error, marginBottom: 20 }}>אירעה שגיאה בטעינת הנסיעה</Text>
+        <Text style={{ color: colors.error, marginBottom: 20 }}>{i18n.ride_detail.error_loading}</Text>
         <AppButton label='חזור' onPress={() => router.back()} />
       </AppBackground>
     );
   }
 
-  const driverName = ride.driver ? `${ride.driver.firstName} ${ride.driver.lastName}` : 'נהג לא ידוע';
-  const driverInitials = ride.driver ? `${ride.driver.firstName[0]}${ride.driver.lastName[0]}` : 'נ';
+  const driverName = ride.driver ? `${ride.driver.firstName} ${ride.driver.lastName}` : i18n.ride_detail.unknown_driver;
+  const driverInitials = ride.driver
+    ? `${ride.driver.firstName[0]}${ride.driver.lastName[0]}`
+    : i18n.ride_detail.unknown_driver_initial;
 
   return (
     <AppBackground>
@@ -51,9 +54,13 @@ export const RideDetailScreen: FC = () => {
         <View style={styles.card}>
           <View style={styles.statusRow}>
             <View style={styles.statusPill}>
-              <Text style={styles.statusText}>{ride.rideStatus === 'ACTIVE' ? 'פעיל' : 'ממתין'}</Text>
+              <Text style={styles.statusText}>
+                {ride.rideStatus === 'ACTIVE' ? i18n.ride_detail.status_active : i18n.ride_detail.status_pending}
+              </Text>
             </View>
-            <Text style={styles.seatsRemainingText}>{ride.availableSeats} מקומות פנויים</Text>
+            <Text style={styles.seatsRemainingText}>
+              {ride.availableSeats} {i18n.ride_detail.seats_available}
+            </Text>
           </View>
 
           <RideStopTimeline stops={ride.stops || []} />
@@ -63,28 +70,40 @@ export const RideDetailScreen: FC = () => {
           <RideInfoBoxes startTime={ride.startTime} endTime={ride.endTime} date={ride.date} />
         </View>
 
-        <RideDriverSection name={driverName} initials={driverInitials} />
+        <RideDriverSection name={driverName} initials={driverInitials} isDriver={true} />
 
         <View style={styles.passengersContainer}>
           <Text style={styles.sectionTitle}>
-            נוסעים ({(ride.maxSeatsAmount || 4) - ride.availableSeats}/{ride.maxSeatsAmount || 4})
+            {i18n.ride_detail.passengers} ({(ride.maxSeatsAmount || 4) - ride.availableSeats}/{ride.maxSeatsAmount || 4}
+            )
           </Text>
 
           {ride.passengers && ride.passengers.length > 0 ? (
-            ride.passengers.map((p, index) => {
-              const passName = p.user ? `${p.user.firstName} ${p.user.lastName}` : `נוסע ${index + 1}`;
-              const passInitials = p.user ? `${p.user.firstName[0]}${p.user.lastName[0]}` : 'נ';
+            ride.passengers.map((passenger, index) => {
+              const passengerName = passenger.user
+                ? `${passenger.user.firstName} ${passenger.user.lastName}`
+                : `{נוסע} ${index + 1}`;
+              const passengerInitials = passenger.user
+                ? `${passenger.user.firstName[0]}${passenger.user.lastName[0]}`
+                : i18n.ride_detail.unknown_driver_initial;
 
-              return <RideDriverSection key={p.id || index} name={passName} initials={passInitials} />;
+              return (
+                <RideDriverSection
+                  key={passenger.id || index}
+                  name={passengerName}
+                  initials={passengerInitials}
+                  isDriver={false}
+                />
+              );
             })
           ) : (
-            <Text style={styles.emptyText}>אין נוסעים כרגע</Text>
+            <Text style={styles.emptyText}>{i18n.ride_detail.no_passengers}</Text>
           )}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <AppButton label='הצטרפות לנסיעה' onPress={() => console.log('Join Ride pressed!')} />
+        <AppButton label={i18n.ride_detail.join_ride} onPress={() => console.log('Join Ride pressed!')} />
       </View>
     </AppBackground>
   );
@@ -97,8 +116,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingTop: 48,
-    paddingBottom: spacing.lg,
+    paddingTop: 24,
+    paddingBottom: spacing.sm,
   },
   headerSpacer: { width: 40 },
   headerTitle: {

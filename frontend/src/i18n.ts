@@ -70,5 +70,8 @@ export const i18n = {
     join_ride: 'הצטרפות לנסיעה',
     driver_label: 'נהג/ת',
     passengers_joining: 'נוסעים יעלו כאן',
+    passenger: 'נוסע',
+    passengers: 'נוסעים',
+    no_passengers: 'אין נוסעים כרגע',
   },
 };
