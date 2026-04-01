@@ -150,9 +150,9 @@ describe('UserController (e2e)', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
       expect(
-        response.body.find((u: User) => u.id === createdUserId),
+        response.body.data.find((u: User) => u.id === createdUserId),
       ).toBeDefined();
     });
 

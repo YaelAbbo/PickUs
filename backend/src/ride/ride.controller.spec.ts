@@ -24,6 +24,7 @@ describe('RideController', () => {
 
   let testOrgId: string | null = null;
   let testDriverId: string | null = null;
+  let testPassengerId: string | null = null;
   let adminAccessToken: string;
   let createdRideId: string | null = null;
 
@@ -33,6 +34,7 @@ describe('RideController', () => {
     firstName: 'Admin',
     lastName: 'User',
     nationalId: 'admin-national-id-ride-test',
+    email: 'admin@ride-test.com',
   };
 
   const testDriver = {
@@ -40,6 +42,15 @@ describe('RideController', () => {
     firstName: 'Driver',
     lastName: 'Test',
     nationalId: 'driver-national-id-test',
+    email: 'driver@ride-test.com',
+  };
+
+  const testPassenger = {
+    id: crypto.randomUUID(),
+    firstName: 'Passenger',
+    lastName: 'Test',
+    nationalId: 'passenger-national-id-test',
+    email: 'passenger@ride-test.com',
   };
 
   const newRideDto = {
@@ -70,12 +81,26 @@ describe('RideController', () => {
       firstName: testDriver.firstName,
       lastName: testDriver.lastName,
       nationalId: testDriver.nationalId,
+      email: testDriver.email,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
     });
     await userRepository.save(driver);
     testDriverId = driver.id;
+
+    const passenger = userRepository.create({
+      id: testPassenger.id,
+      firstName: testPassenger.firstName,
+      lastName: testPassenger.lastName,
+      nationalId: testPassenger.nationalId,
+      email: testPassenger.email,
+      passwordHash: 'dummyhash',
+      role: UserRole.BASIC_USER,
+      organization: savedOrg,
+    });
+    await userRepository.save(passenger);
+    testPassengerId = passenger.id;
 
     const passwordHash = await bcrypt.hash(adminUser.password, 10);
     await userRepository.save(
@@ -84,6 +109,7 @@ describe('RideController', () => {
         firstName: adminUser.firstName,
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
+        email: adminUser.email,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
@@ -127,6 +153,11 @@ describe('RideController', () => {
     if (testDriverId) {
       await userRepository.delete(testDriverId);
       testDriverId = null;
+    }
+
+    if (testPassengerId) {
+      await userRepository.delete(testPassengerId);
+      testPassengerId = null;
     }
 
     if (testOrgId) {
@@ -268,25 +299,104 @@ describe('RideController', () => {
         `Ride with ID ${fakeId} not found`,
       );
     });
+
+    it('GET /rides/available should return only available rides (PENDING status with future start time)', async () => {
+      const futureRideResponse = await request(httpServer)
+        .post('/rides')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({
+          ...newRideDto,
+          organizationId: testOrgId,
+          driverId: testDriverId,
+          maxSeatsAmount: 2,
+          startsAt: new Date(Date.now() + 1000 * 60 * 120).toISOString(), // 2 hours from now
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180).toISOString(),
+          rideStatus: RideStatus.PENDING,
+        });
+
+      const futureRideId = futureRideResponse.body.id;
+      expect(futureRideId).toBeDefined();
+
+      const activeRideResponse = await request(httpServer)
+        .post('/rides')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({
+          ...newRideDto,
+          organizationId: testOrgId,
+          driverId: testDriverId,
+          rideStatus: RideStatus.ACTIVE,
+          startsAt: new Date(Date.now() + 1000 * 60 * 140).toISOString(),
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 200).toISOString(),
+        });
+
+      const activeRideId = activeRideResponse.body.id;
+      expect(activeRideId).toBeDefined();
+
+      const pastRideResponse = await request(httpServer)
+        .post('/rides')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({
+          organizationId: testOrgId,
+          driverId: testDriverId,
+          startsAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+          startLocation: { type: 'Point', coordinates: [34.8516, 31.0461] },
+          endLocation: { type: 'Point', coordinates: [34.7818, 32.0853] },
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        });
+
+      const pastRideId = pastRideResponse.body.id;
+      expect(pastRideId).toBeDefined();
+
+      const response = await request(httpServer)
+        .get('/rides/available')
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toEqual(true);
+
+      const availableFutureRide = response.body.find(
+        (r: Ride) => r.id === futureRideId,
+      );
+      expect(availableFutureRide).toBeDefined();
+      expect(availableFutureRide?.rideStatus).toEqual(RideStatus.PENDING);
+
+      const activeRide = response.body.find((r: Ride) => r.id === activeRideId);
+      expect(activeRide).toBeUndefined();
+
+      const pastRide = response.body.find((r: Ride) => r.id === pastRideId);
+      expect(pastRide).toBeUndefined();
+
+      await rideRepository.delete(futureRideId);
+      await rideRepository.delete(activeRideId);
+      await rideRepository.delete(pastRideId);
+    });
   });
 
-  it('All endpoints should fail with 401 without a valid token', async () => {
-    const fakeId = '11111111-1111-4111-8111-111111111111';
+  describe('Authorization', () => {
+    it('All endpoints should fail with 401 without a valid token', async () => {
+      const fakeId = '11111111-1111-4111-8111-111111111111';
 
-    const res1 = await request(httpServer).post('/rides').send({});
-    const res2 = await request(httpServer).get('/rides');
-    const res3 = await request(httpServer).get(`/rides/${fakeId}`);
-    const res4 = await request(httpServer).get(`/rides/organization/${fakeId}`);
-    const res5 = await request(httpServer).get(`/rides/driver/${fakeId}`);
-    const res6 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
-    const res7 = await request(httpServer).delete(`/rides/${fakeId}`);
+      const res1 = await request(httpServer).post('/rides').send({});
+      const res2 = await request(httpServer).get('/rides');
+      const res3 = await request(httpServer).get('/rides/available');
+      const res4 = await request(httpServer).get(`/rides/${fakeId}`);
+      const res5 = await request(httpServer).get(
+        `/rides/organization/${fakeId}`,
+      );
+      const res6 = await request(httpServer).get(`/rides/driver/${fakeId}`);
+      const res7 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
+      const res8 = await request(httpServer).delete(`/rides/${fakeId}`);
 
-    expect(res1.status).toEqual(401);
-    expect(res2.status).toEqual(401);
-    expect(res3.status).toEqual(401);
-    expect(res4.status).toEqual(401);
-    expect(res5.status).toEqual(401);
-    expect(res6.status).toEqual(401);
-    expect(res7.status).toEqual(401);
+      expect(res1.status).toEqual(401);
+      expect(res2.status).toEqual(401);
+      expect(res3.status).toEqual(401);
+      expect(res4.status).toEqual(401);
+      expect(res5.status).toEqual(401);
+      expect(res6.status).toEqual(401);
+      expect(res7.status).toEqual(401);
+      expect(res8.status).toEqual(401);
+    });
   });
 });
