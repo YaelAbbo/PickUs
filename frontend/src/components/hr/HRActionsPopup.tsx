@@ -16,6 +16,9 @@ const formSchema = z.object({
   lastName: z.string()
     .min(1, { message: i18n.hr_popup.validation_required })
     .max(20, { message: i18n.hr_popup.validation_name_length }),
+  email: z.string()
+    .min(1, { message: i18n.hr_popup.validation_required })
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: i18n.hr_popup.validation_email }),
   nationalId: z.string().optional(),
   role: z.nativeEnum(UserRole, { message: i18n.hr_popup.validation_required }),
 });
@@ -50,6 +53,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
     defaultValues: {
       firstName: '',
       lastName: '',
+      email: '',
       nationalId: '',
       role: UserRole.BASIC_USER,
     },
@@ -61,6 +65,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
         reset({
           firstName: initialData.firstName || '',
           lastName: initialData.lastName || '',
+          email: initialData.email || '',
           role: initialData.role || UserRole.BASIC_USER,
           nationalId: '',
         });
@@ -68,6 +73,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
         reset({
           firstName: '',
           lastName: '',
+          email: '',
           nationalId: '',
           role: UserRole.BASIC_USER,
         });
@@ -124,6 +130,25 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
               )}
             />
             {errors.lastName && <Text style={popupStyles.errorText}>{errors.lastName.message}</Text>}
+          </View>
+
+          <View style={popupStyles.inputGroup}>
+            <Text style={popupStyles.label}>{i18n.hr_popup.email}</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[popupStyles.input, errors.email && popupStyles.inputError]}
+                  value={value}
+                  placeholderTextColor={colors.textLight}
+                  onChangeText={onChange}
+                  keyboardType='email-address'
+                  autoCapitalize='none'
+                />
+              )}
+            />
+            {errors.email && <Text style={popupStyles.errorText}>{errors.email.message}</Text>}
           </View>
 
           {mode === 'create' && (
