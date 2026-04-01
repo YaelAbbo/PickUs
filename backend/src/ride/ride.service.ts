@@ -4,6 +4,7 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
+import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
   Injectable,
@@ -27,14 +28,14 @@ export class RideService {
   async createRide({
     organizationId,
     driverId,
-    ...rest
+    ...restOfFields
   }: CreateRideDto): Promise<Ride> {
-    const payload = { ...rest } as Record<string, unknown>;
-    delete payload.startLocation;
-    delete payload.endLocation;
+    const newRideData = { ...restOfFields } as Record<string, unknown>;
+    delete newRideData.startLocation;
+    delete newRideData.endLocation;
 
     const newRide = this.ridesRepository.create({
-      ...payload,
+      ...newRideData,
       organization: { id: organizationId },
       driver: { id: driverId },
     } as DeepPartial<Ride>);
@@ -82,11 +83,7 @@ export class RideService {
       ],
     });
 
-    return rides.filter((ride) => {
-      const passengerCount = ride.passengers?.length || 0;
-      const availableSeats = ride.maxSeatsAmount - passengerCount;
-      return availableSeats > 0;
-    });
+    return filterAvailableRides(rides);
   }
 
   async getRideById(id: Ride['id']): Promise<Ride> {
