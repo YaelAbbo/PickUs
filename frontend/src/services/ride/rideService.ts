@@ -1,4 +1,5 @@
 import { api } from '@/api/api';
+import { i18n } from '@/i18n';
 
 export interface RideStopInfo {
   id: string;
@@ -86,14 +87,17 @@ const mapRideResponse = (data: RawRideResponse): Ride => {
     return {
       id: stop.id,
       locationName: stop.locationName,
-      estimatedArrivalAt: stop.estimatedArrivalAt ? formatTime(safeDate(stop.estimatedArrivalAt)) : 'לא ידוע',
+      estimatedArrivalAt: stop.estimatedArrivalAt
+        ? formatTime(safeDate(stop.estimatedArrivalAt))
+        : i18n.general.unknown,
       orderIndex: stop.orderIndex,
       passengerCount: stopPassengers.length,
     };
   });
 
-  const startDest = stops.length > 0 ? stops[0]?.locationName || 'לא ידוע' : 'לא ידוע';
-  const endDest = stops.length > 0 ? stops[stops.length - 1]?.locationName || 'לא ידוע' : 'לא ידוע';
+  const startDest = stops.length > 0 ? stops[0]?.locationName || i18n.general.unknown : i18n.general.unknown;
+  const endDest =
+    stops.length > 0 ? stops[stops.length - 1]?.locationName || i18n.general.unknown : i18n.general.unknown;
 
   const mappedPassengers = (data.passengers || []).map((p) => ({
     id: p.id,

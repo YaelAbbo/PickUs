@@ -82,7 +82,7 @@ export const RideDetailScreen: FC = () => {
             ride.passengers.map((passenger, index) => {
               const passengerName = passenger.user
                 ? `${passenger.user.firstName} ${passenger.user.lastName}`
-                : `{נוסע} ${index + 1}`;
+                : `${i18n.ride_detail.passenger} ${index + 1}`;
               const passengerInitials = passenger.user
                 ? `${passenger.user.firstName[0]}${passenger.user.lastName[0]}`
                 : i18n.ride_detail.unknown_driver_initial;
