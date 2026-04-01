@@ -142,6 +142,7 @@ describe('UserController (e2e)', () => {
       expect(response.status).toBe(200);
       expect(response.body.id).toBe(createdUserId);
       expect(response.body.firstName).toBe(newUser.firstName);
+      expect(response.body.email).toBe(newUser.email);
     });
 
     it('GET /users/organization/:orgId should return all users in organization', async () => {
@@ -150,23 +151,27 @@ describe('UserController (e2e)', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`);
 
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(
         response.body.data.find((u: User) => u.id === createdUserId),
       ).toBeDefined();
     });
 
-    it('PATCH /users/:id should update user details', async () => {
+    it('PATCH /users/:id should update user details including email', async () => {
       const updatedFirstName = 'UpdatedName';
+      const updatedEmail = 'updated.email@test.com';
       const response = await request(httpServer)
         .patch(`/users/${createdUserId}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({
           firstName: updatedFirstName,
+          email: updatedEmail,
         });
 
       expect(response.status).toBe(200);
       expect(response.body.firstName).toBe(updatedFirstName);
+      expect(response.body.email).toBe(updatedEmail);
     });
 
     it('PATCH /users/:id should delete profile image when isDeleteImage is true', async () => {

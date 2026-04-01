@@ -1,4 +1,4 @@
-import { User } from '@/api/user.api';
+import { User } from '@/api/user';
 import { i18n } from '@/i18n';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -12,6 +12,7 @@ export const exportEmployeesToExcel = async (users: User[]) => {
   const exportData = users.map((u) => ({
     [i18n.hr_table.first_name]: u.firstName,
     [i18n.hr_table.last_name]: u.lastName,
+    [i18n.hr_table.email]: u.email,
     [i18n.hr_table.role]: i18n.roles[u.role as keyof typeof i18n.roles] || u.role,
     [i18n.hr_table.org_id]: u.orgId,
     [i18n.hr_table.created_at]: new Date(u.createdAt).toLocaleDateString(),
