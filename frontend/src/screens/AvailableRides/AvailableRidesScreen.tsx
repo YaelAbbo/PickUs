@@ -7,7 +7,7 @@ import { i18n } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
 import { RideCard } from './RideCard';
-import { FILTERS, useAvailableRidesLogic } from './hooks/useAvailableRidesLogic';
+import { FILTERS, useAvailableRidesLogic } from '../../hooks/rides/useAvailableRidesLogic';
 
 export const AvailableRidesScreen: FC = () => {
   const {
