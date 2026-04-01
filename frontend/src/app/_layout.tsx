@@ -33,7 +33,7 @@ export default function AppLayout() {
             <Stack>
               <Stack.Screen name='(auth)' options={{ headerShown: false, title: `PickUs - ${i18n.general.enter}` }} />
               <Stack.Screen name='(tabs)' options={{ headerShown: false, title: 'PickUs' }} />
-              <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
+              <Stack.Screen name='modal' options={{ presentation: 'modal', headerShown: false }} />
             </Stack>
 
             <StatusBar style='auto' />

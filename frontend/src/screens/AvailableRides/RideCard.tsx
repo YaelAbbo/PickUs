@@ -18,9 +18,13 @@ export const RideCard: FC<RideCardProps> = ({ item, onPress }) => {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.cardRow}>
         <View style={styles.routeContainer}>
-          <Text style={styles.routeText}>{item.startDest}</Text>
+          <Text style={styles.routeText} numberOfLines={1} ellipsizeMode='tail'>
+            {item.startDest}
+          </Text>
           <MaterialCommunityIcons name='arrow-left' size={18} color={colors.yellow} style={styles.routeArrow} />
-          <Text style={styles.routeText}>{item.endDest}</Text>
+          <Text style={styles.routeText} numberOfLines={1} ellipsizeMode='tail'>
+            {item.endDest}
+          </Text>
         </View>
         <View style={styles.seatsContainer}>
           {Array.from({ length: totalIcons }).map((_, i) => (
@@ -62,9 +66,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  routeContainer: { flexDirection: 'row-reverse', alignItems: 'center', flex: 1 },
-  routeText: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', textAlign: 'right' },
-  routeArrow: { marginHorizontal: 4 },
+  routeContainer: { flexDirection: 'row-reverse', alignItems: 'center', flex: 1, gap: 4 },
+  routeText: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', textAlign: 'right', flexShrink: 1 },
+  routeArrow: { marginHorizontal: 0, flexShrink: 0 },
   seatsContainer: { flexDirection: 'row-reverse', gap: -4 },
   seatIcon: { width: 18, height: 18, textAlign: 'center' },
   dateText: { color: colors.yellow, fontSize: 14, fontWeight: '600' },
