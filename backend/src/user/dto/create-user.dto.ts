@@ -19,5 +19,5 @@ export class CreateUserDto extends UpsertUserDto {
 
   @IsString()
   @IsNotEmpty()
-  organizationId: User['orgId'];
+  orgId: User['orgId'];
 }

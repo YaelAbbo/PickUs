@@ -36,7 +36,7 @@ export class UserService {
     role,
     currentLocation,
     profileImageUrl,
-    organizationId,
+    orgId,
   }: CreateUserDto): Promise<User> {
     const tempPassword = this.buildSecurePassword();
     const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
@@ -48,7 +48,7 @@ export class UserService {
       nationalId,
       email,
       role,
-      organization: { id: organizationId },
+      organization: { id: orgId },
       currentLocation,
       profileImageUrl,
       passwordHash,
