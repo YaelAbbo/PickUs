@@ -56,6 +56,7 @@ export default function TrackingScreen() {
 
   const handleFocus = () => {
     if (location && mapRef.current) {
+      const animationDuration = 1000;
       mapRef.current.animateToRegion(
         {
           latitude: location.coords.latitude,
@@ -63,7 +64,7 @@ export default function TrackingScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        1000,
+        animationDuration,
       );
     }
   };
