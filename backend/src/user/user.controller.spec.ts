@@ -99,7 +99,7 @@ describe('UserController (e2e)', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({
           ...newUser,
-          organizationId: testOrgId,
+          orgId: testOrgId,
         });
 
       expect(response.status).toBe(201);
@@ -125,7 +125,7 @@ describe('UserController (e2e)', () => {
           lastName: 'Fails',
           nationalId: 'email-fail-nid',
           email: 'email.fails@test.com',
-          organizationId: testOrgId,
+          orgId: testOrgId,
         });
 
       expect(response.status).toBe(201);

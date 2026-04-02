@@ -1,6 +1,6 @@
 import { colors, popupStyles } from '@theme';
 import React from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 interface ConfirmationPopupProps {
   visible: boolean;
@@ -10,8 +10,8 @@ interface ConfirmationPopupProps {
   cancelText: string;
   onClose: () => void;
   onConfirm: () => void;
-  confirmBtnStyle?: any;
-  confirmTextStyle?: any;
+  confirmBtnStyle?: StyleProp<ViewStyle>;
+  confirmTextStyle?: StyleProp<TextStyle>;
 }
 
 const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
@@ -38,10 +38,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({
             <TouchableOpacity style={[popupStyles.button, popupStyles.cancelBtn]} onPress={onClose}>
               <Text style={popupStyles.cancelText}>{cancelText}</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[popupStyles.button, confirmBtnStyle || styles.deleteBtn]}
-              onPress={onConfirm}
-            >
+            <TouchableOpacity style={[popupStyles.button, confirmBtnStyle || styles.deleteBtn]} onPress={onConfirm}>
               <Text style={confirmTextStyle || styles.deleteText}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
@@ -70,4 +67,3 @@ const styles = StyleSheet.create({
 });
 
 export default ConfirmationPopup;
-
