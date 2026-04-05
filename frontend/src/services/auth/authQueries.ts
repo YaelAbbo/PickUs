@@ -4,7 +4,6 @@ import { authService } from './authService';
 
 export const authKeys = {
   all: ['auth'] as const,
-  token: () => [...authKeys.all, 'token'] as const,
   me: () => [...authKeys.all, 'me'] as const,
 };
 
@@ -34,7 +33,6 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: authService.login,
     onSuccess: () => {
-      queryClient.setQueryData(authKeys.token(), 'set');
       return queryClient.invalidateQueries({ queryKey: authKeys.me() });
     },
   });
