@@ -91,7 +91,6 @@ export class RidePassengerService {
           rideId,
           isDeleted: false,
         },
-        relations: ['user'],
       });
 
       if (!passenger) {
