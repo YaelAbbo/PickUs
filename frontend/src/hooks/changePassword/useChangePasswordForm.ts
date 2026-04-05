@@ -48,24 +48,23 @@ export const useChangePasswordForm = ({ onSuccess, startShake }: UseChangePasswo
     return () => subscription.unsubscribe();
   }, [watch, clearErrors]);
 
-  const onSubmit = handleSubmit(
-    ({ newPassword }) =>
-      updateUser(
-        { id: user!.id, password: newPassword },
-        {
-          onSuccess: async () => {
-            await refreshUser();
-            onSuccess();
-          },
-          onError: () => {
-            setError('root', { message: i18n.change_password.change_password_error });
+  const onSubmit = handleSubmit(({ newPassword }) => {
+    if (!user) return;
 
-            startShake();
-          },
+    return updateUser(
+      { id: user.id, password: newPassword },
+      {
+        onSuccess: async () => {
+          await refreshUser();
+          onSuccess();
         },
-      ).catch(() => {}),
-    startShake,
-  );
+        onError: () => {
+          setError('root', { message: i18n.change_password.change_password_error });
+          startShake();
+        },
+      },
+    ).catch(() => {});
+  }, startShake);
 
   return { control, onSubmit, isSubmitting, errors };
 };

@@ -38,7 +38,8 @@ export class UserService {
     profileImageUrl,
     orgId,
   }: CreateUserDto): Promise<User> {
-    const { tempPassword, passwordHash } = await this.createTemporaryPassword();
+    const tempPassword = this.buildSecurePassword();
+    const passwordHash = await this.hashPassword(tempPassword);
 
     const user = this.usersRepository.create({
       firstName,
@@ -93,8 +94,9 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(UserErrorCode.USER_NOT_FOUND);
     }
+    const tempPassword = this.buildSecurePassword();
+    const passwordHash = await this.hashPassword(tempPassword);
 
-    const { tempPassword, passwordHash } = await this.createTemporaryPassword();
     user.passwordHash = passwordHash;
     user.isTempPassword = true;
 
@@ -152,8 +154,7 @@ export class UserService {
       }
 
       if (password) {
-        const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-        user.passwordHash = await bcrypt.hash(password, salt);
+        user.passwordHash = await this.hashPassword(password);
 
         if (user.isTempPassword) {
           user.isTempPassword = false;
@@ -214,14 +215,10 @@ export class UserService {
     return randomBytes(TEMP_PASSWORD_LENGTH).toString('base64url');
   }
 
-  private async createTemporaryPassword(): Promise<{
-    passwordHash: string;
-    tempPassword: string;
-  }> {
-    const tempPassword = this.buildSecurePassword();
+  private async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-    const passwordHash = await bcrypt.hash(tempPassword, salt);
+    const passwordHash = await bcrypt.hash(password, salt);
 
-    return { passwordHash, tempPassword };
+    return passwordHash;
   }
 }

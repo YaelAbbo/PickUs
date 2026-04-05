@@ -7,9 +7,7 @@ export default function AppRoot() {
 
   if (isUserLoading) return <SplashScreen />;
 
-  if (user) {
-    return <Redirect href={user.isTempPassword ? '/(auth)/change-password' : '/(tabs)/home'} />;
-  }
+  if (user) return <Redirect href={user.isTempPassword ? '/(auth)/change-password' : '/(tabs)/home'} />;
 
   return <Redirect href='/(auth)/login' />;
 }
