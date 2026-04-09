@@ -32,9 +32,7 @@ export const useLoginMutation = () => {
 
   return useMutation({
     mutationFn: authService.login,
-    onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: authKeys.me() });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.me() }),
   });
 };
 
