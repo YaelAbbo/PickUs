@@ -30,35 +30,35 @@ export class RidePassengerService {
     await this.ridePassengerRepository.manager.transaction(async (manager) => {
       const lockedRide = await this.validateLockedRide(rideId, userId, manager);
 
-      const rideStops = await manager
-        .getRepository(RideStop)
-        .find({ where: { rideId, isDeleted: false } });
+      const rideStops = await manager.find(RideStop, {
+        where: { rideId, isDeleted: false },
+      });
 
       this.validateRideStop(rideStopId, rideStops, rideId);
 
-      const existingPassenger = await manager
-        .getRepository(RidePassenger)
-        .findOne({ where: { userId, rideId } });
+      const existingPassenger = await manager.findOne(RidePassenger, {
+        where: { userId, rideId },
+      });
 
       if (existingPassenger)
         throw new ConflictException(
           `User ${userId} has already joined ride ${rideId}`,
         );
 
-      const passengerCount = await manager
-        .getRepository(RidePassenger)
-        .count({ where: { rideId, isDeleted: false } });
+      const passengerCount = await manager.count(RidePassenger, {
+        where: { rideId, isDeleted: false },
+      });
 
       if (passengerCount >= lockedRide.maxSeatsAmount)
         throw new BadRequestException('Ride is full');
 
       try {
-        const passenger = manager.getRepository(RidePassenger).create({
+        const passenger = manager.create(RidePassenger, {
           userId,
           rideId,
           rideStopId,
         });
-        await manager.getRepository(RidePassenger).save(passenger);
+        await manager.save(RidePassenger, passenger);
       } catch (error) {
         this.logger.error(
           `Error occurred while user ${userId} attempted to join ride ${rideId}, ${error}`,
@@ -85,12 +85,8 @@ export class RidePassengerService {
     await this.ridePassengerRepository.manager.transaction(async (manager) => {
       await this.validateLockedRide(rideId, userId, manager);
 
-      const passenger = await manager.getRepository(RidePassenger).findOne({
-        where: {
-          userId,
-          rideId,
-          isDeleted: false,
-        },
+      const passenger = await manager.findOne(RidePassenger, {
+        where: { userId, rideId, isDeleted: false },
       });
 
       if (!passenger) {
@@ -99,9 +95,9 @@ export class RidePassengerService {
         );
       }
 
-      const rideStopsForUpdate = await manager
-        .getRepository(RideStop)
-        .find({ where: { rideId, isDeleted: false } });
+      const rideStopsForUpdate = await manager.find(RideStop, {
+        where: { rideId, isDeleted: false },
+      });
 
       const rideStop = this.validateRideStop(
         rideStopId,
@@ -112,7 +108,7 @@ export class RidePassengerService {
       passenger.rideStop = rideStop;
 
       try {
-        await manager.getRepository(RidePassenger).save(passenger);
+        await manager.save(RidePassenger, passenger);
       } catch (error) {
         this.logger.error(
           `Error occurred while user ${currentUserId} attempted to update ride stop for ride ${rideId}, ${error}`,
@@ -184,7 +180,7 @@ export class RidePassengerService {
     userId: User['id'],
     manager: Repository<RidePassenger>['manager'],
   ): Promise<Ride> {
-    const lockedRide = await manager.getRepository(Ride).findOne({
+    const lockedRide = await manager.findOne(Ride, {
       where: { id: rideId, isDeleted: false },
       lock: { mode: 'pessimistic_write' },
     });
