@@ -1,6 +1,7 @@
 import { UseAccessAuth } from '@/auth/decorators';
 import { Organization, Ride, User } from '@/database/entities';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
@@ -32,8 +34,14 @@ export class RideController {
   // Needs to be above @Get(':id') so 'available' won't be treated as a parameter
   @UseAccessAuth()
   @Get('available')
-  async getAvailableRides(): Promise<Ride[]> {
-    return await this.rideService.getAvailableRides();
+  async getAvailableRides(
+    @Query('orgId') orgId: Ride['orgId'],
+  ): Promise<Ride[]> {
+    if (!orgId) {
+      throw new BadRequestException('orgId query parameter is required');
+    }
+
+    return await this.rideService.getAvailableRides(orgId);
   }
 
   @UseAccessAuth()

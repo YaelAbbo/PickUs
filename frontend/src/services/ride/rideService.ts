@@ -41,6 +41,7 @@ export interface Ride {
 export type RideFilters = {
   search?: string;
   category?: string;
+  orgId?: string;
 };
 
 interface RawRideStop {

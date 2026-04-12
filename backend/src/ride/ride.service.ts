@@ -12,7 +12,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, MoreThan, Repository } from 'typeorm';
+import { omit } from 'lodash';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 
@@ -25,14 +26,62 @@ export class RideService {
     private ridesRepository: Repository<Ride>,
   ) {}
 
+  private createRideQueryBuilder(alias = 'ride') {
+    return this.ridesRepository
+      .createQueryBuilder(alias)
+      .innerJoinAndSelect(
+        `${alias}.organization`,
+        'organization',
+        'organization.isDeleted = false',
+      )
+      .innerJoinAndSelect(
+        `${alias}.driver`,
+        'driver',
+        'driver.isDeleted = false',
+      )
+      .leftJoinAndSelect(
+        `${alias}.rideStops`,
+        'rideStops',
+        'rideStops.isDeleted = false',
+      )
+      .leftJoinAndSelect(
+        `${alias}.passengers`,
+        'passengers',
+        'passengers.isDeleted = false',
+      )
+      .leftJoinAndSelect(
+        'passengers.rideStop',
+        'passengerRideStop',
+        'passengerRideStop.isDeleted = false',
+      )
+      .leftJoinAndSelect(
+        'passengers.user',
+        'passengerUser',
+        'passengerUser.isDeleted = false',
+      )
+      .where(`${alias}.isDeleted = false`);
+  }
+
+  private sanitizeRideRelations(ride: Ride): Ride {
+    ride.passengers =
+      ride.passengers?.filter(
+        (passenger) => passenger?.user && passenger?.rideStop,
+      ) ?? [];
+    return ride;
+  }
+
+  private sanitizeRideCollection(rides: Ride[]): Ride[] {
+    return rides.map((ride) => this.sanitizeRideRelations(ride));
+  }
+
   async createRide({
     organizationId,
     driverId,
     ...restOfFields
   }: CreateRideDto): Promise<Ride> {
     const newRideData = { ...restOfFields } as Record<string, unknown>;
-    delete newRideData.startLocation;
-    delete newRideData.endLocation;
+    omit(newRideData, 'startLocation');
+    omit(newRideData, 'endLocation');
 
     const newRide = this.ridesRepository.create({
       ...newRideData,
@@ -53,73 +102,50 @@ export class RideService {
   }
 
   async getAllRides(): Promise<Ride[]> {
-    return await this.ridesRepository.find({
-      where: { isDeleted: false },
-      relations: [
-        'organization',
-        'driver',
-        'rideStops',
-        'passengers',
-        'passengers.rideStop',
-      ],
-    });
+    const rides = await this.createRideQueryBuilder().getMany();
+    return this.sanitizeRideCollection(rides);
   }
 
-  async getAvailableRides(): Promise<Ride[]> {
+  async getAvailableRides(orgId: Ride['orgId']): Promise<Ride[]> {
     const now = new Date();
 
-    const rides = await this.ridesRepository.find({
-      where: {
-        isDeleted: false,
-        rideStatus: RideStatus.PENDING,
-        startsAt: MoreThan(now),
-      },
-      relations: [
-        'organization',
-        'driver',
-        'rideStops',
-        'passengers',
-        'passengers.rideStop',
-      ],
-    });
+    const rides = await this.createRideQueryBuilder()
+      .andWhere('ride.rideStatus = :status', { status: RideStatus.PENDING })
+      .andWhere('ride.startsAt > :now', { now })
+      .andWhere('ride.orgId = :orgId', { orgId })
+      .getMany();
 
-    return filterAvailableRides(rides);
+    return filterAvailableRides(this.sanitizeRideCollection(rides));
   }
 
   async getRideById(id: Ride['id']): Promise<Ride> {
-    const ride = await this.ridesRepository.findOne({
-      where: { id, isDeleted: false },
-      relations: [
-        'organization',
-        'driver',
-        'rideStops',
-        'passengers',
-        'passengers.rideStop',
-        'passengers.user',
-      ],
-    });
+    const ride = await this.createRideQueryBuilder()
+      .andWhere('ride.id = :id', { id })
+      .getOne();
 
     if (!ride) {
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
 
-    return ride;
+    return this.sanitizeRideRelations(ride);
   }
 
   async getRidesByOrganizationId(
     organizationId: Organization['id'],
   ): Promise<Ride[]> {
-    return await this.ridesRepository.find({
-      where: { orgId: organizationId, isDeleted: false },
-      relations: ['driver', 'rideStops'],
-    });
+    const rides = await this.createRideQueryBuilder()
+      .andWhere('ride.orgId = :organizationId', { organizationId })
+      .getMany();
+
+    return this.sanitizeRideCollection(rides);
   }
 
   async getRidesByDriverId(driverId: User['id']): Promise<Ride[]> {
-    return await this.ridesRepository.find({
-      where: { driverId, isDeleted: false },
-      relations: ['organization', 'rideStops'],
-    });
+    const rides = await this.createRideQueryBuilder()
+      .andWhere('ride.driverId = :driverId', { driverId })
+      .getMany();
+
+    return this.sanitizeRideCollection(rides);
   }
 
   async updateRide(
@@ -127,8 +153,8 @@ export class RideService {
     { organizationId, driverId, rideStops, ...rest }: UpdateRideDto,
   ): Promise<Ride> {
     const payload = { ...rest } as Record<string, unknown>;
-    delete payload.startLocation;
-    delete payload.endLocation;
+    omit(payload, 'startLocation');
+    omit(payload, 'endLocation');
 
     const preloadPayload: DeepPartial<Ride> = { id, ...payload };
 

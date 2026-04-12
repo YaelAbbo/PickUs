@@ -2,11 +2,12 @@ import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Server } from 'http';
 import request from 'supertest';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, DeepPartial, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
 import {
   Organization,
   Ride,
+  RidePassenger,
   RideStatus,
   User,
   UserRole,
@@ -196,6 +197,138 @@ describe('RideController', () => {
       expect(response.body.driver.id).toEqual(testDriverId);
     });
 
+    it('GET /rides/:id should omit deleted passengers and deleted ride stops', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+          {
+            location: { type: 'Point', coordinates: [34.7818, 32.0853] },
+            locationName: 'Deleted Stop',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 140),
+            orderIndex: 2,
+            isDeleted: true,
+          },
+        ],
+      } as DeepPartial<Ride>);
+
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+
+      const firstRideStop = savedRide.rideStops?.[0];
+      expect(firstRideStop).toBeDefined();
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: firstRideStop!.id },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const deletedPassengerUser = userRepository.create({
+        id: crypto.randomUUID(),
+        firstName: 'Deleted',
+        lastName: 'Passenger',
+        nationalId: `deleted-passenger-${crypto.randomUUID()}`,
+        email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        passwordHash: 'dummyhash',
+        role: UserRole.BASIC_USER,
+        organization: { id: testOrgId },
+        isDeleted: true,
+      } as DeepPartial<User>);
+      const deletedPassengerUserSaved = (await userRepository.save(
+        deletedPassengerUser,
+      )) as User;
+
+      const deletedPassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: deletedPassengerUserSaved.id },
+        rideStop: { id: firstRideStop!.id },
+        isDeleted: true,
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(deletedPassenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.rideStops).toHaveLength(1);
+      expect(response.body.rideStops[0].locationName).toEqual('Start');
+      expect(response.body.passengers).toHaveLength(1);
+      expect(response.body.passengers[0].user.id).toEqual(testPassengerId);
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+      await userRepository.delete(deletedPassengerUser.id);
+    });
+
+    it('GET /rides should exclude rides whose driver has been deleted', async () => {
+      const deletedDriver = userRepository.create({
+        id: crypto.randomUUID(),
+        firstName: 'Deleted',
+        lastName: 'Driver',
+        nationalId: `deleted-driver-${crypto.randomUUID()}`,
+        email: `deleted-driver-${crypto.randomUUID()}@ride-test.com`,
+        passwordHash: 'dummyhash',
+        role: UserRole.BASIC_USER,
+        organization: { id: testOrgId },
+        isDeleted: true,
+      } as DeepPartial<User>);
+      const deletedDriverSaved = (await userRepository.save(
+        deletedDriver,
+      )) as User;
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: deletedDriverSaved.id },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+        ],
+      } as DeepPartial<Ride>);
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+
+      const response = await request(httpServer)
+        .get('/rides')
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(
+        response.body.find((r: Ride) => r.id === savedRide.id),
+      ).toBeUndefined();
+
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+      await userRepository.delete(deletedDriver.id);
+    });
+
     it('GET /rides/:id should fail with 404 for non-existent ride', async () => {
       const fakeId = '11111111-1111-4111-8111-111111111111';
       const response = await request(httpServer)
@@ -238,6 +371,174 @@ describe('RideController', () => {
       expect(Array.isArray(response.body)).toEqual(true);
       expect(response.body.length).toBeGreaterThanOrEqual(1);
       expect(response.body[0].organization).toBeDefined();
+    });
+
+    it('GET /rides/organization/:orgId should omit deleted passengers and deleted ride stops', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+          {
+            location: { type: 'Point', coordinates: [34.7818, 32.0853] },
+            locationName: 'Deleted Stop',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 140),
+            orderIndex: 2,
+            isDeleted: true,
+          },
+        ],
+      } as DeepPartial<Ride>);
+
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+      const firstRideStop = savedRide.rideStops?.[0];
+      expect(firstRideStop).toBeDefined();
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: firstRideStop!.id },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const deletedPassengerUser = userRepository.create({
+        id: crypto.randomUUID(),
+        firstName: 'Deleted',
+        lastName: 'Passenger',
+        nationalId: `deleted-passenger-${crypto.randomUUID()}`,
+        email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        passwordHash: 'dummyhash',
+        role: UserRole.BASIC_USER,
+        organization: { id: testOrgId },
+        isDeleted: true,
+      } as DeepPartial<User>);
+      const deletedPassengerUserSaved = (await userRepository.save(
+        deletedPassengerUser,
+      )) as User;
+
+      const deletedPassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: deletedPassengerUserSaved.id },
+        rideStop: { id: firstRideStop!.id },
+        isDeleted: true,
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(deletedPassenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/organization/${testOrgId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      const responseRide = response.body.find(
+        (r: Ride) => r.id === savedRide.id,
+      );
+      expect(responseRide).toBeDefined();
+      expect(responseRide.rideStops).toHaveLength(1);
+      expect(responseRide.passengers).toHaveLength(1);
+      expect(responseRide.passengers[0].user.id).toEqual(testPassengerId);
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+      await userRepository.delete(deletedPassengerUserSaved.id);
+    });
+
+    it('GET /rides/driver/:driverId should omit deleted passengers and deleted ride stops', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+          {
+            location: { type: 'Point', coordinates: [34.7818, 32.0853] },
+            locationName: 'Deleted Stop',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 140),
+            orderIndex: 2,
+            isDeleted: true,
+          },
+        ],
+      } as DeepPartial<Ride>);
+
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+      const firstRideStop = savedRide.rideStops?.[0];
+      expect(firstRideStop).toBeDefined();
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: firstRideStop!.id },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const deletedPassengerUser = userRepository.create({
+        id: crypto.randomUUID(),
+        firstName: 'Deleted',
+        lastName: 'Passenger',
+        nationalId: `deleted-passenger-${crypto.randomUUID()}`,
+        email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        passwordHash: 'dummyhash',
+        role: UserRole.BASIC_USER,
+        organization: { id: testOrgId },
+        isDeleted: true,
+      } as DeepPartial<User>);
+      const deletedPassengerUserSaved = (await userRepository.save(
+        deletedPassengerUser,
+      )) as User;
+
+      const deletedPassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: deletedPassengerUserSaved.id },
+        rideStop: { id: firstRideStop!.id },
+        isDeleted: true,
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(deletedPassenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/driver/${testDriverId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      const responseRide = response.body.find(
+        (r: Ride) => r.id === savedRide.id,
+      );
+      expect(responseRide).toBeDefined();
+      expect(responseRide.rideStops).toHaveLength(1);
+      expect(responseRide.passengers).toHaveLength(1);
+      expect(responseRide.passengers[0].user.id).toEqual(testPassengerId);
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+      await userRepository.delete(deletedPassengerUserSaved.id);
     });
 
     it('PATCH /rides/:id should update ride details', async () => {
@@ -350,7 +651,7 @@ describe('RideController', () => {
       expect(pastRideId).toBeDefined();
 
       const response = await request(httpServer)
-        .get('/rides/available')
+        .get(`/rides/available?orgId=${testOrgId}`)
         .set('Authorization', `Bearer ${adminAccessToken}`);
 
       expect(response.status).toEqual(200);
@@ -372,6 +673,17 @@ describe('RideController', () => {
       await rideRepository.delete(activeRideId);
       await rideRepository.delete(pastRideId);
     });
+
+    it('GET /rides/available should fail with 400 when orgId is missing', async () => {
+      const response = await request(httpServer)
+        .get('/rides/available')
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(400);
+      expect(response.body.message).toEqual(
+        'orgId query parameter is required',
+      );
+    });
   });
 
   describe('Authorization', () => {
@@ -380,7 +692,9 @@ describe('RideController', () => {
 
       const res1 = await request(httpServer).post('/rides').send({});
       const res2 = await request(httpServer).get('/rides');
-      const res3 = await request(httpServer).get('/rides/available');
+      const res3 = await request(httpServer).get(
+        '/rides/available?orgId=fake-org-id',
+      );
       const res4 = await request(httpServer).get(`/rides/${fakeId}`);
       const res5 = await request(httpServer).get(
         `/rides/organization/${fakeId}`,

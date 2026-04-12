@@ -37,7 +37,7 @@ export function useAvailableRidesLogic() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState(FILTER_ALL);
 
-  const { data: rides, isLoading, isError, refetch } = useAvailableRides();
+  const { data: rides, isLoading, isError, refetch } = useAvailableRides({ orgId: user?.orgId });
 
   const filteredRides = useMemo(() => {
     if (!rides) return [];
