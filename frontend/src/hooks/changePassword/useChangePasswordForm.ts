@@ -32,7 +32,7 @@ export const useChangePasswordForm = ({ onSuccess, startShake }: UseChangePasswo
   const {
     handleSubmit,
     setError,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, isSubmitted, errors },
     control,
     watch,
     clearErrors,
@@ -43,10 +43,12 @@ export const useChangePasswordForm = ({ onSuccess, startShake }: UseChangePasswo
   });
 
   useEffect(() => {
-    const subscription = watch(() => clearErrors('root'));
+    const subscription = watch(() => {
+      if (isSubmitted) clearErrors('root');
+    });
 
     return () => subscription.unsubscribe();
-  }, [watch, clearErrors]);
+  }, [watch, clearErrors, isSubmitted]);
 
   const onSubmit = handleSubmit(({ newPassword }) => {
     if (!user) return;
