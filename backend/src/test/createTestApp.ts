@@ -11,6 +11,12 @@ export const createTestApp = async (
   ...featureModules: NonNullable<ModuleMetadata['imports']>
 ) => {
   process.env.DB_HOST = 'localhost';
+  process.env.FRONTEND_URL =
+    process.env.FRONTEND_URL ?? 'http://localhost:8081';
+  process.env.SMTP_FROM = process.env.SMTP_FROM ?? 'test@test.com';
+  process.env.SMTP_HOST = process.env.SMTP_HOST ?? 'localhost';
+  process.env.SMTP_USER = process.env.SMTP_USER ?? 'test';
+  process.env.SMTP_PASS = process.env.SMTP_PASS ?? 'test';
 
   const testingModule = await Test.createTestingModule({
     imports: [

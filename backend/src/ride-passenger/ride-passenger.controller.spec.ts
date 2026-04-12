@@ -43,6 +43,7 @@ describe('RidePassengerController', () => {
     firstName: 'Admin',
     lastName: 'User',
     nationalId: `admin-ride-passenger-1`,
+    email: 'admin.ride.passenger@test.com',
   };
 
   const testDriver = {
@@ -50,6 +51,7 @@ describe('RidePassengerController', () => {
     firstName: 'Driver',
     lastName: 'Test',
     nationalId: `driver-ride-passenger-2`,
+    email: 'driver.ride.passenger@test.com',
   };
 
   const passengerUser = {
@@ -58,6 +60,7 @@ describe('RidePassengerController', () => {
     firstName: 'Passenger',
     lastName: 'User',
     nationalId: `passenger-ride-passenger-3`,
+    email: 'passenger.ride.passenger@test.com',
   };
 
   const baseRideDto = {
@@ -92,6 +95,7 @@ describe('RidePassengerController', () => {
         firstName: testDriver.firstName,
         lastName: testDriver.lastName,
         nationalId: testDriver.nationalId,
+        email: testDriver.email,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: savedOrg,
@@ -106,6 +110,7 @@ describe('RidePassengerController', () => {
         firstName: adminUser.firstName,
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
+        email: adminUser.email,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
@@ -157,12 +162,14 @@ describe('RidePassengerController', () => {
       rideStopRepository.create({
         ride: { id: rideId },
         location: { type: 'Point', coordinates: [34.8, 31.05] },
+        locationName: 'Stop A',
         estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 90),
         orderIndex: 0,
       }),
       rideStopRepository.create({
         ride: { id: rideId },
         location: { type: 'Point', coordinates: [34.9, 31.1] },
+        locationName: 'Stop B',
         estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
         orderIndex: 1,
       }),
@@ -177,6 +184,7 @@ describe('RidePassengerController', () => {
         firstName: passengerUser.firstName,
         lastName: passengerUser.lastName,
         nationalId: passengerUser.nationalId,
+        email: passengerUser.email,
         passwordHash,
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -236,11 +244,13 @@ describe('RidePassengerController', () => {
         id: crypto.randomUUID() as UUID,
         password: 'SecondPass123!',
         nationalId: `second-passenger-${Date.now()}`,
+        email: `second.passenger.${Date.now()}@test.com`,
       };
       const thirdPassenger = {
         id: crypto.randomUUID() as UUID,
         password: 'ThirdPass123!',
         nationalId: `third-passenger-${Date.now()}`,
+        email: `third.passenger.${Date.now()}@test.com`,
       };
 
       await userRepository.save([
@@ -249,6 +259,7 @@ describe('RidePassengerController', () => {
           firstName: 'Second',
           lastName: 'Passenger',
           nationalId: secondPassenger.nationalId,
+          email: secondPassenger.email,
           passwordHash: await bcrypt.hash(secondPassenger.password, 10),
           role: UserRole.BASIC_USER,
           organization: { id: testOrgId },
@@ -258,6 +269,7 @@ describe('RidePassengerController', () => {
           firstName: 'Third',
           lastName: 'Passenger',
           nationalId: thirdPassenger.nationalId,
+          email: thirdPassenger.email,
           passwordHash: await bcrypt.hash(thirdPassenger.password, 10),
           role: UserRole.BASIC_USER,
           organization: { id: testOrgId },
