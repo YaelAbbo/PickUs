@@ -23,9 +23,12 @@ export class AuthController {
     @Body() loginDTO: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const tokens = await this.authService.login({ ...loginDTO, response });
+    const { accessToken, isTempPassword } = await this.authService.login({
+      ...loginDTO,
+      response,
+    });
 
-    return { accessToken: tokens.accessToken };
+    return { accessToken, isTempPassword };
   }
 
   @UseAccessAuth()

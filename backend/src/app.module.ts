@@ -6,8 +6,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
-import { UserModule } from './user/user.module';
+import { MapModule } from './map/map.module';
+import { RidePassengerModule } from './ride-passenger/ride-passenger.module';
 import { RideModule } from './ride/ride.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { RideModule } from './ride/ride.module';
     AuthModule,
     UserModule,
     RideModule,
+    MapModule,
+    RidePassengerModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

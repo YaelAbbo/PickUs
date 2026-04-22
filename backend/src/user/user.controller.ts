@@ -56,6 +56,12 @@ export class UserController {
   }
 
   @UseAccessAuth()
+  @Post(':id/resend-temp-password')
+  async resendTempPassword(@Param('id') id: User['id']): Promise<void> {
+    await this.userService.resendTempPassword(id);
+  }
+
+  @UseAccessAuth()
   @Delete(':id')
   async remove(@Param('id') id: User['id']): Promise<void> {
     await this.userService.update(id, { isDeleted: true });

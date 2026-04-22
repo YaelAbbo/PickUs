@@ -33,6 +33,7 @@ export const i18n = {
     created_at: 'תאריך יצירה',
     search_placeholder: 'חיפוש עובד/ת...',
     load_more: 'טעינת עובדים נוספים...',
+    resend_mail_success: 'מייל איפוס סיסמה נשלח בהצלחה',
   },
   hr_dashboard: {
     title: 'לוח HR',
@@ -86,6 +87,19 @@ export const i18n = {
     stops_in_the_way: 'תחנות בדרך',
     enter_start_and_end_ride_stops: 'יש להזין נקודת התחלה וסיום',
     must_be_after_the_prev: 'חייבת להיות אחרי הקודמת',
+  },
+  change_password: {
+    title: 'שינוי סיסמה',
+    current_password: 'סיסמה נוכחית',
+    new_password: 'סיסמה חדשה',
+    confirm_new_password: 'אישור סיסמה',
+    validation_required: 'שדה זה הוא חובה',
+    validation_password_length: 'סיסמה חייבת להכיל לפחות 8 תווים',
+    update_success: 'הסיסמה עודכנה בהצלחה',
+    change_password_error: 'עדכון הסיסמה נכשל. נסה/י שנית.',
+    enter_new_password: 'אנא הכנס סיסמה חדשה',
+    change_password: 'שנה סיסמה',
+    passwords_do_not_match: 'הסיסמאות אינן תואמות',
   },
   available_rides_screen: {
     page_head_title: 'הנסיעות שלי',

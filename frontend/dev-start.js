@@ -12,10 +12,11 @@ function getLocalIp() {
     }
   }
 
-  const candidateLocalIp = candidates
-    .toSorted()
-    .find((ip) => ip.startsWith('192.') || ip.startsWith('10.') || ip.startsWith('172.'));
-  const localIp = candidateLocalIp ?? candidates[0] ?? 'localhost';
+  const ip192 = candidates.find((ip) => ip.startsWith('192.'));
+  const ip10 = candidates.find((ip) => ip.startsWith('10.'));
+  const ip172 = candidates.find((ip) => ip.startsWith('172.'));
+
+  const localIp = ip192 ?? ip10 ?? ip172 ?? candidates[0] ?? 'localhost';
 
   return localIp;
 }
@@ -23,6 +24,9 @@ function getLocalIp() {
 const ip = getLocalIp();
 process.env.EXPO_PUBLIC_API_URL = `http://${ip}/api`;
 process.env.REACT_NATIVE_PACKAGER_HOSTNAME = ip;
+
+process.env.EXPO_OFFLINE = '1';
+process.env.EXPO_NO_TELEMETRY = '1';
 
 console.log('--------------------------------------------------');
 console.log(`Detected Local IP: ${ip}`);

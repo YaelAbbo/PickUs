@@ -5,5 +5,5 @@ export enum MailConfigKey {
   SmtpSecure = 'SMTP_SECURE',
   SmtpUser = 'SMTP_USER',
   SmtpPass = 'SMTP_PASS',
-  FrontendUrl = 'FRONTEND_URL',
+  FrontendUrl = 'FRONTEND_BASE_URL',
 }

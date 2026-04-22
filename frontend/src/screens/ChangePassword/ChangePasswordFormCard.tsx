@@ -1,17 +1,18 @@
-import type { UseLoginFormContent } from '@/screens/Login/hooks';
+import type { UseChangePasswordFormContent } from '@/hooks/changePassword/useChangePasswordForm';
+import { i18n } from '@/i18n';
 import { colors, radii, spacing, typography } from '@/theme';
 import { AppButton, AppTextInput } from '@components';
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 
-export type LoginFormCardProps = UseLoginFormContent & {
+export type ChangePasswordFormCardProps = UseChangePasswordFormContent & {
   isWide?: boolean;
   bounceAnimationScale: Animated.Value;
   shakeAnimation: Animated.Value;
 };
 
-export const LoginFormCard: FC<LoginFormCardProps> = ({
+export const ChangePasswordFormCard: FC<ChangePasswordFormCardProps> = ({
   isWide = false,
   bounceAnimationScale,
   control,
@@ -27,34 +28,31 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
           <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
 
           <Text style={styles.appName}>PickUs</Text>
-          <Text style={styles.welcomeText}>ברוכים הבאים</Text>
+          <Text style={styles.welcomeText}>{i18n.change_password.title}</Text>
         </Animated.View>
       )}
 
       {isWide && (
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>כניסה למערכת</Text>
-          <Text style={styles.cardSubtitle}>ברוכים הבאים חזרה</Text>
+          <Text style={styles.cardTitle}>{i18n.change_password.title}</Text>
+          <Text style={styles.cardSubtitle}>{i18n.change_password.enter_new_password}</Text>
         </View>
       )}
 
       <Controller
         control={control}
-        name='nationalId'
+        name='newPassword'
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <AppTextInput
-            nativeID='תעודת זהות'
-            label='תעודת זהות'
+            nativeID={i18n.change_password.new_password}
+            label={i18n.change_password.new_password}
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            rightIconName='person'
-            keyboardType='numeric'
+            isPassword
             returnKeyType='next'
-            placeholder='9 ספרות'
-            autoCapitalize='none'
-            autoCorrect={false}
-            maxLength={9}
+            textContentType='newPassword'
+            autoComplete='new-password'
             error={error?.message}
           />
         )}
@@ -63,19 +61,19 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
       <View style={{ marginTop: spacing.md }}>
         <Controller
           control={control}
-          name='password'
+          name='confirmPassword'
           render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
             <AppTextInput
-              nativeID='סיסמה'
-              label='סיסמה'
+              nativeID={i18n.change_password.confirm_new_password}
+              label={i18n.change_password.confirm_new_password}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               isPassword
               returnKeyType='done'
               onSubmitEditing={onSubmit}
-              textContentType='password'
-              autoComplete='password'
+              textContentType='newPassword'
+              autoComplete='new-password'
               error={error?.message}
             />
           )}
@@ -91,9 +89,9 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
       </View>
 
       <AppButton
-        label='כניסה'
+        label={i18n.change_password.change_password}
         loading={isSubmitting}
-        disabled={!!errors.nationalId || !!errors.password}
+        disabled={!!errors.newPassword || !!errors.confirmPassword}
         onPress={onSubmit}
       />
     </Animated.View>

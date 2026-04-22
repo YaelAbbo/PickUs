@@ -6,49 +6,35 @@ import React, { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as z from 'zod';
+import { hrFormSchema, type HRFormData } from './hr.schema';
 
 export type PopupMode = 'create' | 'update' | null;
-
-const formSchema = z.object({
-  firstName: z.string()
-    .min(1, { message: i18n.hr_popup.validation_required })
-    .max(20, { message: i18n.hr_popup.validation_name_length }),
-  lastName: z.string()
-    .min(1, { message: i18n.hr_popup.validation_required })
-    .max(20, { message: i18n.hr_popup.validation_name_length }),
-  email: z.string()
-    .min(1, { message: i18n.hr_popup.validation_required })
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: i18n.hr_popup.validation_email }),
-  nationalId: z.string().optional(),
-  role: z.nativeEnum(UserRole, { message: i18n.hr_popup.validation_required }),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 
 interface HRActionsPopupProps {
   visible: boolean;
   mode: PopupMode;
   initialData?: User | null;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: HRFormData) => void;
 }
 
 const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialData, onClose, onSubmit }) => {
-  const currentSchema = mode === 'create'
-    ? formSchema.extend({
-        nationalId: z.string()
-          .min(1, { message: i18n.hr_popup.validation_required })
-          .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
-      })
-    : formSchema;
+  const currentSchema =
+    mode === 'create'
+      ? hrFormSchema.extend({
+          nationalId: z
+            .string()
+            .min(1, { message: i18n.hr_popup.validation_required })
+            .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
+        })
+      : hrFormSchema;
 
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<HRFormData>({
     resolver: zodResolver(currentSchema),
     defaultValues: {
       firstName: '',
@@ -83,11 +69,10 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
 
   if (!visible) return null;
 
-  const onFormSubmit = (data: FormData) => {
+  const onFormSubmit = (data: HRFormData) => {
     onSubmit(data);
     onClose();
   };
-
 
   const title = mode === 'create' ? i18n.hr_popup.create_title : i18n.hr_popup.update_title;
   const submitText = mode === 'create' ? i18n.hr_popup.create : i18n.hr_popup.save;
@@ -102,7 +87,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.first_name}</Text>
             <Controller
               control={control}
-              name="firstName"
+              name='firstName'
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.firstName && popupStyles.inputError]}
@@ -119,7 +104,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.last_name}</Text>
             <Controller
               control={control}
-              name="lastName"
+              name='lastName'
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.lastName && popupStyles.inputError]}
@@ -136,7 +121,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.email}</Text>
             <Controller
               control={control}
-              name="email"
+              name='email'
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.email && popupStyles.inputError]}
@@ -156,7 +141,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
               <Text style={popupStyles.label}>{i18n.hr_popup.national_id}</Text>
               <Controller
                 control={control}
-                name="nationalId"
+                name='nationalId'
                 render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={[popupStyles.input, errors.nationalId && popupStyles.inputError]}
@@ -175,7 +160,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.role}</Text>
             <Controller
               control={control}
-              name="role"
+              name='role'
               render={({ field: { onChange, value } }) => (
                 <View style={styles.roleContainer}>
                   {Object.values(UserRole).map((r) => (
@@ -239,4 +224,3 @@ const styles = {
 } as const;
 
 export default HRActionsPopup;
-

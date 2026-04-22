@@ -9,8 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
-import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { MailService } from '../mail/mail.service';
+import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
@@ -36,11 +36,10 @@ export class UserService {
     role,
     currentLocation,
     profileImageUrl,
-    organizationId,
+    orgId,
   }: CreateUserDto): Promise<User> {
     const tempPassword = this.buildSecurePassword();
-    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-    const passwordHash = await bcrypt.hash(tempPassword, salt);
+    const passwordHash = await this.hashPassword(tempPassword);
 
     const user = this.usersRepository.create({
       firstName,
@@ -48,7 +47,7 @@ export class UserService {
       nationalId,
       email,
       role,
-      organization: { id: organizationId },
+      organization: { id: orgId },
       currentLocation,
       profileImageUrl,
       passwordHash,
@@ -87,6 +86,36 @@ export class UserService {
     return savedUser;
   }
 
+  async resendTempPassword(id: User['id']): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { id, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException(UserErrorCode.USER_NOT_FOUND);
+    }
+    const tempPassword = this.buildSecurePassword();
+    const passwordHash = await this.hashPassword(tempPassword);
+
+    user.passwordHash = passwordHash;
+    user.isTempPassword = true;
+
+    await this.usersRepository.save(user);
+
+    try {
+      await this.mailService.sendTempPasswordEmail({
+        to: user.email,
+        displayName: `${user.firstName} ${user.lastName}`,
+        tempPassword,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Resend temp password email failed for ${user.email}`,
+        error,
+      );
+    }
+  }
+
   async update(
     id: User['id'],
     {
@@ -98,6 +127,7 @@ export class UserService {
       profileImageUrl,
       isDeleteImage,
       isDeleted,
+      password,
     }: UpdateUserDto & { isDeleted?: boolean },
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
@@ -121,6 +151,14 @@ export class UserService {
         user.profileImageUrl = null;
       } else if (profileImageUrl) {
         user.profileImageUrl = profileImageUrl;
+      }
+
+      if (password) {
+        user.passwordHash = await this.hashPassword(password);
+
+        if (user.isTempPassword) {
+          user.isTempPassword = false;
+        }
       }
     }
 
@@ -175,5 +213,12 @@ export class UserService {
 
   private buildSecurePassword(): string {
     return randomBytes(TEMP_PASSWORD_LENGTH).toString('base64url');
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    return passwordHash;
   }
 }

@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { RideStop } from './ride-stop.entity';
 import { Ride } from './ride.entity';
@@ -14,6 +14,9 @@ export class RidePassenger extends BaseEntity {
   })
   user: User;
 
+  @Column({ name: 'user_id' })
+  userId: User['id'];
+
   @ManyToOne(() => Ride, { nullable: false })
   @JoinColumn({
     name: 'ride_id',
@@ -21,10 +24,16 @@ export class RidePassenger extends BaseEntity {
   })
   ride: Ride;
 
+  @Column({ name: 'ride_id' })
+  rideId: Ride['id'];
+
   @ManyToOne(() => RideStop, { nullable: false })
   @JoinColumn({
     name: 'ride_stop_id',
     foreignKeyConstraintName: 'ride_passenger_ride_stop_id_fkey',
   })
   rideStop: RideStop;
+
+  @Column({ name: 'ride_stop_id' })
+  rideStopId: RideStop['id'];
 }

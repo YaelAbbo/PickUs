@@ -17,10 +17,10 @@ describe('AuthController (e2e)', () => {
   const testUser = {
     id: '36b8f84d-df4e-4d49-b662-bcde71a8764f' as UUID,
     password: 'Password123!',
+    nationalId: '123456789',
     firstName: 'Test',
     lastName: 'User',
     email: 'test@auth-test.com',
-    nationalId: 'test-national-id-auth',
   };
 
   let createdOrganizationId: Organization['id'] | null = null;
@@ -88,6 +88,7 @@ describe('AuthController (e2e)', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('accessToken');
+    expect(response.body).toHaveProperty('isTempPassword', true);
 
     const cookies = response.get('Set-Cookie');
     expect(cookies).toBeDefined();

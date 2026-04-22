@@ -13,6 +13,7 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
+  email: string;
   role: UserRole;
   orgId: UUID;
   organization?: Pick<Organization, 'id' | 'name' | 'imageUrl'>;
@@ -21,6 +22,7 @@ export type User = {
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
+  password: string;
 };
 
 export type CreateUserDto = Omit<

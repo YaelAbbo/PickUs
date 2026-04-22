@@ -34,6 +34,7 @@ export default function HRPage() {
     handlePopupSubmit,
     handleConfirmDelete,
     handleExport,
+    handleResendMail,
     hideToast,
   } = useHRLogic();
 
@@ -79,17 +80,15 @@ export default function HRPage() {
           selectedUser
             ? i18n.hr_popup.delete_confirm_message.replace(
                 '{name}',
-                `${selectedUser.firstName} ${selectedUser.lastName}`
+                `${selectedUser.firstName} ${selectedUser.lastName}`,
               )
             : ''
         }
         confirmText={i18n.hr_actions.delete_user}
         cancelText={i18n.hr_popup.cancel}
-
         onClose={() => setDeleteDialogVisible(false)}
         onConfirm={handleConfirmDelete}
       />
-
 
       <View style={{ flex: 1 }}>
         <FlatList
@@ -110,6 +109,7 @@ export default function HRPage() {
                 onSearch={handleApplySearch}
                 actionMode={actionMode}
                 onUserTap={handleUserTap}
+                onResendMail={handleResendMail}
               />
             </>
           }
@@ -133,12 +133,7 @@ export default function HRPage() {
         )}
       </View>
 
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        visible={toast.visible}
-        onHide={hideToast}
-      />
+      <Toast message={toast.message} type={toast.type} visible={toast.visible} onHide={hideToast} />
     </AppBackground>
   );
 }
