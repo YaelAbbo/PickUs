@@ -26,7 +26,7 @@ const userBasicDtoSchema = z.object({
   id: z.string().optional(),
   firstName: z.string(),
   lastName: z.string(),
-  profileImageUrl: z.string().optional(),
+  profileImageUrl: z.string().nullable().optional(),
 });
 
 export const ridePassengerSchema = z.object({
