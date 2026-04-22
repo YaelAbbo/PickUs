@@ -1,5 +1,5 @@
+import { AppTextInput } from '@/components/ui/AppTextInput';
 import { i18n } from '@/i18n';
-import { AppTextInput } from '@components';
 import { Ionicons } from '@expo/vector-icons';
 import { convertNominatimResultToPlaceResult, useLocationSearch, type NominatimResult, type PlaceResult } from '@hooks';
 import { colors, radii, spacing, typography } from '@theme';

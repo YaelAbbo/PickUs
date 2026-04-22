@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { AppBackground, AppButton } from '@/components/ui';
 import { useRide } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
+import type { UUID } from 'crypto';
 
 import { i18n } from '@/i18n';
 import { RideDriverSection } from './RideDriverSection';
@@ -16,7 +17,7 @@ export const RideDetailScreen: FC = () => {
   const router = useRouter();
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
 
-  const { data: ride, isLoading, isError } = useRide(rideId as string);
+  const { data: ride, isLoading, isError } = useRide(rideId as UUID);
 
   if (isLoading) {
     return (
@@ -30,7 +31,7 @@ export const RideDetailScreen: FC = () => {
     return (
       <AppBackground style={styles.centerContainer}>
         <Text style={{ color: colors.error, marginBottom: 20 }}>{i18n.ride_detail.error_loading}</Text>
-        <AppButton label='חזור' onPress={() => router.back()} />
+        <AppButton label={i18n.ride_detail.back} onPress={() => router.back()} />
       </AppBackground>
     );
   }
@@ -44,7 +45,7 @@ export const RideDetailScreen: FC = () => {
     <AppBackground>
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>פרטי נסיעה</Text>
+        <Text style={styles.headerTitle}>{i18n.ride_detail.title}</Text>
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name='close' size={24} color={colors.textPrimary} />
         </TouchableOpacity>

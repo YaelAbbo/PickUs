@@ -81,12 +81,14 @@ export const i18n = {
     back_and_forth_ride: 'הלוך-חזור',
     one_way_ride: 'חד-כיווני',
     general_details: 'פרטים כלליים',
+    start: 'התחלה',
     destination: 'יעד',
     stops_in_the_way: 'תחנות בדרך',
     enter_start_and_end_ride_stops: 'יש להזין נקודת התחלה וסיום',
     must_be_after_the_prev: 'חייבת להיות אחרי הקודמת',
   },
   available_rides_screen: {
+    page_head_title: 'הנסיעות שלי',
     filter_all: 'הכל',
     greeting: 'שלום',
     default_guest_name: 'אורח',
@@ -97,7 +99,7 @@ export const i18n = {
   ride_detail: {
     title: 'פרטי נסיעה',
     error_loading: 'שגיאה בטעינת נסיעה.',
-    back: 'חזור',
+    back: 'חזרה',
     unknown_driver: 'נהג לא ידוע',
     unknown_driver_initial: 'נ',
     status_active: 'פעיל',
