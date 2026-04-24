@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, WhereExpressionBuilder } from 'typeorm';
 import { Notification } from '../database/entities/notification.entity';
-import { UserRole, type User } from '../database/entities/user.entity';
+import { type User } from '../database/entities/user.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @Injectable()
@@ -55,9 +55,9 @@ export class NotificationService {
       .where('notification.isDeleted = false')
       .andWhere(
         new Brackets((qb: WhereExpressionBuilder) => {
-          qb.where('creator.role = :aiRole', { aiRole: UserRole.AI })
-            .orWhere('ride.driver_id = :userId', { userId })
-            .orWhere('rp.id IS NOT NULL');
+          qb.where('ride.driver_id = :userId', { userId }).orWhere(
+            'rp.id IS NOT NULL',
+          );
         }),
       )
       .orderBy('notification.createdAt', 'DESC')
