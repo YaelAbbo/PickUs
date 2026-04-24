@@ -5,6 +5,7 @@ export enum UserRole {
   BASIC_USER = 'BASIC_USER',
   HR_MANAGER = 'HR_MANAGER',
   ADMIN = 'ADMIN',
+  AI = 'AI',
 }
 
 export type User = {
@@ -13,7 +14,6 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
-  email: string;
   role: UserRole;
   orgId: UUID;
   organization?: Pick<Organization, 'id' | 'name' | 'imageUrl'>;
