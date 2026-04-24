@@ -42,16 +42,16 @@ describe('RidePassengerController', () => {
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
-    nationalId: `admin-ride-passenger-1`,
-    email: 'admin.ride.passenger@test.com',
+    nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `admin.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const testDriver = {
     id: crypto.randomUUID(),
     firstName: 'Driver',
     lastName: 'Test',
-    nationalId: `driver-ride-passenger-2`,
-    email: 'driver.ride.passenger@test.com',
+    nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `driver.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const passengerUser = {
@@ -59,8 +59,8 @@ describe('RidePassengerController', () => {
     password: 'PassengerPass123!',
     firstName: 'Passenger',
     lastName: 'User',
-    nationalId: `passenger-ride-passenger-3`,
-    email: 'passenger.ride.passenger@test.com',
+    nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `passenger.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const baseRideDto = {
@@ -83,8 +83,9 @@ describe('RidePassengerController', () => {
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
 
+    const orgName = `RidePassenger Test Org ${crypto.randomUUID()}`;
     const org = organizationRepository.create({
-      name: 'RidePassenger Test Org',
+      name: orgName,
     });
     const savedOrg = await organizationRepository.save(org);
     testOrgId = savedOrg.id;
