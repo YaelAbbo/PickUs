@@ -326,6 +326,67 @@ describe('NotificationController', () => {
     });
 
     describe('GET /notifications/user/:userId', () => {
+      it('should return notifications from the last 24h in correct order', async () => {
+        const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
+        const oldNotification = notificationRepository.create({
+          creator: { id: testDriverId } as User,
+          ride: { id: testRideId } as Ride,
+          content: 'Old notification',
+          createdAt: oldDate,
+        });
+        await notificationRepository.save(oldNotification);
+
+        await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: testDriverId,
+            rideId: testRideId,
+            content: 'New notification',
+          });
+
+        const semiRecentDate = new Date(Date.now() - 1 * 60 * 60 * 1000);
+        const semiRecentNotification = notificationRepository.create({
+          creator: { id: testDriverId } as User,
+          ride: { id: testRideId } as Ride,
+          content: 'Semi-recent notification',
+          createdAt: semiRecentDate,
+        });
+        await notificationRepository.save(semiRecentNotification);
+
+        const response = await request(httpServer)
+          .get(`/notifications/user/${testDriverId}`)
+          .set('Authorization', `Bearer ${adminAccessToken}`);
+
+        expect(response.status).toEqual(HttpStatus.OK);
+        expect(Array.isArray(response.body)).toEqual(true);
+
+        expect(
+          response.body.find(
+            (n: Notification) => n.content === 'Old notification',
+          ),
+        ).toBeUndefined();
+
+        expect(
+          response.body.some(
+            (n: Notification) => n.content === 'New notification',
+          ),
+        ).toBe(true);
+        expect(
+          response.body.some(
+            (n: Notification) => n.content === 'Semi-recent notification',
+          ),
+        ).toBe(true);
+
+        const newIndex = response.body.findIndex(
+          (n: Notification) => n.content === 'New notification',
+        );
+        const semiRecentIndex = response.body.findIndex(
+          (n: Notification) => n.content === 'Semi-recent notification',
+        );
+        expect(newIndex).toBeLessThan(semiRecentIndex);
+      });
+
       it('should return notifications for the driver', async () => {
         await request(httpServer)
           .post('/notifications')
@@ -378,7 +439,6 @@ describe('NotificationController', () => {
           .get('/notifications/user/not-a-uuid')
           .set('Authorization', `Bearer ${adminAccessToken}`);
 
-        // Without ParseUUIDPipe, this hits the DB and results in a 500 error.
         expect([
           HttpStatus.INTERNAL_SERVER_ERROR,
           HttpStatus.BAD_REQUEST,
@@ -421,7 +481,6 @@ describe('NotificationController', () => {
           .delete('/notifications/not-a-uuid')
           .set('Authorization', `Bearer ${adminAccessToken}`);
 
-        // Without ParseUUIDPipe, this hits the DB and results in a 500 error.
         expect([
           HttpStatus.INTERNAL_SERVER_ERROR,
           HttpStatus.BAD_REQUEST,
@@ -444,7 +503,6 @@ describe('NotificationController', () => {
   });
 });
 
-// Custom matcher for HttpStatus flexibility
 expect.extend({
   toBeOneOf(received, values) {
     const pass = values.includes(received);

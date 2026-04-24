@@ -42,6 +42,8 @@ export class NotificationService {
   }
 
   async getUserNotifications(userId: User['id']): Promise<Notification[]> {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     return await this.notificationRepository
       .createQueryBuilder('notification')
       .leftJoinAndSelect('notification.creator', 'creator')
@@ -53,6 +55,7 @@ export class NotificationService {
         { userId },
       )
       .where('notification.isDeleted = false')
+      .andWhere('notification.createdAt >= :yesterday', { yesterday })
       .andWhere(
         new Brackets((qb: WhereExpressionBuilder) => {
           qb.where('ride.driver_id = :userId', { userId }).orWhere(
