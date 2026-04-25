@@ -1,0 +1,8 @@
+// Must be kept in sync with `backend/src/websocket/events.ts`.
+export enum WsEvent {
+  ROOM_JOIN = 'room:join',
+  ROOM_LEAVE = 'room:leave',
+
+  LOCATION_UPDATE = 'location:update',
+  LOCATION_UPDATED = 'location:updated',
+}

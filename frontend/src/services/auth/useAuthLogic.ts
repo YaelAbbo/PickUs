@@ -1,5 +1,7 @@
 import { tokenStorage } from '@/api/tokenStorage';
+import { websocketService } from '@/services/websocket';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { useLoginMutation, useLogoutMutation, useMeQuery } from './authQueries';
 import { useValidateAccessToken } from './useValidateAccessToken';
 
@@ -22,6 +24,16 @@ export const useAuthLogic = () => {
   const { mutateAsync: logout } = useLogoutMutation();
 
   useValidateAccessToken({ user });
+
+  useEffect(() => {
+    if (user) {
+      tokenStorage.getAccessToken().then((token) => {
+        if (token) websocketService.connect(token);
+      });
+    } else {
+      websocketService.disconnect();
+    }
+  }, [user]);
 
   return { user, isUserLoading, refreshUser, login, logout };
 };
