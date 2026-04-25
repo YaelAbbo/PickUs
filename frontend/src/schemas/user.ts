@@ -20,7 +20,7 @@ export const userSchema = entityMetadata.extend({
   role: z.enum(UserRole, 'User role must be of type UserRole'),
   isTempPassword: z.boolean(),
   profileImageUrl: z.url().nullable(),
-  currentLocation: z.string().nonempty(),
+  currentLocation: z.string().optional().nullable(),
   orgId: uuidSchema,
 });
 
