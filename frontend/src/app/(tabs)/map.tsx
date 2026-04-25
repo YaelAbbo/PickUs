@@ -1,15 +1,25 @@
+import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Region, UrlTile } from 'react-native-maps';
 
+function buildLocationPayload(coords: Location.LocationObjectCoords) {
+  return {
+    geometry: {
+      type: 'Point',
+      coordinates: [coords.longitude, coords.latitude],
+    },
+  };
+}
+
 export default function TrackingScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
-  let subscriber: Location.LocationSubscription | null = null;
+  const subscriberRef = useRef<Location.LocationSubscription | null>(null);
 
   async function startTracking() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -27,15 +37,22 @@ export default function TrackingScreen() {
       setLocation(initialLocation);
       setIsLoading(false);
 
-      subscriber = await Location.watchPositionAsync(
+      if (websocketService.isConnected) {
+        websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(initialLocation.coords));
+      }
+
+      subscriberRef.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.Balanced,
-          timeInterval: 60000,
-          distanceInterval: 50,
+          timeInterval: 60000, // In milliseconds
+          distanceInterval: 50, // In meters
         },
         (newLocation) => {
-          console.log('Updated Location:', newLocation.coords);
           setLocation(newLocation);
+
+          if (websocketService.isConnected) {
+            websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(newLocation.coords));
+          }
         },
       );
     } catch (error) {
@@ -48,9 +65,7 @@ export default function TrackingScreen() {
     startTracking();
 
     return () => {
-      if (subscriber) {
-        subscriber.remove();
-      }
+      subscriberRef.current?.remove();
     };
   }, []);
 
