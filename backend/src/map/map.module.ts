@@ -1,7 +1,10 @@
+import { UserModule } from '@/user/user.module';
+import { WebSocketCoreModule } from '@/websocket/websocket.module';
 import { Module } from '@nestjs/common';
-import { MapController } from './map.controller';
+import { MapGateway } from './map.gateway';
 
 @Module({
-  controllers: [MapController],
+  imports: [WebSocketCoreModule, UserModule],
+  providers: [MapGateway],
 })
 export class MapModule {}

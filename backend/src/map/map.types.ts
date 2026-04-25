@@ -10,7 +10,14 @@ export interface GeoJSONGeometry {
 }
 
 export interface LocationUpdatePayload {
-  type?: string;
-  geometry?: GeoJSONGeometry;
+  geometry: GeoJSONGeometry;
   properties?: JSONObject;
+  rideId?: string;
+}
+
+export interface LocationUpdatedPayload {
+  userId: string;
+  geometry: GeoJSONGeometry;
+  properties?: JSONObject;
+  rideId?: string;
 }
