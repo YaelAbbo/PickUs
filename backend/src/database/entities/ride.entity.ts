@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
+import { RidePassenger } from './ride-passenger.entity';
 import { RideStop } from './ride-stop.entity';
 import { User } from './user.entity';
 
@@ -75,6 +76,9 @@ export class Ride extends BaseEntity {
 
   @OneToMany(() => RideStop, (stop) => stop.ride, { cascade: true })
   rideStops: RideStop[];
+
+  @OneToMany(() => RidePassenger, (passenger) => passenger.ride)
+  passengers: RidePassenger[];
 
   get startLocation(): RideStop | undefined {
     return minBy(this.rideStops, 'orderIndex');

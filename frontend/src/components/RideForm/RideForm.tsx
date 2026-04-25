@@ -1,13 +1,18 @@
+import { AppButton } from '@/components/ui/AppButton';
 import { i18n } from '@/i18n';
-import { AppButton } from '@components';
 import { IS_WEB } from '@constants';
 import { useRideForm, type PlaceResult, type UseRideFormArgs } from '@hooks';
 import { colors, spacing, typography } from '@theme';
 import type { FC } from 'react';
 import { Controller, useWatch, type FieldErrors } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AddStopButton, DateInput, LocationRow, SeatsCounter, SectionCard, TripTypeSegment } from '.';
 import type { RideFormValues } from '../../schemas/rideForm';
+import { AddStopButton } from './AddStopButton';
+import { DateInput } from './DateInput';
+import { LocationRow } from './LocationRow';
+import { SeatsCounter } from './SeatsCounter';
+import { SectionCard } from './SectionCard';
+import { TripTypeSegment } from './TripTypeSegment';
 
 type StopError = FieldErrors<RideFormValues['stops'][number]>;
 

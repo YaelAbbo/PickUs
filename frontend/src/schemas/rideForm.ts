@@ -1,6 +1,6 @@
 import { i18n } from '@/i18n';
 import { dateSchema, pointSchema, uuidSchema } from '@/schemas/genericSchemas';
-import { rideSchema, rideStopSchema, type Ride } from '@/schemas/ride';
+import { rideDtoSchema, rideStopSchema, type Ride } from '@/schemas/ride';
 import { z } from 'zod';
 
 export const stopSchema = z.object({
@@ -24,11 +24,11 @@ const rideStopsSchema = z
     }
   });
 
-export const rideFormSchema = rideSchema.pick({ driverId: true }).extend({
+export const rideFormSchema = rideDtoSchema.pick({ driverId: true }).extend({
   id: uuidSchema.optional(),
   organizationId: uuidSchema,
   rideDate: dateSchema,
-  seats: rideSchema.shape.maxSeatsAmount,
+  seats: rideDtoSchema.shape.maxSeatsAmount,
   isReturnTrip: z.boolean(),
   stops: rideStopsSchema,
 });
@@ -42,7 +42,7 @@ export const rideStopDtoSchema = rideStopSchema.pick({
   orderIndex: true,
 });
 
-export const createRideDtoSchema = rideSchema
+export const createRideDtoSchema = rideDtoSchema
   .pick({ driverId: true, startsAt: true, estimatedEndsAt: true, maxSeatsAmount: true })
   .extend({ organizationId: uuidSchema, rideStops: z.array(rideStopDtoSchema) });
 

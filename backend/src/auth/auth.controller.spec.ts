@@ -20,6 +20,7 @@ describe('AuthController (e2e)', () => {
     nationalId: '123456789',
     firstName: 'Test',
     lastName: 'User',
+    email: 'test@auth-test.com',
   };
 
   let createdOrganizationId: Organization['id'] | null = null;
@@ -66,11 +67,11 @@ describe('AuthController (e2e)', () => {
       id: testUser.id,
       firstName: testUser.firstName,
       lastName: testUser.lastName,
-      email: 'auth_test_user@email.com',
+      email: testUser.email,
       passwordHash: passwordHash,
       role: UserRole.BASIC_USER,
       organization: savedOrganization,
-      nationalId: 'auth-nid-98765',
+      nationalId: testUser.nationalId,
     });
     return userRepository.save(user);
   };
@@ -81,7 +82,7 @@ describe('AuthController (e2e)', () => {
     const response = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        nationalId: 'auth-nid-98765',
+        nationalId: testUser.nationalId,
         password: testUser.password,
       });
 
@@ -103,7 +104,7 @@ describe('AuthController (e2e)', () => {
     const response = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        nationalId: 'auth-nid-98765',
+        nationalId: testUser.nationalId,
         password: 'wrong_password',
       });
 
@@ -116,7 +117,7 @@ describe('AuthController (e2e)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        nationalId: 'auth-nid-98765',
+        nationalId: testUser.nationalId,
         password: testUser.password,
       });
 
@@ -143,7 +144,7 @@ describe('AuthController (e2e)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        nationalId: 'auth-nid-98765',
+        nationalId: testUser.nationalId,
         password: testUser.password,
       });
 

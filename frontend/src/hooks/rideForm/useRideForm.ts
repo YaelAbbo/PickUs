@@ -1,12 +1,11 @@
 import { createRide, updateRide } from '@/api/rideForm';
 import { i18n } from '@/i18n';
+import { useAuth } from '@/services/auth/AuthContext';
 import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@services';
 import { useMutation } from '@tanstack/react-query';
 import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { first, last } from 'lodash';
 import { useFieldArray, useForm, type DefaultValues } from 'react-hook-form';
 import { rideFormSchema, type CreateRideDto, type RideFormValues, type RideStopDto } from '../../schemas/rideForm';
 
@@ -22,6 +21,8 @@ const applyTimeToDate = (baseDate: Date, timeSource: Date) => {
 const mapFormValuesToPayload = (values: RideFormValues) => {
   const { rideDate, stops, seats, driverId, organizationId } = values;
 
+  if (stops.length < 2) return undefined;
+
   const rideStops: RideStopDto[] = stops.map((stop, index) => ({
     location: stop.locationPoint,
     locationName: stop.locationName,
@@ -29,18 +30,19 @@ const mapFormValuesToPayload = (values: RideFormValues) => {
     orderIndex: index,
   }));
 
-  const origin = first(rideStops);
-  const destination = last(rideStops);
-
-  if (!origin || !destination) return undefined;
+  const origin = rideStops[0]!;
+  const destination = rideStops[rideStops.length - 1]!;
 
   const createRideDTO = {
     organizationId,
     driverId,
-    startsAt: origin.estimatedArrivalAt,
-    estimatedEndsAt: destination.estimatedArrivalAt,
+    startsAt: origin.estimatedArrivalAt as Date,
+    estimatedEndsAt: destination.estimatedArrivalAt as Date,
     maxSeatsAmount: seats,
-    rideStops,
+    rideStops: rideStops.map((stop) => ({
+      ...stop,
+      estimatedArrivalAt: stop.estimatedArrivalAt as Date,
+    })),
   } satisfies CreateRideDto;
 
   return createRideDTO;

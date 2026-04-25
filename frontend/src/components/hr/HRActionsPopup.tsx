@@ -121,7 +121,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
             <Text style={popupStyles.label}>{i18n.hr_popup.email}</Text>
             <Controller
               control={control}
-              name="email"
+              name='email'
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[popupStyles.input, errors.email && popupStyles.inputError]}

@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { REQUIRED } from '@constants';
 import { z } from 'zod';
 import { entityMetadata, uuidSchema } from './genericSchemas';
@@ -15,22 +16,97 @@ export const pointSchema = z.object({
 });
 
 export const rideStopSchema = entityMetadata.extend({
-  location: pointSchema,
+  location: pointSchema.optional(),
   locationName: z.string().nonempty(REQUIRED),
-  estimatedArrivalAt: z.coerce.date(),
-  orderIndex: z.int().min(0),
+  estimatedArrivalAt: z.coerce.date().optional(),
+  orderIndex: z.number().min(0),
 });
 
-export const rideSchema = entityMetadata.extend({
-  orgId: uuidSchema,
-  driverId: uuidSchema,
-  startsAt: z.coerce.date(),
-  estimatedEndsAt: z.coerce.date(),
+const userBasicDtoSchema = z.object({
+  id: z.string().optional(),
+  firstName: z.string(),
+  lastName: z.string(),
+  profileImageUrl: z.string().nullable().optional(),
+});
+
+export const ridePassengerSchema = z.object({
+  id: z.string(),
+  rideStop: z.object({ id: z.string() }).optional(),
+  user: userBasicDtoSchema.optional(),
+});
+
+export const rideDtoSchema = entityMetadata.extend({
+  orgId: uuidSchema.optional(),
+  driverId: uuidSchema.optional(),
+  startsAt: z.coerce.date().or(z.string()),
+  estimatedEndsAt: z.coerce.date().or(z.string()),
   maxSeatsAmount: z.number().positive(),
-  rideStatus: z.enum(RideStatus),
-  currentLocation: pointSchema.nullable(),
-  rideStops: z.array(rideStopSchema),
+  availableSeats: z.number().optional(),
+  rideStatus: z.nativeEnum(RideStatus).optional(),
+  currentLocation: pointSchema.nullable().optional(),
+  rideStops: z.array(rideStopSchema).optional(),
+  driver: userBasicDtoSchema.optional(),
+  passengers: z.array(ridePassengerSchema).optional(),
 });
 
-export type Ride = z.infer<typeof rideSchema>;
+const safeDate = (val: string | number | Date | null | undefined) => {
+  if (!val) return new Date();
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
+const pad = (n: number) => n.toString().padStart(2, '0');
+const formatTime = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+export const rideEntitySchema = rideDtoSchema.transform((data) => {
+  const startDate = safeDate(data.startsAt);
+  const endDate = safeDate(data.estimatedEndsAt);
+  const sortedStops = (data.rideStops || []).sort((a, b) => a.orderIndex - b.orderIndex);
+
+  const stops = sortedStops.map((stop) => {
+    const stopPassengers = (data.passengers || []).filter((p) => p.rideStop?.id === stop.id);
+    return {
+      id: stop.id,
+      locationName: stop.locationName,
+      estimatedArrivalAt: stop.estimatedArrivalAt
+        ? formatTime(safeDate(stop.estimatedArrivalAt))
+        : i18n.general.unknown,
+      orderIndex: stop.orderIndex,
+      passengerCount: stopPassengers.length,
+    };
+  });
+
+  const startDest = stops.length > 0 ? stops[0]?.locationName || i18n.general.unknown : i18n.general.unknown;
+  const endDest =
+    stops.length > 0 ? stops[stops.length - 1]?.locationName || i18n.general.unknown : i18n.general.unknown;
+
+  const mappedPassengers = (data.passengers || []).map((p) => ({
+    id: p.id,
+    user: p.user
+      ? {
+          firstName: p.user.firstName,
+          lastName: p.user.lastName,
+          profileImageUrl: p.user.profileImageUrl,
+        }
+      : undefined,
+  }));
+
+  return {
+    id: data.id,
+    date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,
+    startTime: formatTime(startDate),
+    endTime: formatTime(endDate),
+    availableSeats: data.availableSeats ?? data.maxSeatsAmount - mappedPassengers.length,
+    maxSeatsAmount: data.maxSeatsAmount,
+    startDest,
+    endDest,
+    rideStatus: data.rideStatus || RideStatus.PENDING,
+    driver: data.driver,
+    stops,
+    passengers: mappedPassengers,
+  };
+});
+
+export type RideDto = z.infer<typeof rideDtoSchema>;
+export type Ride = z.infer<typeof rideEntitySchema>;
 export type RideStop = z.infer<typeof rideStopSchema>;
