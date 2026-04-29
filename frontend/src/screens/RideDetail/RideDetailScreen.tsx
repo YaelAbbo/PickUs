@@ -1,23 +1,40 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { FC } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { AppBackground, AppButton } from '@/components/ui';
-import { useRide } from '@/services/ride/rideQueries';
+import { useAuth } from '@/services/auth';
+import { useJoinRide, useLeaveRide, useRide, useUpdateRideStop } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
 import type { UUID } from 'crypto';
 
 import { i18n } from '@/i18n';
 import { RideDriverSection } from './RideDriverSection';
 import { RideInfoBoxes } from './RideInfoBoxes';
+import { RideStopPickerModal } from './RideStopPickerModal';
 import { RideStopTimeline } from './RideStopTimeline';
 
 export const RideDetailScreen: FC = () => {
   const router = useRouter();
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
+  const { user } = useAuth();
+
+  const [stopPickerVisible, setStopPickerVisible] = useState(false);
+  const [stopPickerMode, setStopPickerMode] = useState<'join' | 'edit'>('join');
 
   const { data: ride, isLoading, isError } = useRide(rideId as UUID);
+  const { mutate: joinRide, isPending: isJoining } = useJoinRide(rideId as string);
+  const { mutate: leaveRide, isPending: isLeaving } = useLeaveRide(rideId as string);
+  const { mutate: updateRideStop, isPending: isUpdating } = useUpdateRideStop(rideId as string);
+
+  const currentPassenger = ride?.passengers?.find(
+    (passenger) => passenger.userId === user?.id || passenger.user?.id === user?.id,
+  );
+  const isPassenger = !!currentPassenger;
+  const isDriver = ride?.driverId === user?.id;
+  const isFull = (ride?.availableSeats ?? 0) <= 0;
 
   if (isLoading) {
     return (
@@ -104,8 +121,67 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <AppButton label={i18n.ride_detail.join_ride} onPress={() => console.log('Join Ride pressed!')} />
+        {isPassenger ? (
+          <View style={styles.footerRow}>
+            <AppButton
+              label={i18n.ride_detail.edit_stop}
+              onPress={() => {
+                setStopPickerMode('edit');
+                setStopPickerVisible(true);
+              }}
+              style={styles.footerSecondaryBtn}
+              loading={isUpdating}
+            />
+            <AppButton
+              label={i18n.ride_detail.leave_ride}
+              onPress={() =>
+                Alert.alert(i18n.ride_detail.leave_ride, '', [
+                  { text: i18n.general.cancel, style: 'cancel' },
+                  {
+                    text: i18n.general.accept,
+                    style: 'destructive',
+                    onPress: () =>
+                      leaveRide(user!.id, {
+                        onError: () => Alert.alert(i18n.ride_detail.leave_error),
+                      }),
+                  },
+                ])
+              }
+              style={styles.footerLeaveBtn}
+              loading={isLeaving}
+            />
+          </View>
+        ) : isDriver ? null : (
+          <AppButton
+            label={isFull ? i18n.ride_detail.ride_full : i18n.ride_detail.join_ride}
+            disabled={isFull}
+            loading={isJoining}
+            onPress={() => {
+              setStopPickerMode('join');
+              setStopPickerVisible(true);
+            }}
+          />
+        )}
       </View>
+
+      <RideStopPickerModal
+        visible={stopPickerVisible}
+        mode={stopPickerMode}
+        stops={ride.stops.slice(0, -1)}
+        currentStopId={currentPassenger?.rideStopId}
+        onClose={() => setStopPickerVisible(false)}
+        onSelectStop={(stopId) => {
+          setStopPickerVisible(false);
+          if (stopPickerMode === 'join') {
+            joinRide(stopId, { onError: () => Alert.alert(i18n.ride_detail.join_error) });
+          } else {
+            updateRideStop(
+              { userId: user!.id, rideStopId: stopId },
+              { onError: () => Alert.alert(i18n.ride_detail.update_stop_error) },
+            );
+          }
+        }}
+      />
     </AppBackground>
   );
 };
@@ -177,4 +253,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.inputBorder,
     backgroundColor: colors.purple,
   },
+  footerRow: { flexDirection: 'row-reverse', gap: 10 },
+  footerSecondaryBtn: { flex: 1, backgroundColor: colors.purpleCard },
+  footerLeaveBtn: { flex: 1, backgroundColor: colors.error },
 });
