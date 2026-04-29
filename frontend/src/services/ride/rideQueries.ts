@@ -1,6 +1,7 @@
 import { type Ride } from '@/schemas/ride';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RideFilters, rideService } from './rideService';
+import { joinRide, leaveRide, updateRideStop } from '@/api/ridePassenger';
 
 export const RIDES_QUERY_KEYS = {
   all: ['rides'] as const,
@@ -22,5 +23,37 @@ export const useRide = (id: Ride['id']) => {
     queryFn: () => rideService.getRideById(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useJoinRide = (rideId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rideStopId: string) => joinRide(rideId, rideStopId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+    },
+  });
+};
+
+export const useLeaveRide = (rideId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => leaveRide(rideId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.available() });
+    },
+  });
+};
+
+export const useUpdateRideStop = (rideId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, rideStopId }: { userId: string; rideStopId: string }) =>
+      updateRideStop(rideId, userId, rideStopId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+    },
   });
 };

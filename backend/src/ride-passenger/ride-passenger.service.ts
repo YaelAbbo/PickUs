@@ -34,13 +34,19 @@ export class RidePassengerService {
         where: { rideId, isDeleted: false },
       });
 
-      this.validateRideStop(rideStopId, rideStops, rideId);
+      const rideStop = this.validateRideStop(rideStopId, rideStops, rideId);
+
+      const lastStop = rideStops.reduce((max, stop) =>
+        stop.orderIndex > max.orderIndex ? stop : max,
+      );
+      if (rideStop.id === lastStop.id)
+        throw new BadRequestException('Cannot join a ride at the last stop');
 
       const existingPassenger = await manager.findOne(RidePassenger, {
         where: { userId, rideId },
       });
 
-      if (existingPassenger)
+      if (existingPassenger && !existingPassenger.isDeleted)
         throw new ConflictException(
           `User ${userId} has already joined ride ${rideId}`,
         );
@@ -53,12 +59,19 @@ export class RidePassengerService {
         throw new BadRequestException('Ride is full');
 
       try {
-        const passenger = manager.create(RidePassenger, {
-          userId,
-          rideId,
-          rideStopId,
-        });
-        await manager.save(RidePassenger, passenger);
+        if (existingPassenger) {
+          await manager.update(RidePassenger, existingPassenger.id, {
+            isDeleted: false,
+            rideStopId,
+          });
+        } else {
+          const passenger = manager.create(RidePassenger, {
+            userId,
+            rideId,
+            rideStopId,
+          });
+          await manager.save(RidePassenger, passenger);
+        }
       } catch (error) {
         this.logger.error(
           `Error occurred while user ${userId} attempted to join ride ${rideId}, ${error}`,
@@ -104,6 +117,12 @@ export class RidePassengerService {
         rideStopsForUpdate,
         rideId,
       );
+
+      const lastStop = rideStopsForUpdate.reduce((max, stop) =>
+        stop.orderIndex > max.orderIndex ? stop : max,
+      );
+      if (rideStop.id === lastStop.id)
+        throw new BadRequestException('Cannot join a ride at the last stop');
 
       passenger.rideStop = rideStop;
 
