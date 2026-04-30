@@ -1,3 +1,6 @@
+import type { Ride } from '@/database/entities/ride.entity';
+import type { User } from '@/database/entities/user.entity';
+
 export type JSONPrimitive = string | number | boolean | null | undefined;
 
 export interface JSONObject {
@@ -12,12 +15,16 @@ export interface GeoJSONGeometry {
 export interface LocationUpdatePayload {
   geometry: GeoJSONGeometry;
   properties?: JSONObject;
-  rideId?: string;
+  rideId?: Ride['id'];
 }
 
 export interface LocationUpdatedPayload {
-  userId: string;
+  userId: User['id'];
   geometry: GeoJSONGeometry;
   properties?: JSONObject;
-  rideId?: string;
+  rideId?: Ride['id'];
+}
+
+export interface RoomActionResponse {
+  rideId: Ride['id'];
 }
