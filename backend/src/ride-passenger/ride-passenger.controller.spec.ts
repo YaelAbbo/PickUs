@@ -173,6 +173,13 @@ describe('RidePassengerController', () => {
         estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
         orderIndex: 1,
       }),
+      rideStopRepository.create({
+        ride: { id: rideId },
+        location: { type: 'Point', coordinates: [35.0, 31.15] },
+        locationName: 'Stop C',
+        estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 150),
+        orderIndex: 2,
+      }),
     ]);
     rideStopId = stops[0]!.id as UUID;
     altRideStopId = stops[1]!.id as UUID;
