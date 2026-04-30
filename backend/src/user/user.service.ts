@@ -223,10 +223,7 @@ export class UserService {
     return passwordHash;
   }
 
-  async updateLocation(userId: User['id'], location: Point): Promise<void> {
-    await this.usersRepository.update(
-      { id: userId },
-      { currentLocation: location },
-    );
+  async updateLocation(userId: User['id'], location: Point): Promise<User> {
+    return await this.update(userId, { currentLocation: location });
   }
 }

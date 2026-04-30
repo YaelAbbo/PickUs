@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Server, Socket } from 'socket.io';
 import { UserService } from '../user/user.service';
@@ -48,8 +49,14 @@ function buildGateway(
     }),
   } as unknown as UserService;
 
-  const gateway = new MapGateway(jwtService, userService);
-  return { gateway, jwtService, userService };
+  const configService = {
+    get: jest
+      .fn()
+      .mockImplementation((key: string, defaultValue: string) => defaultValue),
+  } as unknown as ConfigService;
+
+  const gateway = new MapGateway(jwtService, userService, configService);
+  return { gateway, jwtService, userService, configService };
 }
 
 describe('MapGateway', () => {
@@ -92,11 +99,12 @@ describe('MapGateway', () => {
       const { gateway } = buildGateway('valid');
       const client = buildMockSocket();
       client.data.user = mockUser;
+      const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
-      const result = gateway.handleRoomJoin(client, 'ride-42', mockUser);
+      const result = gateway.handleRoomJoin(client, rideId, mockUser);
 
-      expect(client.join).toHaveBeenCalledWith('ride:ride-42');
-      expect(result).toEqual({ rideId: 'ride-42', status: 'joined' });
+      expect(client.join).toHaveBeenCalledWith(`ride:${rideId}`);
+      expect(result).toEqual({ rideId });
     });
   });
 
@@ -105,26 +113,25 @@ describe('MapGateway', () => {
       const { gateway } = buildGateway('valid');
       const client = buildMockSocket();
       client.data.user = mockUser;
+      const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
-      const result = gateway.handleRoomLeave(client, 'ride-42', mockUser);
+      const result = gateway.handleRoomLeave(client, rideId, mockUser);
 
-      expect(client.leave).toHaveBeenCalledWith('ride:ride-42');
-      expect(result).toEqual({ rideId: 'ride-42', status: 'left' });
+      expect(client.leave).toHaveBeenCalledWith(`ride:${rideId}`);
+      expect(result).toEqual({ rideId });
     });
   });
 
   describe('handleLocationUpdate', () => {
     const geometry = { type: 'Point', coordinates: [34.8516, 31.0461] };
+    const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
     it('persists the location to the user record', async () => {
       const { gateway, userService } = buildGateway('valid');
       const mockServer = buildMockServer();
       gateway.server = mockServer as unknown as Server;
 
-      await gateway.handleLocationUpdate(
-        { geometry, rideId: 'ride-42' },
-        mockUser,
-      );
+      await gateway.handleLocationUpdate({ geometry, rideId }, mockUser);
 
       expect(userService.updateLocation).toHaveBeenCalledWith(
         mockUser.sub,
@@ -137,14 +144,14 @@ describe('MapGateway', () => {
       const mockServer = buildMockServer();
       gateway.server = mockServer as unknown as Server;
 
-      const payload: LocationUpdatePayload = { geometry, rideId: 'ride-42' };
+      const payload: LocationUpdatePayload = { geometry, rideId };
 
       const result = await gateway.handleLocationUpdate(payload, mockUser);
 
-      expect(mockServer.to).toHaveBeenCalledWith('ride:ride-42');
+      expect(mockServer.to).toHaveBeenCalledWith(`ride:${rideId}`);
       expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.LOCATION_UPDATED, {
         userId: mockUser.sub,
-        rideId: 'ride-42',
+        rideId,
         geometry,
         properties: undefined,
       });
@@ -170,7 +177,7 @@ describe('MapGateway', () => {
       gateway.server = mockServer as unknown as Server;
 
       const result = await gateway.handleLocationUpdate(
-        { geometry, rideId: 'ride-42' },
+        { geometry, rideId },
         mockUser,
       );
 
@@ -185,7 +192,7 @@ describe('MapGateway', () => {
 
       const payload: LocationUpdatePayload = {
         geometry,
-        rideId: 'ride-42',
+        rideId,
         properties: { speed: 40 },
       };
 
