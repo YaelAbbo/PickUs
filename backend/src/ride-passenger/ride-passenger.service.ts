@@ -36,11 +36,7 @@ export class RidePassengerService {
 
       const rideStop = this.validateRideStop(rideStopId, rideStops, rideId);
 
-      const lastStop = rideStops.reduce((max, stop) =>
-        stop.orderIndex > max.orderIndex ? stop : max,
-      );
-      if (rideStop.id === lastStop.id)
-        throw new BadRequestException('Cannot join a ride at the last stop');
+      this.validateNotLastStop(rideStop, rideStops);
 
       const existingPassenger = await manager.findOne(RidePassenger, {
         where: { userId, rideId },
@@ -118,11 +114,7 @@ export class RidePassengerService {
         rideId,
       );
 
-      const lastStop = rideStopsForUpdate.reduce((max, stop) =>
-        stop.orderIndex > max.orderIndex ? stop : max,
-      );
-      if (rideStop.id === lastStop.id)
-        throw new BadRequestException('Cannot join a ride at the last stop');
+      this.validateNotLastStop(rideStop, rideStopsForUpdate);
 
       passenger.rideStop = rideStop;
 
@@ -213,5 +205,17 @@ export class RidePassengerService {
       );
 
     return lockedRide;
+  }
+
+  private validateNotLastStop(rideStop: RideStop, rideStops: RideStop[]): void {
+    if (!rideStops.length) return;
+
+    const lastStop = rideStops.reduce((max, stop) =>
+      stop.orderIndex > max.orderIndex ? stop : max,
+    );
+
+    if (rideStop.id === lastStop.id) {
+      throw new BadRequestException('Cannot join a ride at the last stop');
+    }
   }
 }
