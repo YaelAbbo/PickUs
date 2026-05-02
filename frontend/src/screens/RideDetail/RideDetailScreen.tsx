@@ -25,9 +25,9 @@ export const RideDetailScreen: FC = () => {
   const [stopPickerMode, setStopPickerMode] = useState<'join' | 'edit'>('join');
 
   const { data: ride, isLoading, isError } = useRide(rideId as UUID);
-  const { mutate: joinRide, isPending: isJoining } = useJoinRide(rideId as string);
-  const { mutate: leaveRide, isPending: isLeaving } = useLeaveRide(rideId as string);
-  const { mutate: updateRideStop, isPending: isUpdating } = useUpdateRideStop(rideId as string);
+  const { mutate: joinRide, isPending: isJoining } = useJoinRide(rideId as UUID);
+  const { mutate: leaveRide, isPending: isLeaving } = useLeaveRide(rideId as UUID);
+  const { mutate: updateRideStop, isPending: isUpdating } = useUpdateRideStop(rideId as UUID);
 
   const currentPassenger = ride?.passengers?.find(
     (passenger) => passenger.userId === user?.id || passenger.user?.id === user?.id,
