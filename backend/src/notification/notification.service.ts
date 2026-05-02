@@ -28,7 +28,7 @@ export class NotificationService {
     return await this.notificationRepository.save(notification);
   }
 
-  async remove(id: Notification['id']): Promise<void> {
+  async delete(id: Notification['id']): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { id, isDeleted: false },
     });
@@ -56,6 +56,11 @@ export class NotificationService {
       )
       .where('notification.isDeleted = false')
       .andWhere('notification.createdAt >= :yesterday', { yesterday })
+      .andWhere(
+        new Brackets((qb: WhereExpressionBuilder) => {
+          qb.where('ride.id IS NULL').orWhere('ride.isDeleted = false');
+        }),
+      )
       .andWhere(
         new Brackets((qb: WhereExpressionBuilder) => {
           qb.where('ride.driver_id = :userId', { userId }).orWhere(

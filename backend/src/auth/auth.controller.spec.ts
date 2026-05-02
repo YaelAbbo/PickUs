@@ -15,12 +15,12 @@ describe('AuthController (e2e)', () => {
   let organizationRepository: Repository<Organization>;
 
   const testUser = {
-    id: '36b8f84d-df4e-4d49-b662-bcde71a8764f' as UUID,
+    id: crypto.randomUUID() as UUID,
     password: 'Password123!',
-    nationalId: '123456789',
+    nationalId: `auth-nid-${crypto.randomUUID().slice(0, 8)}`,
     firstName: 'Test',
     lastName: 'User',
-    email: 'test@auth-test.com',
+    email: `auth-test-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   let createdOrganizationId: Organization['id'] | null = null;

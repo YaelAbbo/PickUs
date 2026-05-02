@@ -38,6 +38,7 @@ describe('NotificationController', () => {
   let adminAccessToken: string;
   let createdNotificationId: Pick<Notification, 'id'>['id'] | null = null;
   let testRideId: Pick<Ride, 'id'>['id'] | null = null;
+  let testDeletedRideId: Pick<Ride, 'id'>['id'] | null = null;
 
   const adminUser = {
     id: crypto.randomUUID(),
@@ -227,6 +228,26 @@ describe('NotificationController', () => {
           .execute();
         await rideRepository.delete(testRideId);
         testRideId = null;
+      }
+
+      if (testDeletedRideId) {
+        await notificationRepository
+          .createQueryBuilder()
+          .delete()
+          .where('ride_id = :id', { id: testDeletedRideId })
+          .execute();
+        await ridePassengerRepository
+          .createQueryBuilder()
+          .delete()
+          .where('ride_id = :id', { id: testDeletedRideId })
+          .execute();
+        await rideStopRepository
+          .createQueryBuilder()
+          .delete()
+          .where('ride_id = :id', { id: testDeletedRideId })
+          .execute();
+        await rideRepository.delete(testDeletedRideId);
+        testDeletedRideId = null;
       }
 
       const usersToDelete = [
@@ -422,6 +443,41 @@ describe('NotificationController', () => {
             (n: Notification) => n.content === 'Driver notification',
           ),
         ).toBe(true);
+      });
+
+      it('should not return notifications for deleted rides', async () => {
+        const deletedRide = rideRepository.create({
+          driver: { id: testDriverId } as User,
+          organization: { id: testOrgId } as Organization,
+          startsAt: new Date(),
+          estimatedEndsAt: new Date(Date.now() + 3600000),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+          isDeleted: true,
+        });
+        const savedDeletedRide = await rideRepository.save(deletedRide);
+        testDeletedRideId = savedDeletedRide.id;
+
+        await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: testDriverId,
+            rideId: testDeletedRideId,
+            content: 'Notification for deleted ride',
+          });
+
+        const response = await request(httpServer)
+          .get(`/notifications/user/${testDriverId}`)
+          .set('Authorization', `Bearer ${adminAccessToken}`);
+
+        expect(response.status).toEqual(HttpStatus.OK);
+        expect(Array.isArray(response.body)).toEqual(true);
+        expect(
+          response.body.some(
+            (n: Notification) => n.content === 'Notification for deleted ride',
+          ),
+        ).toBe(false);
       });
 
       it('should return empty list for unrelated user', async () => {
