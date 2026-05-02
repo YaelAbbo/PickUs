@@ -68,7 +68,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Connected: socket=${client.id}, user=${user.sub}`);
     } catch (error) {
       this.logger.error(
-        `Rejected invalid token from socket: ${client.id}`,
+        `Rejected invalid user from socket: ${client.id}`,
         error instanceof Error ? error.message : String(error),
       );
       client.disconnect();
