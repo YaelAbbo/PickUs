@@ -4,6 +4,7 @@ import { rideDtoSchema, rideStopSchema, type Ride } from '@/schemas/ride';
 import { z } from 'zod';
 
 export const stopSchema = z.object({
+  id: uuidSchema.optional(),
   locationName: rideStopSchema.shape.locationName,
   locationPoint: pointSchema,
   time: dateSchema,
@@ -35,12 +36,14 @@ export const rideFormSchema = rideDtoSchema.pick({ driverId: true }).extend({
 
 export type RideFormValues = z.infer<typeof rideFormSchema>;
 
-export const rideStopDtoSchema = rideStopSchema.pick({
-  location: true,
-  locationName: true,
-  estimatedArrivalAt: true,
-  orderIndex: true,
-});
+export const rideStopDtoSchema = rideStopSchema
+  .pick({
+    location: true,
+    locationName: true,
+    estimatedArrivalAt: true,
+    orderIndex: true,
+  })
+  .extend({ id: uuidSchema.optional() });
 
 export const createRideDtoSchema = rideDtoSchema
   .pick({ driverId: true, startsAt: true, estimatedEndsAt: true, maxSeatsAmount: true })
@@ -50,3 +53,28 @@ export type RideStopDto = z.infer<typeof rideStopDtoSchema>;
 export type CreateRideDto = z.infer<typeof createRideDtoSchema>;
 
 export type UpdateRideDto = Partial<CreateRideDto> & { rideId: Ride['id'] };
+
+export const convertRideToRideFormValues = ({
+  id,
+  maxSeatsAmount,
+  stops,
+  organizationId,
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  availableSeats,
+  driverId,
+  startsAt,
+}: Ride): RideFormValues => ({
+  // TODO: Add `availableSeats`
+  isReturnTrip: false,
+  organizationId,
+  rideDate: new Date(startsAt),
+  seats: maxSeatsAmount,
+  stops: stops.map(({ locationName, locationPoint, estimatedArrivalAtDate, id }) => ({
+    locationName,
+    locationPoint,
+    time: estimatedArrivalAtDate,
+    id,
+  })),
+  driverId,
+  id,
+});

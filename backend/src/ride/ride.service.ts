@@ -168,6 +168,8 @@ export class RideService {
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
 
+    console.log(ride);
+
     try {
       const updatedRide = await this.ridesRepository.save(ride);
       return await this.getRideById(updatedRide.id);
@@ -180,11 +182,13 @@ export class RideService {
     }
   }
 
-  async deleteRide(id: Ride['id']): Promise<void> {
+  async deleteRide(id: Ride['id']): Promise<Ride['id']> {
     const result = await this.ridesRepository.update(id, { isDeleted: true });
     if (result.affected === 0) {
       this.logger.error(`Ride with ID ${id} not found`);
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
+
+    return id;
   }
 }

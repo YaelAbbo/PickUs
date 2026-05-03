@@ -13,6 +13,8 @@ export const i18n = {
     cancel: 'ביטול',
     must_enter_location: 'יש להזין מיקום',
     unknown: 'לא ידוע',
+    edit: 'עריכה',
+    delete: 'מחיקה',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
@@ -125,5 +127,7 @@ export const i18n = {
     passenger: 'נוסע',
     passengers: 'נוסעים',
     no_passengers: 'אין נוסעים כרגע',
+    delete_ride_title: 'מחיקת נסיעה',
+    delete_ride_message: 'האם למחוק את הנסיעה?',
   },
 };

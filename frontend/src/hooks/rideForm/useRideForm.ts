@@ -1,9 +1,10 @@
 import { createRide, updateRide } from '@/api/rideForm';
 import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
+import { rideQueryUtils } from '@/services/ride/rideQueries';
 import { getTomorrowAt, getTomorrowAt8AM } from '@helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useFieldArray, useForm, type DefaultValues } from 'react-hook-form';
@@ -28,6 +29,7 @@ const mapFormValuesToPayload = (values: RideFormValues) => {
     locationName: stop.locationName,
     estimatedArrivalAt: applyTimeToDate(rideDate, stop.time),
     orderIndex: index,
+    id: stop.id,
   }));
 
   const origin = rideStops[0]!;
@@ -59,6 +61,7 @@ export type UseRideFormArgs = { defaultValues?: DefaultValues<RideFormValues> };
 export type UseRideFormContent = ReturnType<typeof useRideForm>;
 
 export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -98,6 +101,8 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
     onError: () => setError('root', { message: i18n.rideForm.create_ride_error_happened }),
   });
 
+  const { updateRideState } = rideQueryUtils(queryClient);
+
   const {
     mutate: updateRideMutation,
     isPending: isUpdateRideSubmitting,
@@ -105,7 +110,11 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
     reset: resetUpdateRideMutation,
   } = useMutation({
     mutationFn: updateRide,
-    onSuccess: clearFormAndExit,
+    onSuccess: (updatedRide) => {
+      updateRideState(updatedRide);
+
+      clearFormAndExit();
+    },
     onError: () => setError('root', { message: i18n.rideForm.update_ride_error_happened }),
   });
 

@@ -9,13 +9,15 @@ import { colors, spacing } from '@/theme';
 import type { UUID } from 'crypto';
 
 import { i18n } from '@/i18n';
+import type { Ride } from '@/schemas/ride';
+import { RideActionButtons } from './RideActionButtons';
 import { RideDriverSection } from './RideDriverSection';
 import { RideInfoBoxes } from './RideInfoBoxes';
 import { RideStopTimeline } from './RideStopTimeline';
 
 export const RideDetailScreen: FC = () => {
   const router = useRouter();
-  const { rideId } = useLocalSearchParams<{ rideId: string }>();
+  const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
 
   const { data: ride, isLoading, isError } = useRide(rideId as UUID);
 
@@ -104,6 +106,8 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
+        <RideActionButtons ride={ride} />
+
         <AppButton label={i18n.ride_detail.join_ride} onPress={() => console.log('Join Ride pressed!')} />
       </View>
     </AppBackground>
@@ -176,5 +180,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.inputBorder,
     backgroundColor: colors.purple,
+    gap: spacing.sm,
   },
 });

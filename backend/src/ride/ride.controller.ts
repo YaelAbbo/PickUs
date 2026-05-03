@@ -77,7 +77,7 @@ export class RideController {
 
   @UseAccessAuth()
   @Delete(':id')
-  async deleteRide(@Param('id') id: Ride['id']): Promise<void> {
+  async deleteRide(@Param('id') id: Ride['id']): Promise<Ride['id']> {
     return await this.rideService.deleteRide(id);
   }
 }

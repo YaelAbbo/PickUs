@@ -1,7 +1,6 @@
 import { AppButton } from '@/components/ui/AppButton';
 import { i18n } from '@/i18n';
 import { IS_WEB } from '@constants';
-import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, spacing, typography } from '@theme';
 import type { FC } from 'react';
 
@@ -13,7 +12,8 @@ export const AddStopButton: FC<AddStopButtonProps> = ({ onPress }) => (
   <AppButton
     label={i18n.rideForm.another_ride_stop}
     onPress={onPress}
-    icon={({ size }) => <Ionicons name='add-circle-outline' size={size} color={colors.yellow} />}
+    iconName='add-circle-outline'
+    iconColor={colors.yellow}
     style={{
       alignSelf: 'flex-start',
       borderRadius: radii.full,

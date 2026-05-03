@@ -1,5 +1,5 @@
 import { type Ride } from '@/schemas/ride';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type QueryClient } from '@tanstack/react-query';
 import { RideFilters, rideService } from './rideService';
 
 export const RIDES_QUERY_KEYS = {
@@ -24,3 +24,16 @@ export const useRide = (id: Ride['id']) => {
     staleTime: 1000 * 60 * 5,
   });
 };
+
+export const rideQueryUtils = (queryClient: QueryClient) => ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  updateRideState: (updatedRide: Ride) => {
+    // TODO: Update specific ride, not all rides
+    queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
+  },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  deleteRide: (rideId: Ride['id']) => {
+    // TODO: Update specific ride, not all rides
+    queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
+  },
+});
