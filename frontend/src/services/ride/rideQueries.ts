@@ -27,14 +27,8 @@ export const useRide = (id: Ride['id']) => {
 };
 
 export const rideQueryUtils = (queryClient: QueryClient) => ({
-  updateRideState: () => {
-    // TODO: Update specific ride, not all rides
-    queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
-  },
-  deleteRide: () => {
-    // TODO: Update specific ride, not all rides
-    queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
-  },
+  updateRideState: () => queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all }),
+  deleteRide: () => queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all }),
 });
 
 export const useDeleteRide = () => {
