@@ -89,7 +89,6 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
       : undefined,
   }));
 
-  // TODO: Add `isReturnTrip`
   return {
     id: data.id,
     date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,

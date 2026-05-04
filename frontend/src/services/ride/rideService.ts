@@ -21,9 +21,5 @@ export const rideService = {
     return rideEntitySchema.parse(data);
   },
 
-  deleteRide: async (rideId: Ride['id']) => {
-    const { data: deletedRideId } = await api.delete<Ride['id']>(`/rides/${rideId}`);
-
-    return deletedRideId;
-  },
+  deleteRide: (rideId: Ride['id']) => api.delete(`/rides/${rideId}`),
 };

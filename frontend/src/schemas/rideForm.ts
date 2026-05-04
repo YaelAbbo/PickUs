@@ -59,12 +59,9 @@ export const convertRideToRideFormValues = ({
   maxSeatsAmount,
   stops,
   organizationId,
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  availableSeats,
   driverId,
   startsAt,
 }: Ride): RideFormValues => ({
-  // TODO: Add `availableSeats`
   isReturnTrip: false,
   organizationId,
   rideDate: new Date(startsAt),

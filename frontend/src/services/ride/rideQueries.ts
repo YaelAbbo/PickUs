@@ -26,13 +26,11 @@ export const useRide = (id: Ride['id']) => {
 };
 
 export const rideQueryUtils = (queryClient: QueryClient) => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  updateRideState: (updatedRide: Ride) => {
+  updateRideState: () => {
     // TODO: Update specific ride, not all rides
     queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deleteRide: (rideId: Ride['id']) => {
+  deleteRide: () => {
     // TODO: Update specific ride, not all rides
     queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
   },
