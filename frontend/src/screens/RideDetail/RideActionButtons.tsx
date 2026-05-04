@@ -1,6 +1,6 @@
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
-import { useDeleteRide } from '@hooks';
+import { useDeleteRide } from '@/services/ride/rideQueries';
 import { useAuth } from '@services';
 import { spacing } from '@theme';
 import type { Href } from 'expo-router';
