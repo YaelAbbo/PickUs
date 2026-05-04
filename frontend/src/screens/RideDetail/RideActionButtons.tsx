@@ -8,7 +8,8 @@ import { useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { useBoolean } from 'usehooks-ts';
-import { DeleteRideConfirmationModal, RideActionButton } from '.';
+import { DeleteRideConfirmationModal } from './DeleteRideConfirmationModal';
+import { RideActionButton } from './RideActionButton';
 
 export type RideActionButtonsProps = { ride: Ride };
 
