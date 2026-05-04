@@ -1,0 +1,207 @@
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import type { Server, Socket } from 'socket.io';
+import { UserService } from '../user/user.service';
+import { WsEvent } from '../websocket/events';
+import { MapGateway } from './map.gateway';
+import type { LocationUpdatePayload } from './map.types';
+
+const mockUser = { sub: 'user-1', iat: 0, exp: 9999999999 };
+
+function buildMockSocket(overrides: Partial<Socket> = {}): jest.Mocked<Socket> {
+  return {
+    id: 'socket-id',
+    data: {},
+    handshake: {
+      auth: { token: 'valid.jwt.token' },
+      headers: {},
+    } as unknown as Socket['handshake'],
+    disconnect: jest.fn(),
+    join: jest.fn(),
+    leave: jest.fn(),
+    ...overrides,
+  } as unknown as jest.Mocked<Socket>;
+}
+
+function buildMockServer(): { to: jest.Mock; emit: jest.Mock } {
+  const emit = jest.fn();
+  const to = jest.fn().mockReturnValue({ emit });
+  return { to, emit };
+}
+
+function buildGateway(
+  jwtVerifyResult: 'valid' | 'throw',
+  updateLocationResult: 'ok' | 'throw' = 'ok',
+) {
+  const jwtService = {
+    verifyAsync: jest.fn().mockImplementation(() => {
+      if (jwtVerifyResult === 'throw')
+        return Promise.reject(new Error('invalid token'));
+      return Promise.resolve(mockUser);
+    }),
+  } as unknown as JwtService;
+
+  const userService = {
+    updateLocation: jest.fn().mockImplementation(() => {
+      if (updateLocationResult === 'throw')
+        return Promise.reject(new Error('db error'));
+      return Promise.resolve();
+    }),
+  } as unknown as UserService;
+
+  const configService = {
+    get: jest
+      .fn()
+      .mockImplementation((key: string, defaultValue: string) => defaultValue),
+  } as unknown as ConfigService;
+
+  const gateway = new MapGateway(jwtService, userService, configService);
+  return { gateway, jwtService, userService, configService };
+}
+
+describe('MapGateway', () => {
+  describe('handleConnection', () => {
+    it('disconnects a socket with no token', async () => {
+      const { gateway } = buildGateway('valid');
+      const client = buildMockSocket({
+        handshake: { auth: {}, headers: {} } as unknown as Socket['handshake'],
+      });
+
+      await gateway.handleConnection(client);
+
+      expect(client.disconnect).toHaveBeenCalled();
+      expect(client.data.user).toBeUndefined();
+    });
+
+    it('disconnects a socket whose token fails verification', async () => {
+      const { gateway } = buildGateway('throw');
+      const client = buildMockSocket();
+
+      await gateway.handleConnection(client);
+
+      expect(client.disconnect).toHaveBeenCalled();
+      expect(client.data.user).toBeUndefined();
+    });
+
+    it('attaches the decoded user to socket.data on a valid token', async () => {
+      const { gateway } = buildGateway('valid');
+      const client = buildMockSocket();
+
+      await gateway.handleConnection(client);
+
+      expect(client.disconnect).not.toHaveBeenCalled();
+      expect(client.data.user).toEqual(mockUser);
+    });
+  });
+
+  describe('handleRoomJoin', () => {
+    it('joins the correct ride room and returns an ack', () => {
+      const { gateway } = buildGateway('valid');
+      const client = buildMockSocket();
+      client.data.user = mockUser;
+      const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
+
+      const result = gateway.handleRoomJoin(client, rideId, mockUser);
+
+      expect(client.join).toHaveBeenCalledWith(`ride:${rideId}`);
+      expect(result).toEqual({ rideId });
+    });
+  });
+
+  describe('handleRoomLeave', () => {
+    it('leaves the correct ride room and returns an ack', () => {
+      const { gateway } = buildGateway('valid');
+      const client = buildMockSocket();
+      client.data.user = mockUser;
+      const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
+
+      const result = gateway.handleRoomLeave(client, rideId, mockUser);
+
+      expect(client.leave).toHaveBeenCalledWith(`ride:${rideId}`);
+      expect(result).toEqual({ rideId });
+    });
+  });
+
+  describe('handleLocationUpdate', () => {
+    const geometry = { type: 'Point', coordinates: [34.8516, 31.0461] };
+    const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
+
+    it('persists the location to the user record', async () => {
+      const { gateway, userService } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      await gateway.handleLocationUpdate({ geometry, rideId }, mockUser);
+
+      expect(userService.updateLocation).toHaveBeenCalledWith(
+        mockUser.sub,
+        geometry,
+      );
+    });
+
+    it('broadcasts location:updated to the ride room when rideId is provided', async () => {
+      const { gateway } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const payload: LocationUpdatePayload = { geometry, rideId };
+
+      const result = await gateway.handleLocationUpdate(payload, mockUser);
+
+      expect(mockServer.to).toHaveBeenCalledWith(`ride:${rideId}`);
+      expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.LOCATION_UPDATED, {
+        userId: mockUser.sub,
+        rideId,
+        geometry,
+        properties: undefined,
+      });
+      expect(result).toEqual({ status: 'ok' });
+    });
+
+    it('does not broadcast when no rideId is provided', async () => {
+      const { gateway } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const payload: LocationUpdatePayload = { geometry };
+
+      const result = await gateway.handleLocationUpdate(payload, mockUser);
+
+      expect(mockServer.to).not.toHaveBeenCalled();
+      expect(result).toEqual({ status: 'ok' });
+    });
+
+    it('returns error status and does not broadcast when DB update fails', async () => {
+      const { gateway } = buildGateway('valid', 'throw');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const result = await gateway.handleLocationUpdate(
+        { geometry, rideId },
+        mockUser,
+      );
+
+      expect(mockServer.to).not.toHaveBeenCalled();
+      expect(result).toEqual({ status: 'error' });
+    });
+
+    it('includes properties in the broadcast payload when provided', async () => {
+      const { gateway } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const payload: LocationUpdatePayload = {
+        geometry,
+        rideId,
+        properties: { speed: 40 },
+      };
+
+      await gateway.handleLocationUpdate(payload, mockUser);
+
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        WsEvent.LOCATION_UPDATED,
+        expect.objectContaining({ properties: { speed: 40 } }),
+      );
+    });
+  });
+});

@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import type { Point } from 'geojson';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
@@ -220,5 +221,9 @@ export class UserService {
     const passwordHash = await bcrypt.hash(password, salt);
 
     return passwordHash;
+  }
+
+  async updateLocation(userId: User['id'], location: Point): Promise<User> {
+    return await this.update(userId, { currentLocation: location });
   }
 }

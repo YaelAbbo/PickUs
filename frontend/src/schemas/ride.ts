@@ -80,8 +80,11 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
 
   const mappedPassengers = (data.passengers || []).map((p) => ({
     id: p.id,
+    userId: p.user?.id,
+    rideStopId: p.rideStop?.id,
     user: p.user
       ? {
+          id: p.user.id,
           firstName: p.user.firstName,
           lastName: p.user.lastName,
           profileImageUrl: p.user.profileImageUrl,
@@ -91,6 +94,7 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
 
   return {
     id: data.id,
+    driverId: data.driverId,
     date: `${pad(startDate.getDate())}.${pad(startDate.getMonth() + 1)}.${startDate.getFullYear()}`,
     startTime: formatTime(startDate),
     endTime: formatTime(endDate),
@@ -103,7 +107,6 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
     stops,
     passengers: mappedPassengers,
     organizationId: data.orgId,
-    driverId: data.driverId,
     startsAt: data.startsAt,
     estimatedEndsAt: data.estimatedEndsAt,
   };
