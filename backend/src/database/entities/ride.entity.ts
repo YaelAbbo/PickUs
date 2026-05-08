@@ -80,6 +80,14 @@ export class Ride extends BaseEntity {
   @OneToMany(() => RidePassenger, (passenger) => passenger.ride)
   passengers: RidePassenger[];
 
+  @Column({
+    type: 'vector',
+    length: 768, // Gemini text-embedding-004 dimension, if using a different model, adjust accordingly
+    nullable: true,
+    name: 'route_embedding',
+  })
+  routeEmbedding: number[] | null;
+
   get startLocation(): RideStop | undefined {
     return minBy(this.rideStops, 'orderIndex');
   }

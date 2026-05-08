@@ -66,4 +66,12 @@ export class User extends BaseEntity {
     name: 'hashed_refresh_token',
   })
   hashedRefreshToken: string | null;
+
+  @Column({
+    type: 'vector',
+    length: 768, // Gemini text-embedding-004 dimension, if using a different model, adjust accordingly
+    nullable: true,
+    name: 'commute_pattern_embedding',
+  })
+  commutePatternEmbedding: number[] | null;
 }
