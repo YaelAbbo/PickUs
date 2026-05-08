@@ -18,7 +18,6 @@ export const locationSchema = z.string(REQUIRED).min(3, i18n.general.must_enter_
 export const longitudeSchema = z.number();
 export const latitudeSchema = z.number();
 
-export const pointSchema = z.object({
-  type: z.literal('Point'),
-  coordinates: z.tuple([longitudeSchema, latitudeSchema]),
-});
+export const coordinatesSchema = z.tuple([longitudeSchema, latitudeSchema]);
+
+export const pointSchema = z.object({ type: z.literal('Point'), coordinates: coordinatesSchema });

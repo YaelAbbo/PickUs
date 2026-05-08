@@ -66,6 +66,12 @@ export class RideController {
     return await this.rideService.getRidesByDriverId(driverId);
   }
 
+  @Get(':rideId/locations')
+  @UseAccessAuth()
+  async getRideLocations(@Param('rideId') rideId: Ride['id']) {
+    return await this.rideService.getRideLocations(rideId);
+  }
+
   @UseAccessAuth()
   @Patch(':id')
   async updateRide(

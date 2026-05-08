@@ -1,7 +1,7 @@
 import { REQUIRED } from '@constants';
 import { isValidIsraeliId } from '@helpers';
 import { z } from 'zod';
-import { entityMetadata, uuidSchema } from './genericSchemas';
+import { entityMetadata, pointSchema, uuidSchema } from './genericSchemas';
 
 export enum UserRole {
   BASIC_USER = 'BASIC_USER',
@@ -20,7 +20,7 @@ export const userSchema = entityMetadata.extend({
   role: z.enum(UserRole, 'User role must be of type UserRole'),
   isTempPassword: z.boolean(),
   profileImageUrl: z.url().nullable(),
-  currentLocation: z.string().optional().nullable(),
+  currentLocation: pointSchema.nullable(),
   orgId: uuidSchema,
 });
 

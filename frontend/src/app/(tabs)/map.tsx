@@ -1,5 +1,7 @@
+import { MapMarker } from '@/components/MapMarker';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRideLocationsLogic } from '@hooks';
 import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -15,11 +17,17 @@ function buildLocationPayload(coords: Location.LocationObjectCoords) {
 }
 
 export default function TrackingScreen() {
+  // TODO: Uncomment and remove hard-coded `rideId` in Shira's PR for accessing the map screen on ride start [KAN-35]
+  // const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
+  const rideId = '657fd615-a228-41af-9902-e416761e2a5b';
+
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
   const subscriberRef = useRef<Location.LocationSubscription | null>(null);
+
+  const { currentRideLocations } = useRideLocationsLogic({ rideId });
 
   async function startTracking() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -124,6 +132,10 @@ export default function TrackingScreen() {
           flipY={false}
           zIndex={1}
         />
+
+        {currentRideLocations.map(({ id, location, type, name }) => (
+          <MapMarker key={id} coordinates={location.coordinates} title={name} type={type} />
+        ))}
       </MapView>
 
       <TouchableOpacity style={styles.focusButton} onPress={handleFocus} activeOpacity={0.7}>

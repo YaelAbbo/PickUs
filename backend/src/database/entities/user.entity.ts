@@ -20,6 +20,10 @@ export class User extends BaseEntity {
   @Column({ name: 'last_name', type: 'varchar' })
   lastName: string;
 
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  }
+
   @Column({ name: 'national_id', type: 'varchar', unique: true })
   nationalId: string;
 

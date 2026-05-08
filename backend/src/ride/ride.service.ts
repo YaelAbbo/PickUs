@@ -4,6 +4,7 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
+import type { RideEntityLocationPayload } from '@/map/map.types';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -187,4 +188,52 @@ export class RideService {
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
   }
+
+  getRideLocations = async (rideId: Ride['id']) => {
+    const ride = await this.ridesRepository.findOne({
+      where: { id: rideId, isDeleted: false },
+      relations: { passengers: { user: true }, driver: true, rideStops: true },
+    });
+
+    if (!ride || ride.driver.isDeleted) return [];
+
+    const driverLocationPayload = {
+      type: 'DRIVER',
+      id: ride.driver.id,
+      location: ride.driver.currentLocation,
+      name: `${ride.driver.fullName} (נהג/ת)`,
+    } satisfies RideEntityLocationPayload;
+
+    const ridePassengersLocationPayloads = ride.passengers
+      .filter(({ isDeleted, user }) => !isDeleted && !user.isDeleted)
+      .map(
+        ({ user: { id, currentLocation: location, fullName } }) =>
+          ({
+            type: 'PASSENGER',
+            id,
+            location,
+            name: `${fullName} (נוסע/ת)`,
+          }) satisfies RideEntityLocationPayload,
+      );
+
+    const rideStopsLocationPayloads = ride.rideStops
+      .filter(({ isDeleted }) => !isDeleted)
+      .map(
+        ({ location, id, locationName, orderIndex }) =>
+          ({
+            type: 'STOP',
+            id,
+            location,
+            name: `תחנה ${orderIndex + 1} - ${locationName}`,
+          }) satisfies RideEntityLocationPayload,
+      );
+
+    const rideLocationPayloads = [
+      ...(driverLocationPayload ? [driverLocationPayload] : []),
+      ...ridePassengersLocationPayloads,
+      ...rideStopsLocationPayloads,
+    ];
+
+    return rideLocationPayloads;
+  };
 }
