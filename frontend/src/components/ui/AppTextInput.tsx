@@ -1,7 +1,8 @@
-import { IS_WEB } from '@constants';
+import { rtlInputIcon } from '@/utils/rtl';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, typography } from '@theme';
 import type { ComponentProps, FC } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { HelperText, TextInput } from 'react-native-paper';
 import { useBoolean } from 'usehooks-ts';
@@ -56,6 +57,11 @@ export const AppTextInput: FC<AppTextInputProps> = ({
 
   const finalTextColor = textColor || colors.textPrimary;
 
+  const iconPositions = {
+    [rtlInputIcon.start]: startIcon,
+    [rtlInputIcon.end]: clearIcon,
+  } as { right?: React.ReactNode; left?: React.ReactNode };
+
   return (
     <View style={styles.container}>
       {label ? (
@@ -80,8 +86,8 @@ export const AppTextInput: FC<AppTextInputProps> = ({
         placeholderTextColor={placeholderTextColor || colors.textMuted}
         selectionColor={colors.yellow}
         selectionHandleColor={colors.yellow}
-        right={IS_WEB ? startIcon : clearIcon}
-        left={IS_WEB ? clearIcon : startIcon}
+        right={iconPositions.right}
+        left={iconPositions.left}
         style={[styles.input, style]}
         theme={{
           roundness: radii.md,

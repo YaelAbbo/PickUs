@@ -26,8 +26,8 @@ export const popupStyles = StyleSheet.create({
     color: colors.textPrimary,
   },
   actions: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: 32,
     gap: 12,
   },
@@ -60,7 +60,7 @@ export const popupStyles = StyleSheet.create({
     color: colors.error,
     fontSize: 12,
     marginTop: 4,
-    textAlign: 'left',
+    textAlign: 'right',
   },
   inputGroup: {
     marginBottom: 16,
@@ -70,7 +70,7 @@ export const popupStyles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textLight,
     marginBottom: 6,
-    textAlign: 'left',
+    textAlign: 'right',
   },
   input: {
     borderWidth: 1,

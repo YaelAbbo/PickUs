@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.medium,
     fontSize: typography.sizes.md,
     color: colors.yellowLight,
+    textAlign: 'right',
   },
   row: {
     flexDirection: 'row',

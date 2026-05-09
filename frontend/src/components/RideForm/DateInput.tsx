@@ -1,4 +1,5 @@
 import { i18n } from '@/i18n';
+import { rtlRow } from '@/utils/rtl';
 import { Ionicons } from '@expo/vector-icons';
 import { getTomorrowAt8AM } from '@helpers';
 import DateTimePicker, {
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.yellowLight,
     marginBottom: spacing.xs,
+    textAlign: 'right',
   },
   labelError: {
     color: colors.error,
@@ -94,7 +96,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.inputBorder,
     backgroundColor: colors.inputBg,
-    flexDirection: 'row-reverse',
+    flexDirection: rtlRow,
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.medium,
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
+    textAlign: 'right',
   },
   placeholder: {
     color: colors.textMuted,

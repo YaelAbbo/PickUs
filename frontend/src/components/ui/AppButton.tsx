@@ -1,5 +1,6 @@
-import { IS_MOBILE, IS_WEB } from '@constants';
 import { Ionicons } from '@expo/vector-icons';
+import { IS_MOBILE } from '@constants';
+import { rtlRow } from '@/utils/rtl';
 import { colors, radii, spacing, typography } from '@theme';
 import type { WithStyle } from '@types';
 import type { ComponentProps, FC } from 'react';
@@ -33,7 +34,7 @@ export const AppButton: FC<AppButtonProps> = ({
         {
           paddingVertical: spacing.xs,
           paddingHorizontal: spacing.sm,
-          flexDirection: IS_WEB ? 'row-reverse' : 'row',
+          flexDirection: rtlRow,
           justifyContent: 'center',
           alignItems: 'center',
         },

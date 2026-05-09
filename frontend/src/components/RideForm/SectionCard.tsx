@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.yellowLight,
     letterSpacing: 0.5,
+    textAlign: 'right',
   },
   divider: {
     backgroundColor: colors.inputBorder,

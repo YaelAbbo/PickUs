@@ -2,6 +2,7 @@ import { User } from '@/api/user';
 import { i18n } from '@/i18n';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@theme';
+import { format } from 'date-fns';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -43,6 +44,9 @@ const UserRow: React.FC<{
     </Text>
     <Text style={[styles.cell, { width: 150, color: colors.textMuted }]} numberOfLines={1}>
       {item.organization?.name || item.orgId}
+    </Text>
+    <Text style={[styles.cell, { width: 150, color: colors.textMuted }]} numberOfLines={1}>
+      {item.createdAt ? format(new Date(item.createdAt), 'dd/MM/yyyy') : '—'}
     </Text>
     <Text
       onPress={(e) => {
@@ -140,7 +144,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   searchContainer: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.inputBg,
     borderRadius: 16,
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 4,
-    marginLeft: 8,
+    marginRight: 8,
   },
 });
 

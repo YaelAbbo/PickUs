@@ -15,7 +15,7 @@ export const AddStopButton: FC<AddStopButtonProps> = ({ onPress }) => (
     iconName='add-circle-outline'
     iconColor={colors.yellow}
     style={{
-      alignSelf: 'flex-start',
+      alignSelf: 'flex-end',
       borderRadius: radii.full,
       backgroundColor: 'rgba(245,200,66,0.12)',
       borderWidth: 1,
