@@ -15,6 +15,7 @@
       "@types": ["./src/utils/types.ts"],
       "@constants": ["./src/utils/constants.ts"],
       "@helpers": ["./src/utils/helpers.ts"],
+      "@rtl": ["./src/utils/rtl.ts"],
       "@screens": ["./src/screens/index.ts"],
       "@/*": ["./src/*"]
     }

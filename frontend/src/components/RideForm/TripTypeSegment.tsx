@@ -11,8 +11,8 @@ const SEGMENTS = [
 
 export type TripTypeSegmentProps = { value: boolean; onChange: (value: boolean) => void };
 
-export const TripTypeSegment: FC<TripTypeSegmentProps> = ({ value, onChange }) => {
-  const activeIndex = SEGMENTS.findIndex((s) => s.value === value);
+export const TripTypeSegment: FC<TripTypeSegmentProps> = ({ value: selectedValue, onChange }) => {
+  const activeIndex = SEGMENTS.findIndex((s) => s.value === selectedValue);
 
   const { translateX, pillWidth, handleLayout } = useTripTypeSegmentAnimation({ activeIndex });
 
@@ -32,7 +32,7 @@ export const TripTypeSegment: FC<TripTypeSegmentProps> = ({ value, onChange }) =
             onPress={() => onChange(value)}
             activeOpacity={0.75}
           >
-            <Text style={[styles.pillText, value === value && styles.pillTextActive]}>{label}</Text>
+            <Text style={[styles.pillText, value === selectedValue && styles.pillTextActive]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.medium,
     fontSize: typography.sizes.md,
     color: colors.yellowLight,
+    textAlign: 'right',
   },
   track: {
     flexDirection: 'row',
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   slidingPill: {
     position: 'absolute',
     top: 3,
-    end: 3,
+    left: 3,
     bottom: 3,
     borderRadius: radii.md,
     backgroundColor: colors.purpleDark,
