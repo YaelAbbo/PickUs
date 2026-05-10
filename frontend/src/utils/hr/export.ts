@@ -30,6 +30,6 @@ export const exportEmployeesToExcel = async (users: User[]) => {
   await Sharing.shareAsync(file.uri, {
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     dialogTitle: i18n.hr_actions.export_to_excel,
-    UTI: 'com.microsoft.excel.xlsx',
+    UTI: 'org.openxmlformats.spreadsheetml.sheet',
   });
 };
