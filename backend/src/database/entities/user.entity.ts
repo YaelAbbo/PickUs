@@ -1,6 +1,7 @@
 import type { UUID } from 'crypto';
 import type { Point } from 'geojson';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import { EMBEDDING_DIMENSION } from '../../utils/constants';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 
@@ -69,9 +70,9 @@ export class User extends BaseEntity {
 
   @Column({
     type: 'vector',
-    length: 768, // Gemini text-embedding-004 dimension, if using a different model, adjust accordingly
+    length: EMBEDDING_DIMENSION,
     nullable: true,
-    name: 'commute_pattern_embedding',
+    name: 'avg_ride_embedding',
   })
-  commutePatternEmbedding: number[] | null;
+  avgRideEmbedding: number[] | null;
 }
