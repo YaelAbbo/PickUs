@@ -11,6 +11,7 @@ import {
   OneToMany,
   Unique,
 } from 'typeorm';
+import { EMBEDDING_DIMENSION } from '../../utils/constants';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RidePassenger } from './ride-passenger.entity';
@@ -82,11 +83,11 @@ export class Ride extends BaseEntity {
 
   @Column({
     type: 'vector',
-    length: 768, // Gemini text-embedding-004 dimension, if using a different model, adjust accordingly
+    length: EMBEDDING_DIMENSION,
     nullable: true,
-    name: 'route_embedding',
+    name: 'embedding',
   })
-  routeEmbedding: number[] | null;
+  embedding: number[] | null;
 
   get startLocation(): RideStop | undefined {
     return minBy(this.rideStops, 'orderIndex');
