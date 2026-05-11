@@ -18,6 +18,8 @@ export type NonNullableRideEntityLocationPayload = Omit<RideEntityLocationPayloa
   location: Point;
 };
 
+export type LocationUpdatePayload = { location: Point; rideId?: Ride['id'] };
+
 export type RideFilters = {
   search?: string;
   category?: string;

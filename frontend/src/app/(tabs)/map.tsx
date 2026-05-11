@@ -1,4 +1,5 @@
 import { MapMarker } from '@/components/MapMarker';
+import type { LocationUpdatePayload } from '@/services/ride/rideService';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRideLocationsLogic } from '@hooks';
@@ -7,12 +8,16 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Region, UrlTile } from 'react-native-maps';
 
-function buildLocationPayload(coords: Location.LocationObjectCoords) {
+function buildLocationPayload({
+  coords,
+  rideId,
+}: Pick<LocationUpdatePayload, 'rideId'> & { coords: Location.LocationObjectCoords }): LocationUpdatePayload {
   return {
-    geometry: {
+    location: {
       type: 'Point',
       coordinates: [coords.longitude, coords.latitude],
     },
+    rideId,
   };
 }
 
@@ -46,7 +51,10 @@ export default function TrackingScreen() {
       setIsLoading(false);
 
       if (websocketService.isConnected) {
-        websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(initialLocation.coords));
+        websocketService.emit(
+          WsEvent.LOCATION_UPDATE,
+          buildLocationPayload({ coords: initialLocation.coords, rideId }),
+        );
       }
 
       subscriberRef.current = await Location.watchPositionAsync(
@@ -59,7 +67,10 @@ export default function TrackingScreen() {
           setLocation(newLocation);
 
           if (websocketService.isConnected) {
-            websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(newLocation.coords));
+            websocketService.emit(
+              WsEvent.LOCATION_UPDATE,
+              buildLocationPayload({ coords: newLocation.coords, rideId }),
+            );
           }
         },
       );
