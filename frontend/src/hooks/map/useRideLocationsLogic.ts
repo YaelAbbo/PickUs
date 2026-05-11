@@ -4,8 +4,17 @@ import type { NonNullableRideEntityLocationPayload, RideEntityLocationPayload } 
 import type { User } from '@schemas';
 import { WsEvent, useAuth, websocketService } from '@services';
 import { useFocusEffect } from 'expo-router';
-import { append } from 'rambda';
+import { append, filter, pipe } from 'rambda';
 import { useEffect, useState } from 'react';
+
+const upsertRideLocation =
+  (updatedLocationPayload: NonNullableRideEntityLocationPayload) =>
+  (prevRideLocations: NonNullableRideEntityLocationPayload[]) =>
+    pipe(
+      prevRideLocations,
+      filter(({ id }) => id !== updatedLocationPayload.id),
+      append(updatedLocationPayload),
+    );
 
 const isRideEntityHasLocation =
   (currentUserId: User['id'] | undefined) =>
@@ -35,10 +44,10 @@ export const useRideLocationsLogic = ({ rideId }: UseRideLocationsLogicArgs) => 
 
     const unsubscribeFromLocationUpdated = websocketService.on(
       WsEvent.LOCATION_UPDATED,
-      (locationPayload: RideEntityLocationPayload) => {
-        const isLocationPayloadValid = isRideEntityHasLocation(currentUserId)(locationPayload);
+      (updatedLocationPayload: RideEntityLocationPayload) => {
+        const isLocationPayloadValid = isRideEntityHasLocation(currentUserId)(updatedLocationPayload);
 
-        if (isLocationPayloadValid) setCurrentRideLocations(append(locationPayload));
+        if (isLocationPayloadValid) setCurrentRideLocations(upsertRideLocation(updatedLocationPayload));
       },
     );
 
