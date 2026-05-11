@@ -111,6 +111,40 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { rideId };
   }
 
+  private emitLocationUpdatedToRideRoom = async ({
+    userId,
+    rideId,
+    location,
+    properties,
+  }: Pick<RideEntityLocationPayload, 'location' | 'properties'> & {
+    userId: User['id'];
+    rideId: Ride['id'];
+  }) => {
+    try {
+      const [user, ride] = await Promise.all([
+        this.userService.getUserById(userId),
+        this.rideService.getRideById(rideId),
+      ]);
+
+      const rideLocationPayload = {
+        id: userId,
+        rideId,
+        location,
+        properties,
+        name: user.fullName,
+        type: ride.driverId === userId ? 'DRIVER' : 'PASSENGER',
+      } satisfies RideEntityLocationPayload;
+
+      this.server
+        .to(this.buildRoomId(rideId))
+        .emit(WsEvent.LOCATION_UPDATED, rideLocationPayload);
+    } catch (error) {
+      this.logger.error(
+        `Error while emitting location updated to room of ride ${rideId} from user ${userId}: ${error}`,
+      );
+    }
+  };
+
   @SubscribeMessage(WsEvent.LOCATION_UPDATE)
   @UseGuards(WsJwtGuard)
   async handleLocationUpdate(
@@ -124,8 +158,6 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `Location update from user=${userId} rideId=${rideId ?? 'none'}`,
     );
 
-    const user = await this.userService.getUserById(userId);
-
     try {
       await this.userService.updateLocation(userId, location);
     } catch (err) {
@@ -133,22 +165,13 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { status: 'error' };
     }
 
-    if (rideId) {
-      const ride = await this.rideService.getRideById(rideId);
-
-      const rideLocationPayload: RideEntityLocationPayload = {
-        id: userId,
+    if (rideId)
+      await this.emitLocationUpdatedToRideRoom({
         rideId,
+        userId,
         location,
         properties,
-        name: user.fullName,
-        type: ride.driverId === userId ? 'DRIVER' : 'PASSENGER',
-      };
-
-      this.server
-        .to(this.buildRoomId(rideId))
-        .emit(WsEvent.LOCATION_UPDATED, rideLocationPayload);
-    }
+      });
 
     return { status: 'ok' };
   }
