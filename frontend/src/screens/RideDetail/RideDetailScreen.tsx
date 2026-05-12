@@ -11,6 +11,8 @@ import { colors, spacing } from '@/theme';
 import type { UUID } from 'crypto';
 
 import { i18n } from '@/i18n';
+import type { Ride } from '@/schemas/ride';
+import { RideActionButtons } from './RideActionButtons';
 import { RideDriverSection } from './RideDriverSection';
 import { RideInfoBoxes } from './RideInfoBoxes';
 import { RideStopPickerModal } from './RideStopPickerModal';
@@ -18,7 +20,7 @@ import { RideStopTimeline } from './RideStopTimeline';
 
 export const RideDetailScreen: FC = () => {
   const router = useRouter();
-  const { rideId } = useLocalSearchParams<{ rideId: string }>();
+  const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
   const { user } = useAuth();
 
   const [stopPickerVisible, setStopPickerVisible] = useState(false);
@@ -121,6 +123,8 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
+        <RideActionButtons ride={ride} />
+
         {isPassenger ? (
           <View style={styles.footerRow}>
             <AppButton
@@ -252,6 +256,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.inputBorder,
     backgroundColor: colors.purple,
+    gap: spacing.sm,
   },
   footerRow: { flexDirection: 'row-reverse', gap: 10 },
   footerSecondaryBtn: { flex: 1, backgroundColor: colors.purpleCard },

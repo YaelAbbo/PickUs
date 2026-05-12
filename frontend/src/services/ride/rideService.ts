@@ -1,6 +1,6 @@
 import { api } from '@/api/api';
-import { z } from 'zod';
 import { rideEntitySchema, type Ride } from '@/schemas/ride';
+import { z } from 'zod';
 
 export type RideFilters = {
   search?: string;
@@ -20,4 +20,6 @@ export const rideService = {
 
     return rideEntitySchema.parse(data);
   },
+
+  deleteRide: (rideId: Ride['id']) => api.delete(`/rides/${rideId}`),
 };
