@@ -34,24 +34,24 @@ describe('RideController', () => {
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
-    nationalId: 'admin-national-id-ride-test',
-    email: 'admin@ride-test.com',
+    nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `admin.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const testDriver = {
     id: crypto.randomUUID(),
     firstName: 'Driver',
     lastName: 'Test',
-    nationalId: 'driver-national-id-test',
-    email: 'driver@ride-test.com',
+    nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `driver.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const testPassenger = {
     id: crypto.randomUUID(),
     firstName: 'Passenger',
     lastName: 'Test',
-    nationalId: 'passenger-national-id-test',
-    email: 'passenger@ride-test.com',
+    nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `passenger.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const newRideDto = {
@@ -73,7 +73,8 @@ describe('RideController', () => {
 
     await cleanup();
 
-    const org = organizationRepository.create({ name: 'Ride Test Org' });
+    const orgName = `Ride Test Org ${crypto.randomUUID()}`;
+    const org = organizationRepository.create({ name: orgName });
     const savedOrg = await organizationRepository.save(org);
     testOrgId = savedOrg.id;
 
