@@ -1,5 +1,5 @@
 import { api } from '@/api/api';
-import { rideEntitySchema, type Ride } from '@/schemas/ride';
+import { rideEntitySchema, type Ride, type RideStop } from '@/schemas/ride';
 import type { Point } from '@types';
 import type { UUID } from 'crypto';
 import { z } from 'zod';
@@ -19,6 +19,14 @@ export type NonNullableRideEntityLocationPayload = Omit<RideEntityLocationPayloa
 };
 
 export type LocationUpdatePayload = { location: Point; rideId?: Ride['id'] };
+
+export type DriverNearStopPayload = Pick<RideStop, 'estimatedArrivalAt'> & {
+  rideId: Ride['id'];
+  stopId: RideStop['id'];
+  stopName: RideStop['locationName'];
+  driverName: NonNullable<Ride['driver']>['fullName'];
+  driverDistanceFromStop: number;
+};
 
 export type RideFilters = {
   search?: string;

@@ -1,5 +1,5 @@
 import { tokenStorage } from '@/api/tokenStorage';
-import type { User } from '@schemas';
+import type { User } from '@/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEventListener } from 'usehooks-ts';
 import { clearUserCache } from './authQueries';

@@ -4,6 +4,7 @@ import { Brackets, Repository, WhereExpressionBuilder } from 'typeorm';
 import { Notification } from '../database/entities/notification.entity';
 import { type User } from '../database/entities/user.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import type { UpdateNotificationDto } from './dto/update-notification.dto';
 
 @Injectable()
 export class NotificationService {
@@ -27,6 +28,12 @@ export class NotificationService {
 
     return await this.notificationRepository.save(notification);
   }
+
+  update = (
+    notificationId: Notification['id'],
+    updateNotificationDto: UpdateNotificationDto,
+  ) =>
+    this.notificationRepository.update(notificationId, updateNotificationDto);
 
   async delete(id: Notification['id']): Promise<void> {
     const notification = await this.notificationRepository.findOne({

@@ -26,6 +26,7 @@ const userBasicDtoSchema = z.object({
   id: z.string().optional(),
   firstName: z.string(),
   lastName: z.string(),
+  fullName: z.string(),
   profileImageUrl: z.string().nullable().optional(),
 });
 

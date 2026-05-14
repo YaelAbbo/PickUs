@@ -8,5 +8,6 @@ import { RidePassengerService } from './ride-passenger.service';
   imports: [TypeOrmModule.forFeature([RidePassenger])],
   controllers: [RidePassengerController],
   providers: [RidePassengerService],
+  exports: [RidePassengerService],
 })
 export class RidePassengerModule {}

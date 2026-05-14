@@ -1,6 +1,7 @@
 import type { JWTPayload } from '@/auth/types';
 import type { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
+import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
 import { RideService } from '@/ride/ride.service';
 import { UserService } from '@/user/user.service';
 import { WsCurrentUser } from '@/websocket/decorators';
@@ -46,6 +47,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly userService: UserService,
     private readonly rideService: RideService,
     private configService: ConfigService,
+    private readonly proximityNotificationService: ProximityNotificationService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -66,7 +68,11 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       client.data.user = user;
-      this.logger.log(`Connected: socket=${client.id}, user=${user.sub}`);
+      const userId = user.sub as User['id'];
+
+      await client.join(this.buildUserRoomId(userId));
+
+      this.logger.log(`Connected: socket=${client.id}, user=${userId}`);
     } catch (error) {
       this.logger.error(
         `Rejected invalid user from socket: ${client.id}`,
@@ -85,6 +91,10 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   buildRoomId(rideId: Ride['id']): string {
     return `ride:${rideId}`;
+  }
+
+  buildUserRoomId(userId: User['id']): string {
+    return `user:${userId}`;
   }
 
   @SubscribeMessage(WsEvent.ROOM_JOIN)
@@ -113,18 +123,17 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private emitLocationUpdatedToRideRoom = async ({
     userId,
-    rideId,
+    ride,
     location,
     properties,
   }: Pick<RideEntityLocationPayload, 'location' | 'properties'> & {
     userId: User['id'];
-    rideId: Ride['id'];
+    ride: Ride;
   }) => {
+    const rideId = ride.id;
+
     try {
-      const [user, ride] = await Promise.all([
-        this.userService.getUserById(userId),
-        this.rideService.getRideById(rideId),
-      ]);
+      const user = await this.userService.getUserById(userId);
 
       const rideLocationPayload = {
         id: userId,
@@ -145,13 +154,73 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   };
 
+  private notifyNearbyPassengers = async ({
+    ride,
+    driverLocation,
+  }: {
+    driverLocation: NonNullable<User['currentLocation']>;
+    ride: Ride;
+  }) => {
+    const rideId = ride.id;
+
+    try {
+      const driverUser = await this.userService.getUserById(ride.driverId);
+
+      const notifications =
+        await this.proximityNotificationService.checkAndCollectNotifications({
+          driverLocation,
+          driverName: driverUser.fullName,
+          rideId,
+        });
+
+      for (const { passengerId, payload } of notifications) {
+        this.server
+          .to(this.buildUserRoomId(passengerId))
+          .emit(WsEvent.DRIVER_NEAR_STOP, payload);
+
+        this.logger.log(
+          `Emitted ${WsEvent.DRIVER_NEAR_STOP} to user room of passenger ${passengerId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Proximity check failed for ride ${rideId}`, error);
+    }
+  };
+
+  private handleLocationUpdateOfRide = async ({
+    rideId,
+    userId,
+    location,
+    properties,
+  }: LocationUpdatePayload & { userId: User['id'] }) => {
+    if (!rideId) return;
+
+    try {
+      const ride = await this.rideService.getRideById(rideId);
+
+      await this.emitLocationUpdatedToRideRoom({
+        ride,
+        userId,
+        location,
+        properties,
+      });
+
+      if (ride.driverId === userId)
+        await this.notifyNearbyPassengers({ driverLocation: location, ride });
+    } catch (error) {
+      this.logger.error(
+        `Error while emitting location updated to room of ride ${rideId} from user ${userId}: ${error}`,
+      );
+    }
+  };
+
   @SubscribeMessage(WsEvent.LOCATION_UPDATE)
   @UseGuards(WsJwtGuard)
   async handleLocationUpdate(
     @MessageBody() payload: LocationUpdatePayload,
     @WsCurrentUser() jwtPayload: JWTPayload,
   ): Promise<{ status: string }> {
-    const { rideId, location, properties } = payload;
+    const { rideId, location } = payload;
     const userId = jwtPayload.sub as User['id'];
 
     this.logger.log(
@@ -165,13 +234,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { status: 'error' };
     }
 
-    if (rideId)
-      await this.emitLocationUpdatedToRideRoom({
-        rideId,
-        userId,
-        location,
-        properties,
-      });
+    await this.handleLocationUpdateOfRide({ ...payload, userId });
 
     return { status: 'ok' };
   }
