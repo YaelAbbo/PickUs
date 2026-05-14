@@ -44,4 +44,6 @@ export const rideService = {
 
     return rideLocations;
   },
+
+  deleteRide: (rideId: Ride['id']) => api.delete(`/rides/${rideId}`),
 };

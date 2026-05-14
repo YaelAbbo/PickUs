@@ -34,6 +34,7 @@ export default function AppLayout() {
               <Stack.Screen name='(auth)' options={{ headerShown: false, title: `PickUs - ${i18n.general.enter}` }} />
               <Stack.Screen name='(tabs)' options={{ headerShown: false, title: 'PickUs' }} />
               <Stack.Screen name='rideDetailModal' options={{ presentation: 'modal', headerShown: false }} />
+              <Stack.Screen name='editRideFormModal' options={{ presentation: 'modal', headerShown: false }} />
             </Stack>
 
             <StatusBar style='auto' />

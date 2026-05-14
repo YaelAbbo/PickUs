@@ -1,6 +1,6 @@
 import { joinRide, leaveRide, updateRideStop } from '@/api/ridePassenger';
 import { type Ride } from '@/schemas/ride';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RideFilters, rideService } from './rideService';
 
 export const RIDES_QUERY_KEYS = {
@@ -33,6 +33,19 @@ export const useRide = (id: Ride['id']) => {
     enabled: !!id,
     staleTime: 1000 * 60 * 5,
   });
+};
+
+export const rideQueryUtils = (queryClient: QueryClient) => ({
+  updateRideState: () => queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all }),
+  deleteRide: () => queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all }),
+});
+
+export const useDeleteRide = () => {
+  const queryClient = useQueryClient();
+
+  const { deleteRide } = rideQueryUtils(queryClient);
+
+  return useMutation({ mutationFn: rideService.deleteRide, onSuccess: deleteRide });
 };
 
 export const useJoinRide = (rideId: string) => {

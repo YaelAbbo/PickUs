@@ -10,6 +10,7 @@ import { MapModule } from './map/map.module';
 import { RidePassengerModule } from './ride-passenger/ride-passenger.module';
 import { RideModule } from './ride/ride.module';
 import { UserModule } from './user/user.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserModule } from './user/user.module';
     RideModule,
     MapModule,
     RidePassengerModule,
+    NotificationModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

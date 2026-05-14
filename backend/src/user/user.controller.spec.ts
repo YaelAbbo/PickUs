@@ -17,19 +17,19 @@ describe('UserController (e2e)', () => {
   let organizationRepository: Repository<Organization>;
 
   const adminUser = {
-    id: '11111111-1111-1111-1111-111111111111' as UUID,
+    id: crypto.randomUUID() as UUID,
     password: 'AdminPassword123!',
     firstName: 'Admin',
     lastName: 'User',
-    nationalId: 'admin-national-id',
-    email: 'admin@test.com',
+    nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `admin-${crypto.randomUUID().slice(0, 8)}@test.com`,
   };
 
   const newUser = {
     firstName: 'New',
     lastName: 'Employee',
-    nationalId: 'employee-national-id',
-    email: 'new.employee@test.com',
+    nationalId: `employee-nid-${crypto.randomUUID().slice(0, 8)}`,
+    email: `new.employee-${crypto.randomUUID().slice(0, 8)}@test.com`,
     role: UserRole.BASIC_USER,
   };
 
@@ -49,7 +49,8 @@ describe('UserController (e2e)', () => {
       .mockResolvedValue(undefined);
 
     await cleanup();
-    const org = organizationRepository.create({ name: 'Test User Org' });
+    const orgName = `Test User Org ${crypto.randomUUID()}`;
+    const org = organizationRepository.create({ name: orgName });
     const savedOrg = await organizationRepository.save(org);
     testOrgId = savedOrg.id;
 
@@ -123,8 +124,8 @@ describe('UserController (e2e)', () => {
         .send({
           firstName: 'Email',
           lastName: 'Fails',
-          nationalId: 'email-fail-nid',
-          email: 'email.fails@test.com',
+          nationalId: `email-fail-nid-${crypto.randomUUID().slice(0, 8)}`,
+          email: `email.fails-${crypto.randomUUID().slice(0, 8)}@test.com`,
           orgId: testOrgId,
         });
 
