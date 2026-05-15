@@ -1,4 +1,4 @@
-import type { JWTPayload } from '@/auth/types';
+import { JWTPayload } from '@/auth/types';
 import type { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
 import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
@@ -20,15 +20,17 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
-import type {
+import {
   LocationUpdatePayload,
-  RideEntityLocationPayload,
-  RoomActionResponse,
+  type RideEntityLocationPayload,
+  type RoomActionResponse,
 } from './map.types';
 
 function extractTokenFromSocket(client: Socket): string | null {
   return (client.handshake.auth?.token as string | undefined) ?? null;
 }
+
+const rideRoomIdPrefix = 'ride:';
 
 @WebSocketGateway({
   cors: {
@@ -38,6 +40,7 @@ function extractTokenFromSocket(client: Socket): string | null {
 })
 export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(MapGateway.name);
+  private readonly rideCache = new Map<Ride['id'], Ride>();
 
   @WebSocketServer()
   server: Server;
@@ -87,25 +90,54 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `Disconnected: socket=${client.id}${user ? `, user=${user.sub}` : ''}`,
     );
+
+    const rideRoomIds = [...client.rooms]
+      .filter((roomId) => roomId.startsWith(rideRoomIdPrefix))
+      .map((roomId) => roomId.replace(rideRoomIdPrefix, '') as Ride['id']);
+
+    rideRoomIds.forEach(this.clearRideCache);
   }
 
-  buildRoomId(rideId: Ride['id']): string {
-    return `ride:${rideId}`;
+  buildRideRoomId(rideId: Ride['id']): string {
+    return `${rideRoomIdPrefix}${rideId}`;
   }
 
   buildUserRoomId(userId: User['id']): string {
     return `user:${userId}`;
   }
 
+  private getRoomSize = (roomId: string) => {
+    const roomIdToSocketIds = this.server.sockets.adapter.rooms;
+    const roomSize = roomIdToSocketIds.get(roomId)?.size ?? 0;
+
+    return roomSize;
+  };
+
+  private getRideRoomSize = (rideId: Ride['id']) =>
+    this.getRoomSize(this.buildRideRoomId(rideId));
+
+  private clearRideCache = (rideId: Ride['id']) => {
+    if (!this.getRideRoomSize(rideId)) this.rideCache.delete(rideId);
+  };
+
   @SubscribeMessage(WsEvent.ROOM_JOIN)
   @UseGuards(WsJwtGuard)
-  handleRoomJoin(
+  async handleRoomJoin(
     @ConnectedSocket() client: Socket,
     @MessageBody() rideId: Ride['id'],
     @WsCurrentUser() user: JWTPayload,
-  ): RoomActionResponse {
-    client.join(this.buildRoomId(rideId));
-    this.logger.log(`User ${user.sub} joined room ${this.buildRoomId(rideId)}`);
+  ): Promise<RoomActionResponse> {
+    client.join(this.buildRideRoomId(rideId));
+    this.logger.log(
+      `User ${user.sub} joined room ${this.buildRideRoomId(rideId)}`,
+    );
+
+    if (!this.rideCache.has(rideId)) {
+      const ride = await this.rideService.getRideById(rideId);
+
+      this.rideCache.set(rideId, ride);
+    }
+
     return { rideId };
   }
 
@@ -116,22 +148,50 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() rideId: Ride['id'],
     @WsCurrentUser() user: JWTPayload,
   ): RoomActionResponse {
-    client.leave(this.buildRoomId(rideId));
-    this.logger.log(`User ${user.sub} left room ${this.buildRoomId(rideId)}`);
+    client.leave(this.buildRideRoomId(rideId));
+    this.logger.log(
+      `User ${user.sub} left room ${this.buildRideRoomId(rideId)}`,
+    );
+
+    this.clearRideCache(rideId);
+
     return { rideId };
+  }
+
+  @SubscribeMessage(WsEvent.LOCATION_UPDATE)
+  @UseGuards(WsJwtGuard)
+  async handleLocationUpdate(
+    @MessageBody() payload: LocationUpdatePayload,
+    @WsCurrentUser() jwtPayload: JWTPayload,
+  ): Promise<{ status: string }> {
+    const { rideId, location } = payload;
+    const userId = jwtPayload.sub as User['id'];
+
+    this.logger.log(
+      `Location update from user=${userId} rideId=${rideId ?? 'none'}`,
+    );
+
+    try {
+      await this.userService.updateLocation(userId, location);
+    } catch (err) {
+      this.logger.error(`Failed to persist location for user=${userId}`, err);
+      return { status: 'error' };
+    }
+
+    await this.handleLocationUpdateOfRide({ ...payload, userId });
+
+    return { status: 'ok' };
   }
 
   private emitLocationUpdatedToRideRoom = async ({
     userId,
-    ride,
+    rideId,
     location,
     properties,
   }: Pick<RideEntityLocationPayload, 'location' | 'properties'> & {
     userId: User['id'];
-    ride: Ride;
+    rideId: Ride['id'];
   }) => {
-    const rideId = ride.id;
-
     try {
       const rideLocationPayload = {
         id: userId,
@@ -141,7 +201,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       } satisfies RideEntityLocationPayload;
 
       this.server
-        .to(this.buildRoomId(rideId))
+        .to(this.buildRideRoomId(rideId))
         .emit(WsEvent.LOCATION_UPDATED, rideLocationPayload);
     } catch (error) {
       this.logger.error(
@@ -160,12 +220,10 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const rideId = ride.id;
 
     try {
-      const driverUser = await this.userService.getUserById(ride.driverId);
-
       const notifications =
         await this.proximityNotificationService.checkAndCollectNotifications({
           driverLocation,
-          driverName: driverUser.fullName,
+          driverName: ride.driver.fullName,
           rideId,
         });
 
@@ -192,16 +250,16 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!rideId) return;
 
     try {
-      const ride = await this.rideService.getRideById(rideId);
-
       await this.emitLocationUpdatedToRideRoom({
-        ride,
+        rideId,
         userId,
         location,
         properties,
       });
 
-      if (ride.driverId === userId)
+      const ride = this.rideCache.get(rideId);
+
+      if (ride?.driverId === userId)
         await this.notifyNearbyPassengers({ driverLocation: location, ride });
     } catch (error) {
       this.logger.error(
@@ -209,29 +267,4 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
     }
   };
-
-  @SubscribeMessage(WsEvent.LOCATION_UPDATE)
-  @UseGuards(WsJwtGuard)
-  async handleLocationUpdate(
-    @MessageBody() payload: LocationUpdatePayload,
-    @WsCurrentUser() jwtPayload: JWTPayload,
-  ): Promise<{ status: string }> {
-    const { rideId, location } = payload;
-    const userId = jwtPayload.sub as User['id'];
-
-    this.logger.log(
-      `Location update from user=${userId} rideId=${rideId ?? 'none'}`,
-    );
-
-    try {
-      await this.userService.updateLocation(userId, location);
-    } catch (err) {
-      this.logger.error(`Failed to persist location for user=${userId}`, err);
-      return { status: 'error' };
-    }
-
-    await this.handleLocationUpdateOfRide({ ...payload, userId });
-
-    return { status: 'ok' };
-  }
 }

@@ -109,13 +109,13 @@ describe('MapGateway', () => {
   });
 
   describe('handleRoomJoin', () => {
-    it('joins the correct ride room and returns an ack', () => {
+    it('joins the correct ride room and returns an ack', async () => {
       const { gateway } = buildGateway('valid');
       const client = buildMockSocket();
       client.data.user = mockUser;
       const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
-      const result = gateway.handleRoomJoin(client, rideId, mockUser);
+      const result = await gateway.handleRoomJoin(client, rideId, mockUser);
 
       expect(client.join).toHaveBeenCalledWith(`ride:${rideId}`);
       expect(result).toEqual({ rideId });
