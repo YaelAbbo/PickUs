@@ -4,7 +4,7 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
-import type { RideEntityLocationPayload } from '@/map/map.types';
+import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -13,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { Point } from 'geojson';
 import { omit } from 'lodash';
 import { DeepPartial, Repository } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
@@ -197,23 +198,28 @@ export class RideService {
 
     if (!ride || ride.driver.isDeleted) return [];
 
-    const driverLocationPayload = {
-      type: 'DRIVER',
-      id: ride.driver.id,
-      location: ride.driver.currentLocation,
-      name: `${ride.driver.fullName} (נהג/ת)`,
-    } satisfies RideEntityLocationPayload;
+    const driverLocationPayload = ride.driver.currentLocation
+      ? ({
+          type: 'DRIVER',
+          id: ride.driver.id,
+          location: ride.driver.currentLocation,
+          name: `${ride.driver.fullName} (נהג/ת)`,
+        } satisfies RideEntityLocationPayloadWithFullDetails)
+      : undefined;
 
     const ridePassengersLocationPayloads = ride.passengers
-      .filter(({ isDeleted, user }) => !isDeleted && !user.isDeleted)
+      .filter(
+        ({ isDeleted, user }) =>
+          !isDeleted && !user.isDeleted && !!user.currentLocation,
+      )
       .map(
-        ({ user: { id, currentLocation: location, fullName } }) =>
+        ({ user: { id, currentLocation, fullName } }) =>
           ({
             type: 'PASSENGER',
             id,
-            location,
+            location: currentLocation as Point,
             name: `${fullName} (נוסע/ת)`,
-          }) satisfies RideEntityLocationPayload,
+          }) satisfies RideEntityLocationPayloadWithFullDetails,
       );
 
     const rideStopsLocationPayloads = ride.rideStops
@@ -225,7 +231,7 @@ export class RideService {
             id,
             location,
             name: `תחנה ${orderIndex + 1} - ${locationName}`,
-          }) satisfies RideEntityLocationPayload,
+          }) satisfies RideEntityLocationPayloadWithFullDetails,
       );
 
     const rideLocationPayloads = [

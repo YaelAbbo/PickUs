@@ -1,4 +1,5 @@
 import { MapMarker } from '@/components/MapMarker';
+import { useRide } from '@/services/ride/rideQueries';
 import type { LocationUpdatePayload } from '@/services/ride/rideService';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,9 +23,10 @@ function buildLocationPayload({
 }
 
 export default function TrackingScreen() {
-  // TODO: Uncomment and remove hard-coded `rideId` in Shira's PR for accessing the map screen on ride start [KAN-35]
-  // const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
+  // TODO: Uncomment and remove hard-coded `ride` in Shira's PR for accessing the map screen on ride start [KAN-35]
+  // const { ride } = useLocalSearchParams<{ ride: Ride }>();
   const rideId = '657fd615-a228-41af-9902-e416761e2a5b';
+  const { data: ride } = useRide(rideId);
 
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function TrackingScreen() {
   const mapRef = useRef<MapView>(null);
   const subscriberRef = useRef<Location.LocationSubscription | null>(null);
 
-  const { currentRideLocations } = useRideLocationsLogic({ rideId });
+  const { currentRideLocations } = useRideLocationsLogic({ ride });
 
   async function startTracking() {
     const { status } = await Location.requestForegroundPermissionsAsync();

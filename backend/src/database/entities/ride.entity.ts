@@ -11,6 +11,7 @@ import {
   OneToMany,
   Unique,
 } from 'typeorm';
+import { EMBEDDING_DIMENSION } from '../../utils/constants';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
 import { RidePassenger } from './ride-passenger.entity';
@@ -79,6 +80,14 @@ export class Ride extends BaseEntity {
 
   @OneToMany(() => RidePassenger, (passenger) => passenger.ride)
   passengers: RidePassenger[];
+
+  @Column({
+    type: 'vector',
+    length: EMBEDDING_DIMENSION,
+    nullable: true,
+    name: 'embedding',
+  })
+  embedding: number[] | null;
 
   get startLocation(): RideStop | undefined {
     return minBy(this.rideStops, 'orderIndex');

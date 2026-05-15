@@ -1,7 +1,7 @@
 import { i18n } from '@/i18n';
 import { REQUIRED } from '@constants';
 import { z } from 'zod';
-import { entityMetadata, uuidSchema } from './genericSchemas';
+import { entityMetadata, pointSchema, uuidSchema } from './genericSchemas';
 
 export enum RideStatus {
   PENDING = 'PENDING',
@@ -10,15 +10,10 @@ export enum RideStatus {
   CANCELLED = 'CANCELLED',
 }
 
-export const pointSchema = z.object({
-  type: z.literal('Point'),
-  coordinates: z.tuple([z.number(), z.number()]), // [longitude, latitude]
-});
-
 export const rideStopSchema = entityMetadata.extend({
-  location: pointSchema.optional(),
+  location: pointSchema,
   locationName: z.string().nonempty(REQUIRED),
-  estimatedArrivalAt: z.coerce.date().optional(),
+  estimatedArrivalAt: z.coerce.date(),
   orderIndex: z.number().min(0),
 });
 
@@ -37,17 +32,18 @@ export const ridePassengerSchema = z.object({
 });
 
 export const rideDtoSchema = entityMetadata.extend({
-  orgId: uuidSchema.optional(),
-  driverId: uuidSchema.optional(),
+  orgId: uuidSchema,
+  driverId: uuidSchema,
   startsAt: z.coerce.date().or(z.string()),
   estimatedEndsAt: z.coerce.date().or(z.string()),
   maxSeatsAmount: z.number().positive(),
   availableSeats: z.number().optional(),
-  rideStatus: z.nativeEnum(RideStatus).optional(),
+  rideStatus: z.enum(RideStatus).optional(),
   currentLocation: pointSchema.nullable().optional(),
   rideStops: z.array(rideStopSchema).optional(),
   driver: userBasicDtoSchema.optional(),
   passengers: z.array(ridePassengerSchema).optional(),
+  embedding: z.array(z.number()).nullable(),
 });
 
 const safeDate = (val: string | number | Date | null | undefined) => {
@@ -66,12 +62,15 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
 
   const stops = sortedStops.map((stop) => {
     const stopPassengers = (data.passengers || []).filter((p) => p.rideStop?.id === stop.id);
+
     return {
       id: stop.id,
       locationName: stop.locationName,
+      locationPoint: stop.location,
       estimatedArrivalAt: stop.estimatedArrivalAt
         ? formatTime(safeDate(stop.estimatedArrivalAt))
         : i18n.general.unknown,
+      estimatedArrivalAtDate: stop.estimatedArrivalAt,
       orderIndex: stop.orderIndex,
       passengerCount: stopPassengers.length,
     };
@@ -90,6 +89,7 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
           id: p.user.id,
           firstName: p.user.firstName,
           lastName: p.user.lastName,
+          fullName: p.user.fullName,
           profileImageUrl: p.user.profileImageUrl,
         }
       : undefined,
@@ -109,6 +109,9 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
     driver: data.driver,
     stops,
     passengers: mappedPassengers,
+    organizationId: data.orgId,
+    startsAt: data.startsAt,
+    estimatedEndsAt: data.estimatedEndsAt,
   };
 });
 
