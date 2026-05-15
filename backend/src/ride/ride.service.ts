@@ -191,40 +191,31 @@ export class RideService {
   }
 
   getRideLocations = async (rideId: Ride['id']) => {
-    const ride = await this.ridesRepository.findOne({
-      where: { id: rideId, isDeleted: false },
-      relations: { passengers: { user: true }, driver: true, rideStops: true },
-    });
+    try {
+      const ride = await this.getRideById(rideId);
 
-    if (!ride || ride.driver.isDeleted) return [];
+      const driverLocationPayload = ride.driver.currentLocation
+        ? ({
+            type: 'DRIVER',
+            id: ride.driver.id,
+            location: ride.driver.currentLocation,
+            name: `${ride.driver.fullName} (נהג/ת)`,
+          } satisfies RideEntityLocationPayloadWithFullDetails)
+        : undefined;
 
-    const driverLocationPayload = ride.driver.currentLocation
-      ? ({
-          type: 'DRIVER',
-          id: ride.driver.id,
-          location: ride.driver.currentLocation,
-          name: `${ride.driver.fullName} (נהג/ת)`,
-        } satisfies RideEntityLocationPayloadWithFullDetails)
-      : undefined;
+      const ridePassengersLocationPayloads = ride.passengers
+        .filter(({ user }) => !!user.currentLocation)
+        .map(
+          ({ user: { id, currentLocation, fullName } }) =>
+            ({
+              type: 'PASSENGER',
+              id,
+              location: currentLocation as Point,
+              name: `${fullName} (נוסע/ת)`,
+            }) satisfies RideEntityLocationPayloadWithFullDetails,
+        );
 
-    const ridePassengersLocationPayloads = ride.passengers
-      .filter(
-        ({ isDeleted, user }) =>
-          !isDeleted && !user.isDeleted && !!user.currentLocation,
-      )
-      .map(
-        ({ user: { id, currentLocation, fullName } }) =>
-          ({
-            type: 'PASSENGER',
-            id,
-            location: currentLocation as Point,
-            name: `${fullName} (נוסע/ת)`,
-          }) satisfies RideEntityLocationPayloadWithFullDetails,
-      );
-
-    const rideStopsLocationPayloads = ride.rideStops
-      .filter(({ isDeleted }) => !isDeleted)
-      .map(
+      const rideStopsLocationPayloads = ride.rideStops.map(
         ({ location, id, locationName, orderIndex }) =>
           ({
             type: 'STOP',
@@ -234,12 +225,18 @@ export class RideService {
           }) satisfies RideEntityLocationPayloadWithFullDetails,
       );
 
-    const rideLocationPayloads = [
-      ...(driverLocationPayload ? [driverLocationPayload] : []),
-      ...ridePassengersLocationPayloads,
-      ...rideStopsLocationPayloads,
-    ];
+      const rideLocationPayloads = [
+        ...(driverLocationPayload ? [driverLocationPayload] : []),
+        ...ridePassengersLocationPayloads,
+        ...rideStopsLocationPayloads,
+      ];
 
-    return rideLocationPayloads;
+      return rideLocationPayloads;
+    } catch (error) {
+      this.logger.error(
+        `Error while getting ride locations (rideId=${rideId})`,
+        error,
+      );
+    }
   };
 }
