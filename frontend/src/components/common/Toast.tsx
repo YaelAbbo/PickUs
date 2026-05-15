@@ -22,32 +22,32 @@ const Toast: FC<ToastProps> = ({ message, type = 'success', visible, onHide }) =
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setTimeout(() => {
-          Animated.parallel([
-            Animated.timing(translateY, {
-              toValue: 100,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            setIsAnimating(false);
-            onHide();
-          });
-        }, 2500);
-      });
-  }, [visible]);
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(translateY, {
+            toValue: 100,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          setIsAnimating(false);
+          onHide();
+        });
+      }, 2500);
+    });
+  }, [visible, onHide, opacity, translateY]);
 
   if (!visible && !isAnimating) return null;
 

@@ -374,6 +374,57 @@ describe('RideController', () => {
       expect(response.body[0].organization).toBeDefined();
     });
 
+    it('GET /rides/passenger/:passengerId should return rides for the passenger', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+        ],
+      } as DeepPartial<Ride>);
+
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+      const firstRideStop = savedRide.rideStops?.[0];
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: firstRideStop!.id },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/passenger/${testPassengerId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toEqual(true);
+      const responseRide = response.body.find(
+        (r: Ride) => r.id === savedRide.id,
+      );
+      expect(responseRide).toBeDefined();
+      expect(responseRide.passengers[0].user.id).toEqual(testPassengerId);
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+    });
+
     it('GET /rides/organization/:orgId should omit deleted passengers and deleted ride stops', async () => {
       const passengerRepo = dataSource.getRepository(RidePassenger);
 
@@ -701,8 +752,9 @@ describe('RideController', () => {
         `/rides/organization/${fakeId}`,
       );
       const res6 = await request(httpServer).get(`/rides/driver/${fakeId}`);
-      const res7 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
-      const res8 = await request(httpServer).delete(`/rides/${fakeId}`);
+      const res7 = await request(httpServer).get(`/rides/passenger/${fakeId}`);
+      const res8 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
+      const res9 = await request(httpServer).delete(`/rides/${fakeId}`);
 
       expect(res1.status).toEqual(401);
       expect(res2.status).toEqual(401);
@@ -712,6 +764,7 @@ describe('RideController', () => {
       expect(res6.status).toEqual(401);
       expect(res7.status).toEqual(401);
       expect(res8.status).toEqual(401);
+      expect(res9.status).toEqual(401);
     });
   });
 });

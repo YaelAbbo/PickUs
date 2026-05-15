@@ -145,6 +145,23 @@ export class RideService {
   async getRidesByDriverId(driverId: User['id']): Promise<Ride[]> {
     const rides = await this.createRideQueryBuilder()
       .andWhere('ride.driverId = :driverId', { driverId })
+      .andWhere('ride.startsAt >= :now', { now: new Date() })
+      .orderBy('ride.startsAt', 'ASC')
+      .getMany();
+
+    return this.sanitizeRideCollection(rides);
+  }
+
+  async getRidesByPassengerId(passengerId: User['id']): Promise<Ride[]> {
+    const rides = await this.createRideQueryBuilder()
+      .innerJoin(
+        'ride.passengers',
+        'passengerFilter',
+        'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
+        { passengerId },
+      )
+      .andWhere('ride.startsAt >= :now', { now: new Date() })
+      .orderBy('ride.startsAt', 'ASC')
       .getMany();
 
     return this.sanitizeRideCollection(rides);

@@ -73,6 +73,7 @@ export const i18n = {
   },
   rideForm: {
     create_ride: 'יצירת נסיעה',
+    update_ride: 'עריכת נסיעה',
     ride_stop: 'תחנה',
     another_ride_stop: 'עוד תחנה',
     return_trip: 'נסיעה חוזרת',
@@ -137,6 +138,9 @@ export const i18n = {
     leave_error: 'שגיאה בעזיבת הנסיעה. אנא נסה/י שנית.',
     update_stop_error: 'שגיאה בעדכון התחנה. אנא נסה/י שנית.',
     ride_full: 'הנסיעה מלאה',
+    start_ride: 'התחל נסיעה',
+    edit_ride: 'ערוך נסיעה',
+    delete_ride: 'מחק נסיעה',
   },
   notifications: {
     empty_text: 'אין התראות עדיין',
