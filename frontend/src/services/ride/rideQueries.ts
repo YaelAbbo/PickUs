@@ -10,11 +10,12 @@ export const RIDES_QUERY_KEYS = {
   locations: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'locations', id] as const,
 };
 
-export const useRideLocations = (rideId: Ride['id']) => {
+export const useRideLocations = (rideId: Ride['id'] | undefined) => {
   return useQuery({
-    queryKey: RIDES_QUERY_KEYS.locations(rideId),
-    queryFn: () => rideService.getRideLocations(rideId),
+    queryKey: RIDES_QUERY_KEYS.locations(rideId as Ride['id']),
+    queryFn: () => rideService.getRideLocations(rideId as Ride['id']),
     staleTime: Infinity,
+    enabled: !!rideId,
   });
 };
 

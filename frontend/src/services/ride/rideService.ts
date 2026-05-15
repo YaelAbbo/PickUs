@@ -6,16 +6,11 @@ import { z } from 'zod';
 
 export type RideEntityType = 'DRIVER' | 'PASSENGER' | 'STOP';
 
-export type RideEntityLocationPayload = {
-  type: RideEntityType;
-  id: UUID;
-  location: Point | null;
-  name: string;
-  rideId?: Ride['id'];
-};
+export type RideEntityLocationPayload = { id: UUID; location: Point; rideId?: Ride['id'] };
 
-export type NonNullableRideEntityLocationPayload = Omit<RideEntityLocationPayload, 'location'> & {
-  location: Point;
+export type RideEntityLocationPayloadWithDetails = RideEntityLocationPayload & {
+  type: RideEntityType;
+  name: string;
 };
 
 export type LocationUpdatePayload = { location: Point; rideId?: Ride['id'] };
@@ -40,7 +35,7 @@ export const rideService = {
   },
 
   getRideLocations: async (rideId: Ride['id']) => {
-    const { data: rideLocations } = await api.get<RideEntityLocationPayload[]>(`/rides/${rideId}/locations`);
+    const { data: rideLocations } = await api.get<RideEntityLocationPayloadWithDetails[]>(`/rides/${rideId}/locations`);
 
     return rideLocations;
   },

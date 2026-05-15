@@ -121,18 +121,11 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     rideId: Ride['id'];
   }) => {
     try {
-      const [user, ride] = await Promise.all([
-        this.userService.getUserById(userId),
-        this.rideService.getRideById(rideId),
-      ]);
-
       const rideLocationPayload = {
         id: userId,
         rideId,
         location,
         properties,
-        name: user.fullName,
-        type: ride.driverId === userId ? 'DRIVER' : 'PASSENGER',
       } satisfies RideEntityLocationPayload;
 
       this.server

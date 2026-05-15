@@ -1,6 +1,13 @@
 import type { UUID } from 'crypto';
 import type { Point } from 'geojson';
-import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  AfterLoad,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 import { EMBEDDING_DIMENSION } from '../../utils/constants';
 import { BaseEntity } from './base.entity';
 import { Organization } from './organization.entity';
@@ -21,8 +28,11 @@ export class User extends BaseEntity {
   @Column({ name: 'last_name', type: 'varchar' })
   lastName: string;
 
-  get fullName() {
-    return `${this.firstName} ${this.lastName}`;
+  fullName: string;
+
+  @AfterLoad()
+  setFullName() {
+    this.fullName = `${this.firstName} ${this.lastName}`;
   }
 
   @Column({ name: 'national_id', type: 'varchar', unique: true })

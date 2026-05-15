@@ -15,13 +15,17 @@ export interface LocationUpdatePayload {
 }
 
 export type RideEntityLocationPayload = {
-  type: 'DRIVER' | 'PASSENGER' | 'STOP';
   id: UUID;
-  location: Point | null;
-  name: string;
+  location: Point;
   properties?: JSONObject;
   rideId?: Ride['id'];
 };
+
+export type RideEntityLocationPayloadWithFullDetails =
+  RideEntityLocationPayload & {
+    name: string;
+    type: 'DRIVER' | 'PASSENGER' | 'STOP';
+  };
 
 export interface RoomActionResponse {
   rideId: Ride['id'];

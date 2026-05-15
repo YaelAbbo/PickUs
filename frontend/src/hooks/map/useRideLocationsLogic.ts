@@ -1,53 +1,73 @@
 import type { Ride } from '@/schemas/ride';
 import { useRideLocations } from '@/services/ride/rideQueries';
-import type { NonNullableRideEntityLocationPayload, RideEntityLocationPayload } from '@/services/ride/rideService';
-import type { User } from '@schemas';
+import type { RideEntityLocationPayload, RideEntityLocationPayloadWithDetails } from '@/services/ride/rideService';
 import { WsEvent, useAuth, websocketService } from '@services';
 import { useFocusEffect } from 'expo-router';
 import { append, filter, pipe } from 'rambda';
 import { useEffect, useState } from 'react';
 
 const upsertRideLocation =
-  (updatedLocationPayload: NonNullableRideEntityLocationPayload) =>
-  (prevRideLocations: NonNullableRideEntityLocationPayload[]) =>
+  (updatedLocationPayload: RideEntityLocationPayloadWithDetails) =>
+  (prevRideLocations: RideEntityLocationPayloadWithDetails[]) =>
     pipe(
       prevRideLocations,
       filter(({ id }) => id !== updatedLocationPayload.id),
       append(updatedLocationPayload),
     );
 
-const isRideEntityHasLocation =
-  (currentUserId: User['id'] | undefined) =>
-  (rideEntity: RideEntityLocationPayload): rideEntity is NonNullableRideEntityLocationPayload =>
-    !!rideEntity.location && rideEntity.id !== currentUserId;
-
-export type UseRideLocationsLogicArgs = { rideId: Ride['id'] };
+export type UseRideLocationsLogicArgs = { ride: Ride | undefined };
 
 export type UseRideLocationsLogicContent = ReturnType<typeof useRideLocations>;
 
-export const useRideLocationsLogic = ({ rideId }: UseRideLocationsLogicArgs) => {
+export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
   const { user } = useAuth();
+
   const currentUserId = user?.id;
+  const rideId = ride?.id;
 
-  const { data: initialRideLocationsPayloads = [] } = useRideLocations(rideId);
+  const { data: initialRideLocationsPayloads = [], isSuccess } = useRideLocations(rideId);
 
-  const [currentRideLocations, setCurrentRideLocations] = useState<NonNullableRideEntityLocationPayload[]>([]);
+  const [currentRideLocations, setCurrentRideLocations] = useState<RideEntityLocationPayloadWithDetails[]>([]);
 
   useEffect(() => {
-    const locationsPayloads = initialRideLocationsPayloads.filter(isRideEntityHasLocation(currentUserId));
+    if (!isSuccess) return;
 
-    setCurrentRideLocations(locationsPayloads);
-  }, [currentUserId, initialRideLocationsPayloads]);
+    const initialRideLocationsPayloadsWithoutCurrentUser = initialRideLocationsPayloads.filter(
+      ({ id }) => id !== currentUserId,
+    );
+
+    setCurrentRideLocations(initialRideLocationsPayloadsWithoutCurrentUser);
+  }, [currentUserId, initialRideLocationsPayloads, isSuccess]);
 
   useFocusEffect(() => {
+    if (!ride) return;
+
     websocketService.emit(WsEvent.ROOM_JOIN, rideId);
+
+    const { passengers, stops, driver, driverId } = ride;
 
     const unsubscribeFromLocationUpdated = websocketService.on(
       WsEvent.LOCATION_UPDATED,
       (updatedLocationPayload: RideEntityLocationPayload) => {
-        const isLocationPayloadValid = isRideEntityHasLocation(currentUserId)(updatedLocationPayload);
+        if (updatedLocationPayload.id === currentUserId) return;
 
-        if (isLocationPayloadValid) setCurrentRideLocations(upsertRideLocation(updatedLocationPayload));
+        const isDriver = driverId === currentUserId;
+
+        const passengerFullName = passengers.find(({ userId }) => userId === updatedLocationPayload.id)?.user?.fullName;
+
+        const rideStopLocationName = stops.find(({ id }) => id === updatedLocationPayload.id)?.locationName;
+
+        const name = isDriver ? driver?.fullName : (passengerFullName ?? rideStopLocationName);
+
+        if (!name) return;
+
+        const updatedLocationPayloadWithDetails = {
+          ...updatedLocationPayload,
+          name,
+          type: isDriver ? 'DRIVER' : 'PASSENGER',
+        } satisfies RideEntityLocationPayloadWithDetails;
+
+        setCurrentRideLocations(upsertRideLocation(updatedLocationPayloadWithDetails));
       },
     );
 
