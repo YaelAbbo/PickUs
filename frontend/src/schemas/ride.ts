@@ -22,6 +22,7 @@ const userBasicDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   fullName: z.string(),
+  avgRideEmbedding: z.array(z.number()).nullable(),
   profileImageUrl: z.string().nullable().optional(),
 });
 

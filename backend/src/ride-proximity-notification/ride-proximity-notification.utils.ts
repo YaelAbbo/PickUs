@@ -43,4 +43,4 @@ export const createDriverNearStopMessage = ({
   DriverNearStopNotificationPayload,
   'driverName' | 'driverDistanceFromStop'
 > & { rideStopLocationName: RideStop['locationName'] }) =>
-  `${driverName} is ${driverDistanceFromStop}m away from your stop '${rideStopLocationName}'` as const;
+  `${driverName} במרחק ${driverDistanceFromStop} מ' מתחנת העצירה שלך '${rideStopLocationName}'` as const;
