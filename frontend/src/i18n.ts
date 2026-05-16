@@ -138,4 +138,7 @@ export const i18n = {
     update_stop_error: 'שגיאה בעדכון התחנה. אנא נסה/י שנית.',
     ride_full: 'הנסיעה מלאה',
   },
+  notifications: {
+    empty_text: 'אין התראות עדיין',
+  },
 };
