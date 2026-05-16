@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 
 const handleDriverNearStopNotification = ({ content }: DriverNearStopPayload) =>
-  Alert.alert('Driver is nearby!', content, [{ text: i18n.general.accept }]);
+  Alert.alert(i18n.notifications.driver_nearby_alert_title, content, [{ text: i18n.general.accept }]);
 
 export const useDriverNearStopNotifications = () => {
   const { user } = useAuth();
