@@ -8,3 +8,4 @@ export * from './SplashScreen';
 export * from './themed-text';
 export * from './themed-view';
 export * from './ui';
+export * from './NotificationItem';
