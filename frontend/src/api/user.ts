@@ -14,6 +14,7 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   role: UserRole;
   orgId: UUID;
   organization?: Pick<Organization, 'id' | 'name' | 'imageUrl'>;

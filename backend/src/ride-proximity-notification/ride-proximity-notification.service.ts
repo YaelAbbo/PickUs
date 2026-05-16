@@ -33,8 +33,8 @@ export class ProximityNotificationService {
   checkAndCollectNotifications = async ({
     rideId,
     driverLocation,
-    driverName,
-  }: Pick<DriverNearStopPayload, 'rideId' | 'driverName'> & {
+    driver,
+  }: Pick<DriverNearStopPayload, 'rideId' | 'driver'> & {
     driverLocation: Point;
   }) => {
     const ridePassengers =
@@ -66,21 +66,22 @@ export class ProximityNotificationService {
       const existingNotificationId =
         this.notifiedPassengerStopKeyToNotificationId.get(rideStopKey);
 
-      const notificationId = await (existingNotificationId
-        ? this.updateDriverNearStopNotification({
-            passenger,
-            driverName,
-            notificationId: existingNotificationId,
-            driverDistanceFromStop,
-          })
-        : this.createDriverNearStopNotification({
-            passenger,
-            driverName,
-            rideId,
-            driverDistanceFromStop,
-          }));
+      const { notificationId, content } =
+        (await (existingNotificationId
+          ? this.updateDriverNearStopNotification({
+              passenger,
+              driver,
+              notificationId: existingNotificationId,
+              driverDistanceFromStop,
+            })
+          : this.createDriverNearStopNotification({
+              passenger,
+              driver,
+              rideId,
+              driverDistanceFromStop,
+            }))) ?? {};
 
-      if (!notificationId) continue;
+      if (!notificationId || !content) continue;
 
       this.notifiedPassengerStopKeyToNotificationId.set(
         rideStopKey,
@@ -93,9 +94,10 @@ export class ProximityNotificationService {
           rideId,
           stopId: rideStop.id,
           stopName: rideStop.locationName,
-          driverName,
+          driver,
           driverDistanceFromStop,
           estimatedArrivalAt: rideStop.estimatedArrivalAt,
+          content,
         },
       });
     }
@@ -105,27 +107,27 @@ export class ProximityNotificationService {
 
   private createDriverNearStopNotification = async ({
     passenger,
-    driverName,
+    driver,
     driverDistanceFromStop,
     rideId,
   }: DriverNearStopNotificationPayload) => {
-    const driverNearStopMessage = createDriverNearStopMessage({
+    const content = createDriverNearStopMessage({
       driverDistanceFromStop,
-      driverName,
+      driver,
       rideStopLocationName: passenger.rideStop.locationName,
     });
 
     try {
       const createdNotification = await this.notificationService.create({
-        content: driverNearStopMessage,
-        creatorId: passenger.userId,
+        content,
+        creatorId: driver.id,
         rideId,
       });
 
-      return createdNotification.id;
+      return { notificationId: createdNotification.id, content };
     } catch (error) {
       this.logger.error(
-        `Failed to create driver near stop notification for passenger ${passenger.user.fullName} (driver=${driverName}, rideStop=${passenger.rideStop.locationName})`,
+        `Failed to create driver near stop notification for passenger ${passenger.user.fullName} (driver=${driver.fullName}, rideStop=${passenger.rideStop.locationName})`,
         error,
       );
     }
@@ -133,27 +135,25 @@ export class ProximityNotificationService {
 
   private updateDriverNearStopNotification = async ({
     passenger,
-    driverName,
+    driver,
     driverDistanceFromStop,
     notificationId,
   }: Omit<DriverNearStopNotificationPayload, 'rideId'> & {
     notificationId: Notification['id'];
   }) => {
-    const driverNearStopMessage = createDriverNearStopMessage({
+    const content = createDriverNearStopMessage({
       driverDistanceFromStop,
-      driverName,
+      driver,
       rideStopLocationName: passenger.rideStop.locationName,
     });
 
     try {
-      await this.notificationService.update(notificationId, {
-        content: driverNearStopMessage,
-      });
+      await this.notificationService.update(notificationId, { content });
 
-      return notificationId;
+      return { notificationId, content };
     } catch (error) {
       this.logger.error(
-        `Failed to update driver near stop notification for passenger ${passenger.user.fullName} (driver=${driverName}, rideStop=${passenger.rideStop.locationName})`,
+        `Failed to update driver near stop notification for passenger ${passenger.user.fullName} (driver=${driver.fullName}, rideStop=${passenger.rideStop.locationName})`,
         error,
       );
     }

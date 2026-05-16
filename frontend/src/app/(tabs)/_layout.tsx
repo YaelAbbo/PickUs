@@ -1,6 +1,7 @@
 import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
+import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
@@ -31,6 +32,8 @@ const tabBarBackground = () => (
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
   const { isUserLoading, user } = useAuth();
+
+  useDriverNearStopNotifications();
 
   if (isUserLoading) return <SplashScreen />;
 

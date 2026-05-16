@@ -63,6 +63,7 @@ export class NotificationService {
       )
       .where('notification.isDeleted = false')
       .andWhere('notification.createdAt >= :yesterday', { yesterday })
+      .andWhere('creator.id != :userId', { userId })
       .andWhere(
         new Brackets((qb: WhereExpressionBuilder) => {
           qb.where('ride.id IS NULL').orWhere('ride.isDeleted = false');

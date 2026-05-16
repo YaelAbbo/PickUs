@@ -29,9 +29,7 @@ export const NotificationItem = ({ item }: { item: Notification }) => {
 
       <View style={styles.contentContainer}>
         <View style={styles.headerRow}>
-          <Text style={styles.creatorName}>
-            {item.creator.firstName} {item.creator.lastName}
-          </Text>
+          <Text style={styles.creatorName}>{item.creator.fullName}</Text>
           <Text style={styles.dateText}>{format(new Date(item.createdAt), 'MMM d, HH:mm')}</Text>
         </View>
         <Text style={styles.contentText}>{item.content}</Text>

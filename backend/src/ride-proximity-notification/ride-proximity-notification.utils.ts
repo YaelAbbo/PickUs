@@ -2,7 +2,7 @@ import type { RideStop, User } from '@/database/entities';
 import { getDistance } from 'geolib';
 import type { DriverNearStopNotificationPayload } from './ride-proximity-notification.types';
 
-export const DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS = 500;
+export const DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS = 500000;
 
 export const getDriverDistanceFromStop = ({
   driverLocation,
@@ -36,11 +36,11 @@ export const createPassengerStopKey = ({
 }) => `${passengerId}:${rideStopId}` as const;
 
 export const createDriverNearStopMessage = ({
-  driverName,
+  driver,
   driverDistanceFromStop,
   rideStopLocationName,
 }: Pick<
   DriverNearStopNotificationPayload,
-  'driverName' | 'driverDistanceFromStop'
+  'driver' | 'driverDistanceFromStop'
 > & { rideStopLocationName: RideStop['locationName'] }) =>
-  `${driverName} במרחק ${driverDistanceFromStop} מ' מתחנת העצירה שלך '${rideStopLocationName}'` as const;
+  `${driver.fullName} במרחק ${driverDistanceFromStop} מ' מתחנת העצירה שלך '${rideStopLocationName}'` as const;
