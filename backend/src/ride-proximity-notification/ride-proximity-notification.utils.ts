@@ -2,7 +2,7 @@ import type { RideStop, User } from '@/database/entities';
 import { getDistance } from 'geolib';
 import type { DriverNearStopNotificationPayload } from './ride-proximity-notification.types';
 
-export const DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS = 500000;
+export const DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS = 500;
 
 export const getDriverDistanceFromStop = ({
   driverLocation,
