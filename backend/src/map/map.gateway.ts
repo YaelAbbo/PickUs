@@ -1,6 +1,7 @@
 import type { JWTPayload } from '@/auth/types';
 import type { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
+import { RideService } from '@/ride/ride.service';
 import { UserService } from '@/user/user.service';
 import { WsCurrentUser } from '@/websocket/decorators';
 import { WsEvent } from '@/websocket/events';
@@ -17,11 +18,10 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import type { Point } from 'geojson';
 import type { Server, Socket } from 'socket.io';
 import type {
   LocationUpdatePayload,
-  LocationUpdatedPayload,
+  RideEntityLocationPayload,
   RoomActionResponse,
 } from './map.types';
 
@@ -44,6 +44,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly rideService: RideService,
     private configService: ConfigService,
   ) {}
 
@@ -110,39 +111,60 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { rideId };
   }
 
+  private emitLocationUpdatedToRideRoom = async ({
+    userId,
+    rideId,
+    location,
+    properties,
+  }: Pick<RideEntityLocationPayload, 'location' | 'properties'> & {
+    userId: User['id'];
+    rideId: Ride['id'];
+  }) => {
+    try {
+      const rideLocationPayload = {
+        id: userId,
+        rideId,
+        location,
+        properties,
+      } satisfies RideEntityLocationPayload;
+
+      this.server
+        .to(this.buildRoomId(rideId))
+        .emit(WsEvent.LOCATION_UPDATED, rideLocationPayload);
+    } catch (error) {
+      this.logger.error(
+        `Error while emitting location updated to room of ride ${rideId} from user ${userId}: ${error}`,
+      );
+    }
+  };
+
   @SubscribeMessage(WsEvent.LOCATION_UPDATE)
   @UseGuards(WsJwtGuard)
   async handleLocationUpdate(
     @MessageBody() payload: LocationUpdatePayload,
-    @WsCurrentUser() user: JWTPayload,
+    @WsCurrentUser() jwtPayload: JWTPayload,
   ): Promise<{ status: string }> {
-    const { rideId, geometry, properties } = payload;
+    const { rideId, location, properties } = payload;
+    const userId = jwtPayload.sub as User['id'];
 
     this.logger.log(
-      `Location update from user=${user.sub} rideId=${rideId ?? 'none'}`,
+      `Location update from user=${userId} rideId=${rideId ?? 'none'}`,
     );
 
     try {
-      await this.userService.updateLocation(
-        user.sub as User['id'],
-        geometry as Point,
-      );
+      await this.userService.updateLocation(userId, location);
     } catch (err) {
-      this.logger.error(`Failed to persist location for user=${user.sub}`, err);
+      this.logger.error(`Failed to persist location for user=${userId}`, err);
       return { status: 'error' };
     }
 
-    if (rideId) {
-      const outbound: LocationUpdatedPayload = {
-        userId: user.sub as User['id'],
+    if (rideId)
+      await this.emitLocationUpdatedToRideRoom({
         rideId,
-        geometry,
+        userId,
+        location,
         properties,
-      };
-      this.server
-        .to(this.buildRoomId(rideId))
-        .emit(WsEvent.LOCATION_UPDATED, outbound);
-    }
+      });
 
     return { status: 'ok' };
   }

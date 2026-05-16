@@ -1,6 +1,19 @@
 import { api } from '@/api/api';
 import { rideEntitySchema, type Ride } from '@/schemas/ride';
+import type { Point } from '@types';
+import type { UUID } from 'crypto';
 import { z } from 'zod';
+
+export type RideEntityType = 'DRIVER' | 'PASSENGER' | 'STOP';
+
+export type RideEntityLocationPayload = { id: UUID; location: Point; rideId?: Ride['id'] };
+
+export type RideEntityLocationPayloadWithDetails = RideEntityLocationPayload & {
+  type: RideEntityType;
+  name: string;
+};
+
+export type LocationUpdatePayload = { location: Point; rideId?: Ride['id'] };
 
 export type RideFilters = {
   search?: string;
@@ -19,6 +32,12 @@ export const rideService = {
     const { data } = await api.get(`/rides/${id}`);
 
     return rideEntitySchema.parse(data);
+  },
+
+  getRideLocations: async (rideId: Ride['id']) => {
+    const { data: rideLocations } = await api.get<RideEntityLocationPayloadWithDetails[]>(`/rides/${rideId}/locations`);
+
+    return rideLocations;
   },
 
   deleteRide: (rideId: Ride['id']) => api.delete(`/rides/${rideId}`),

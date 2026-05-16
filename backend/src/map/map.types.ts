@@ -1,5 +1,6 @@
 import type { Ride } from '@/database/entities/ride.entity';
-import type { User } from '@/database/entities/user.entity';
+import type { UUID } from 'crypto';
+import type { Point } from 'geojson';
 
 export type JSONPrimitive = string | number | boolean | null | undefined;
 
@@ -7,23 +8,24 @@ export interface JSONObject {
   [key: string]: JSONPrimitive | JSONObject | JSONPrimitive[] | JSONObject[];
 }
 
-export interface GeoJSONGeometry {
-  type: string;
-  coordinates: number[];
-}
-
 export interface LocationUpdatePayload {
-  geometry: GeoJSONGeometry;
+  location: Point;
   properties?: JSONObject;
   rideId?: Ride['id'];
 }
 
-export interface LocationUpdatedPayload {
-  userId: User['id'];
-  geometry: GeoJSONGeometry;
+export type RideEntityLocationPayload = {
+  id: UUID;
+  location: Point;
   properties?: JSONObject;
   rideId?: Ride['id'];
-}
+};
+
+export type RideEntityLocationPayloadWithFullDetails =
+  RideEntityLocationPayload & {
+    name: string;
+    type: 'DRIVER' | 'PASSENGER' | 'STOP';
+  };
 
 export interface RoomActionResponse {
   rideId: Ride['id'];

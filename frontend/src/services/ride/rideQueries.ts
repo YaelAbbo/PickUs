@@ -1,5 +1,5 @@
 import { joinRide, leaveRide, updateRideStop } from '@/api/ridePassenger';
-import type { Ride } from '@/schemas/ride';
+import { type Ride } from '@/schemas/ride';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RideFilters, rideService } from './rideService';
 
@@ -7,6 +7,16 @@ export const RIDES_QUERY_KEYS = {
   all: ['rides'] as const,
   available: (filters?: RideFilters) => [...RIDES_QUERY_KEYS.all, 'available', filters] as const,
   detail: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'detail', id] as const,
+  locations: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'locations', id] as const,
+};
+
+export const useRideLocations = (rideId: Ride['id'] | undefined) => {
+  return useQuery({
+    queryKey: RIDES_QUERY_KEYS.locations(rideId as Ride['id']),
+    queryFn: () => rideService.getRideLocations(rideId as Ride['id']),
+    staleTime: Infinity,
+    enabled: !!rideId,
+  });
 };
 
 export const useAvailableRides = (filters?: RideFilters) => {

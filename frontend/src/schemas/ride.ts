@@ -21,6 +21,8 @@ const userBasicDtoSchema = z.object({
   id: z.string().optional(),
   firstName: z.string(),
   lastName: z.string(),
+  fullName: z.string(),
+  avgRideEmbedding: z.array(z.number()).nullable(),
   profileImageUrl: z.string().nullable().optional(),
 });
 
@@ -42,6 +44,7 @@ export const rideDtoSchema = entityMetadata.extend({
   rideStops: z.array(rideStopSchema).optional(),
   driver: userBasicDtoSchema.optional(),
   passengers: z.array(ridePassengerSchema).optional(),
+  embedding: z.array(z.number()).nullable(),
 });
 
 const safeDate = (val: string | number | Date | null | undefined) => {
@@ -87,6 +90,7 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
           id: p.user.id,
           firstName: p.user.firstName,
           lastName: p.user.lastName,
+          fullName: p.user.fullName,
           profileImageUrl: p.user.profileImageUrl,
         }
       : undefined,

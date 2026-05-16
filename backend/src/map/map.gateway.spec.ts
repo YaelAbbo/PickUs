@@ -5,6 +5,7 @@ import { UserService } from '../user/user.service';
 import { WsEvent } from '../websocket/events';
 import { MapGateway } from './map.gateway';
 import type { LocationUpdatePayload } from './map.types';
+import type { RideService } from '@/ride/ride.service';
 
 const mockUser = { sub: 'user-1', iat: 0, exp: 9999999999 };
 
@@ -49,14 +50,27 @@ function buildGateway(
     }),
   } as unknown as UserService;
 
+  const rideService = {
+    getRideById: jest.fn().mockImplementation(() => {
+      if (updateLocationResult === 'throw')
+        return Promise.reject(new Error('db error'));
+      return Promise.resolve();
+    }),
+  } as unknown as RideService;
+
   const configService = {
     get: jest
       .fn()
       .mockImplementation((key: string, defaultValue: string) => defaultValue),
   } as unknown as ConfigService;
 
-  const gateway = new MapGateway(jwtService, userService, configService);
-  return { gateway, jwtService, userService, configService };
+  const gateway = new MapGateway(
+    jwtService,
+    userService,
+    rideService,
+    configService,
+  );
+  return { gateway, jwtService, userService, rideService, configService };
 }
 
 describe('MapGateway', () => {
@@ -123,7 +137,7 @@ describe('MapGateway', () => {
   });
 
   describe('handleLocationUpdate', () => {
-    const geometry = { type: 'Point', coordinates: [34.8516, 31.0461] };
+    const location = { type: 'Point', coordinates: [34.8516, 31.0461] };
     const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
     it('persists the location to the user record', async () => {
@@ -131,11 +145,11 @@ describe('MapGateway', () => {
       const mockServer = buildMockServer();
       gateway.server = mockServer as unknown as Server;
 
-      await gateway.handleLocationUpdate({ geometry, rideId }, mockUser);
+      await gateway.handleLocationUpdate({ location, rideId }, mockUser);
 
       expect(userService.updateLocation).toHaveBeenCalledWith(
         mockUser.sub,
-        geometry,
+        location,
       );
     });
 
@@ -144,7 +158,7 @@ describe('MapGateway', () => {
       const mockServer = buildMockServer();
       gateway.server = mockServer as unknown as Server;
 
-      const payload: LocationUpdatePayload = { geometry, rideId };
+      const payload: LocationUpdatePayload = { location, rideId };
 
       const result = await gateway.handleLocationUpdate(payload, mockUser);
 
@@ -152,7 +166,7 @@ describe('MapGateway', () => {
       expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.LOCATION_UPDATED, {
         userId: mockUser.sub,
         rideId,
-        geometry,
+        location,
         properties: undefined,
       });
       expect(result).toEqual({ status: 'ok' });
@@ -163,7 +177,7 @@ describe('MapGateway', () => {
       const mockServer = buildMockServer();
       gateway.server = mockServer as unknown as Server;
 
-      const payload: LocationUpdatePayload = { geometry };
+      const payload: LocationUpdatePayload = { location };
 
       const result = await gateway.handleLocationUpdate(payload, mockUser);
 
@@ -177,7 +191,7 @@ describe('MapGateway', () => {
       gateway.server = mockServer as unknown as Server;
 
       const result = await gateway.handleLocationUpdate(
-        { geometry, rideId },
+        { location, rideId },
         mockUser,
       );
 
@@ -191,7 +205,7 @@ describe('MapGateway', () => {
       gateway.server = mockServer as unknown as Server;
 
       const payload: LocationUpdatePayload = {
-        geometry,
+        location,
         rideId,
         properties: { speed: 40 },
       };

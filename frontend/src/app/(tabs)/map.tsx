@@ -1,25 +1,40 @@
+import { MapMarker } from '@/components/MapMarker';
+import { useRide } from '@/services/ride/rideQueries';
+import type { LocationUpdatePayload } from '@/services/ride/rideService';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRideLocationsLogic } from '@hooks';
 import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Region, UrlTile } from 'react-native-maps';
 
-function buildLocationPayload(coords: Location.LocationObjectCoords) {
+function buildLocationPayload({
+  coords,
+  rideId,
+}: Pick<LocationUpdatePayload, 'rideId'> & { coords: Location.LocationObjectCoords }): LocationUpdatePayload {
   return {
-    geometry: {
+    location: {
       type: 'Point',
       coordinates: [coords.longitude, coords.latitude],
     },
+    rideId,
   };
 }
 
 export default function TrackingScreen() {
+  // TODO: Uncomment and remove hard-coded `ride` in Shira's PR for accessing the map screen on ride start [KAN-35]
+  // const { ride } = useLocalSearchParams<{ ride: Ride }>();
+  const rideId = '657fd615-a228-41af-9902-e416761e2a5b';
+  const { data: ride } = useRide(rideId);
+
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
   const subscriberRef = useRef<Location.LocationSubscription | null>(null);
+
+  const { currentRideLocations } = useRideLocationsLogic({ ride });
 
   async function startTracking() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -38,7 +53,10 @@ export default function TrackingScreen() {
       setIsLoading(false);
 
       if (websocketService.isConnected) {
-        websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(initialLocation.coords));
+        websocketService.emit(
+          WsEvent.LOCATION_UPDATE,
+          buildLocationPayload({ coords: initialLocation.coords, rideId }),
+        );
       }
 
       subscriberRef.current = await Location.watchPositionAsync(
@@ -51,7 +69,10 @@ export default function TrackingScreen() {
           setLocation(newLocation);
 
           if (websocketService.isConnected) {
-            websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload(newLocation.coords));
+            websocketService.emit(
+              WsEvent.LOCATION_UPDATE,
+              buildLocationPayload({ coords: newLocation.coords, rideId }),
+            );
           }
         },
       );
@@ -124,6 +145,10 @@ export default function TrackingScreen() {
           flipY={false}
           zIndex={1}
         />
+
+        {currentRideLocations.map(({ id, location, type, name }) => (
+          <MapMarker key={id} coordinates={location.coordinates} title={name} type={type} />
+        ))}
       </MapView>
 
       <TouchableOpacity style={styles.focusButton} onPress={handleFocus} activeOpacity={0.7}>

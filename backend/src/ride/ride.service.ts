@@ -4,6 +4,7 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
+import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -12,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { Point } from 'geojson';
 import { omit } from 'lodash';
 import { DeepPartial, Repository } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
@@ -187,4 +189,54 @@ export class RideService {
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
   }
+
+  getRideLocations = async (rideId: Ride['id']) => {
+    try {
+      const ride = await this.getRideById(rideId);
+
+      const driverLocationPayload = ride.driver.currentLocation
+        ? ({
+            type: 'DRIVER',
+            id: ride.driver.id,
+            location: ride.driver.currentLocation,
+            name: `${ride.driver.fullName} (נהג/ת)`,
+          } satisfies RideEntityLocationPayloadWithFullDetails)
+        : undefined;
+
+      const ridePassengersLocationPayloads = ride.passengers
+        .filter(({ user }) => !!user.currentLocation)
+        .map(
+          ({ user: { id, currentLocation, fullName } }) =>
+            ({
+              type: 'PASSENGER',
+              id,
+              location: currentLocation as Point,
+              name: `${fullName} (נוסע/ת)`,
+            }) satisfies RideEntityLocationPayloadWithFullDetails,
+        );
+
+      const rideStopsLocationPayloads = ride.rideStops.map(
+        ({ location, id, locationName, orderIndex }) =>
+          ({
+            type: 'STOP',
+            id,
+            location,
+            name: `תחנה ${orderIndex + 1} - ${locationName}`,
+          }) satisfies RideEntityLocationPayloadWithFullDetails,
+      );
+
+      const rideLocationPayloads = [
+        ...(driverLocationPayload ? [driverLocationPayload] : []),
+        ...ridePassengersLocationPayloads,
+        ...rideStopsLocationPayloads,
+      ];
+
+      return rideLocationPayloads;
+    } catch (error) {
+      this.logger.error(
+        `Error while getting ride locations (rideId=${rideId})`,
+        error,
+      );
+    }
+  };
 }
