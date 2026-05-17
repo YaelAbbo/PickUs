@@ -31,7 +31,7 @@ export const useNotifications = (userId?: string) => {
 
       if (data.length) return data;
 
-      return [...MOCK_NOTIFICATIONS, ...data];
+      return MOCK_NOTIFICATIONS;
     },
     enabled: !!userId,
   });
