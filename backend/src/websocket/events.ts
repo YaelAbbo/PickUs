@@ -4,4 +4,6 @@ export enum WsEvent {
 
   LOCATION_UPDATE = 'location:update', // client → server: driver sends their position
   LOCATION_UPDATED = 'location:updated', // server → room: broadcasts updated position to ride participants
+
+  DRIVER_NEAR_STOP = 'driver:near_stop',
 }

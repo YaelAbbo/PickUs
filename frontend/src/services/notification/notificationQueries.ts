@@ -28,7 +28,10 @@ export const useNotifications = (userId?: string) => {
     queryKey: notificationKeys.user(userId!),
     queryFn: async () => {
       const data = await getNotifications(userId!);
-      return [...MOCK_NOTIFICATIONS, ...data];
+
+      if (data.length) return data;
+
+      return MOCK_NOTIFICATIONS;
     },
     enabled: !!userId,
   });

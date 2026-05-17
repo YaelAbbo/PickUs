@@ -5,4 +5,6 @@ export enum WsEvent {
 
   LOCATION_UPDATE = 'location:update',
   LOCATION_UPDATED = 'location:updated',
+
+  DRIVER_NEAR_STOP = 'driver:near_stop',
 }

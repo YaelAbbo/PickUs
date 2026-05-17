@@ -218,4 +218,19 @@ export class RidePassengerService {
       throw new BadRequestException('Cannot join a ride at the last stop');
     }
   }
+
+  getPassengersByRide = async (rideId: Ride['id']) => {
+    const passengersWithDeletedValues = await this.ridePassengerRepository.find(
+      {
+        where: { rideId, isDeleted: false },
+        relations: { rideStop: true, user: true },
+      },
+    );
+
+    const ridePassengers = passengersWithDeletedValues.filter(
+      ({ user, rideStop }) => !user.isDeleted && !rideStop.isDeleted,
+    );
+
+    return ridePassengers;
+  };
 }

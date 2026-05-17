@@ -140,5 +140,6 @@ export const i18n = {
   },
   notifications: {
     empty_text: 'אין התראות עדיין',
+    driver_nearby_alert_title: 'הנהג/ת בקרוב לידך!',
   },
 };
