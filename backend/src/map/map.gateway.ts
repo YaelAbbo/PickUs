@@ -174,7 +174,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       await this.userService.updateLocation(userId, location);
     } catch (err) {
-      this.logger.error(`Failed to persist location for user=${userId}`, err);
+      this.logger.error(`Failed to update location for user=${userId}`, err);
       return { status: 'error' };
     }
 
