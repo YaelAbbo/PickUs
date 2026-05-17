@@ -30,7 +30,7 @@ export class ProximityNotificationService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  checkAndCollectNotifications = async ({
+  upsertNotifications = async ({
     rideId,
     driverLocation,
     driver,
@@ -46,9 +46,10 @@ export class ProximityNotificationService {
       const { rideStop, user } = passenger;
       const passengerId = user.id;
 
-      const rideStopKey = createPassengerStopKey({
+      const passengerStopKey = createPassengerStopKey({
         passengerId,
         rideStopId: rideStop.id,
+        rideId,
       });
 
       const driverDistanceFromStop = getDriverDistanceFromStop({
@@ -64,7 +65,7 @@ export class ProximityNotificationService {
       );
 
       const existingNotificationId =
-        this.notifiedPassengerStopKeyToNotificationId.get(rideStopKey);
+        this.notifiedPassengerStopKeyToNotificationId.get(passengerStopKey);
 
       const { notificationId, content } =
         (await (existingNotificationId
@@ -84,7 +85,7 @@ export class ProximityNotificationService {
       if (!notificationId || !content) continue;
 
       this.notifiedPassengerStopKeyToNotificationId.set(
-        rideStopKey,
+        passengerStopKey,
         notificationId,
       );
 
@@ -164,7 +165,7 @@ export class ProximityNotificationService {
    */
   clearRideNotifications = (rideId: Ride['id']) => {
     for (const key of this.notifiedPassengerStopKeyToNotificationId.keys()) {
-      if (key.startsWith(`${rideId}:`))
+      if (key.startsWith(rideId))
         this.notifiedPassengerStopKeyToNotificationId.delete(key);
     }
   };

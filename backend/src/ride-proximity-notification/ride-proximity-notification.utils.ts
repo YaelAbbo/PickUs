@@ -1,6 +1,9 @@
-import type { RideStop, User } from '@/database/entities';
+import type { Ride, RideStop, User } from '@/database/entities';
 import { getDistance } from 'geolib';
-import type { DriverNearStopNotificationPayload } from './ride-proximity-notification.types';
+import type {
+  DriverNearStopNotificationPayload,
+  PassengerStopKey,
+} from './ride-proximity-notification.types';
 
 export const DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS = 500;
 
@@ -28,12 +31,14 @@ export const getDriverDistanceFromStop = ({
 };
 
 export const createPassengerStopKey = ({
+  rideId,
   passengerId,
   rideStopId,
 }: {
+  rideId: Ride['id'];
   passengerId: User['id'];
   rideStopId: RideStop['id'];
-}) => `${passengerId}:${rideStopId}` as const;
+}): PassengerStopKey => `${rideId}:${passengerId}:${rideStopId}`;
 
 export const createDriverNearStopMessage = ({
   driver,

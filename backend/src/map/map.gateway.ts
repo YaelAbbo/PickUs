@@ -221,7 +221,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     try {
       const notifications =
-        await this.proximityNotificationService.checkAndCollectNotifications({
+        await this.proximityNotificationService.upsertNotifications({
           driverLocation,
           driver: ride.driver,
           rideId,
