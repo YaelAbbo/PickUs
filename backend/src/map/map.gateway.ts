@@ -91,11 +91,11 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `Disconnected: socket=${client.id}${user ? `, user=${user.sub}` : ''}`,
     );
 
-    const rideRoomIds = [...client.rooms]
+    const rideIds = [...client.rooms]
       .filter((roomId) => roomId.startsWith(rideRoomIdPrefix))
       .map((roomId) => roomId.replace(rideRoomIdPrefix, '') as Ride['id']);
 
-    rideRoomIds.forEach(this.clearRideCache);
+    rideIds.forEach(this.clearRideCache);
   }
 
   buildRideRoomId(rideId: Ride['id']): string {
