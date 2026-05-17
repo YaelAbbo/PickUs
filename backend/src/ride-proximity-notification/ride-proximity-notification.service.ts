@@ -164,9 +164,12 @@ export class ProximityNotificationService {
    * Call when a ride ends so notified keys don't grow forever.
    */
   clearRideNotifications = (rideId: Ride['id']) => {
-    for (const key of this.notifiedPassengerStopKeyToNotificationId.keys()) {
-      if (key.startsWith(rideId))
-        this.notifiedPassengerStopKeyToNotificationId.delete(key);
-    }
+    const rideNotificationsIds = [
+      ...this.notifiedPassengerStopKeyToNotificationId.keys(),
+    ].filter((key) => key.startsWith(rideId));
+
+    rideNotificationsIds.forEach(
+      this.notifiedPassengerStopKeyToNotificationId.delete,
+    );
   };
 }
