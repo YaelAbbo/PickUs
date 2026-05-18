@@ -11,7 +11,6 @@ import type { Point } from 'geojson';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
-import { POSTGRES_UNIQUE_VIOLATION } from '../utils/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserErrorCode } from './enums/user-error-code.enum';
@@ -29,47 +28,15 @@ export class UserService {
     private readonly mailService: MailService,
   ) {}
 
-  async create({
-    firstName,
-    lastName,
-    nationalId,
-    email,
-    role,
-    currentLocation,
-    profileImageUrl,
-    orgId,
-  }: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const tempPassword = this.buildSecurePassword();
-    const passwordHash = await this.hashPassword(tempPassword);
 
-    const user = this.usersRepository.create({
-      firstName,
-      lastName,
-      nationalId,
-      email,
-      role,
-      organization: { id: orgId },
-      currentLocation,
-      profileImageUrl,
-      passwordHash,
-      isTempPassword: true,
+    const savedUser = await this.createOrRestoreUser({
+      ...createUserDto,
+      tempPassword,
     });
 
-    let savedUser: User;
-    try {
-      savedUser = await this.usersRepository.save(user);
-    } catch (error) {
-      this.logger.error(`Failed to create user, error`, error);
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === POSTGRES_UNIQUE_VIOLATION
-      ) {
-        throw new ConflictException(UserErrorCode.USER_ALREADY_EXISTS);
-      }
-      throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
-    }
+    const { firstName, lastName, email } = savedUser;
 
     try {
       await this.mailService.sendTempPasswordEmail({
@@ -86,6 +53,53 @@ export class UserService {
 
     return savedUser;
   }
+
+  private createOrRestoreUser = async ({
+    tempPassword,
+    ...createUserDto
+  }: CreateUserDto & { tempPassword: string }) => {
+    const passwordHash = await this.hashPassword(tempPassword);
+
+    const existingDeletedUser = await this.usersRepository.findOne({
+      where: { email: createUserDto.email, isDeleted: true },
+    });
+
+    if (existingDeletedUser)
+      try {
+        return await this.update(existingDeletedUser.id, {
+          ...existingDeletedUser,
+          ...createUserDto,
+          currentLocation: createUserDto.currentLocation,
+          passwordHash,
+          isDeleted: false,
+          withDeletedUser: true,
+        });
+      } catch (error) {
+        this.logger.error(
+          `Failed to recreate user (id=${existingDeletedUser.id}), error`,
+          error,
+        );
+
+        throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
+      }
+
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      passwordHash,
+      isTempPassword: true,
+    });
+
+    let savedUser: User;
+    try {
+      savedUser = await this.usersRepository.save(user);
+    } catch (error) {
+      this.logger.error(`Failed to create user, error`, error);
+
+      throw new ConflictException(UserErrorCode.FAILED_TO_CREATE_USER);
+    }
+
+    return savedUser;
+  };
 
   async resendTempPassword(id: User['id']): Promise<void> {
     const user = await this.usersRepository.findOne({
@@ -129,10 +143,15 @@ export class UserService {
       isDeleteImage,
       isDeleted,
       password,
-    }: UpdateUserDto & { isDeleted?: boolean },
+      withDeletedUser = false,
+      passwordHash,
+    }: UpdateUserDto &
+      Partial<
+        Pick<User, 'passwordHash' | 'isDeleted'> & { withDeletedUser: boolean }
+      >,
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
-      where: { id, isDeleted: false },
+      where: { id, isDeleted: withDeletedUser },
     });
 
     if (!user) {
@@ -148,18 +167,22 @@ export class UserService {
       if (role) user.role = role;
       if (currentLocation) user.currentLocation = currentLocation;
 
+      user.isDeleted = false;
+
       if (isDeleteImage) {
         user.profileImageUrl = null;
       } else if (profileImageUrl) {
         user.profileImageUrl = profileImageUrl;
       }
 
-      if (password) {
+      if (passwordHash) {
+        user.passwordHash = passwordHash;
+
+        user.isTempPassword = true;
+      } else if (password) {
         user.passwordHash = await this.hashPassword(password);
 
-        if (user.isTempPassword) {
-          user.isTempPassword = false;
-        }
+        if (user.isTempPassword) user.isTempPassword = false;
       }
     }
 
