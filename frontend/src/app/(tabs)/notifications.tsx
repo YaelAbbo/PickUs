@@ -1,11 +1,11 @@
-import { PageHead, NotificationItem } from '@/components';
+import { NotificationItem, PageHead } from '@/components';
 import { AppBackground } from '@/components/ui';
+import { i18n } from '@/i18n';
 import { useAuth } from '@/services';
 import { useNotifications } from '@/services/notification';
 import { colors } from '@/theme';
 import { AntDesign } from '@expo/vector-icons';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { i18n } from '@/i18n';
 
 export default function NotificationsScreen() {
   const { user: currentUser } = useAuth();
@@ -82,5 +82,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: colors.textMuted,
+    textAlign: 'center',
   },
 });

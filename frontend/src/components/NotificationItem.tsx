@@ -42,7 +42,7 @@ export const NotificationItem = ({ item }: { item: Notification }) => {
 
 const styles = StyleSheet.create({
   notificationCard: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: colors.purpleCard,
     borderRadius: 16,
     padding: 16,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 12,
+    marginLeft: 12,
   },
   avatar: {
     width: NOTIFICATION_ICON_SIZE,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
@@ -86,14 +86,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: colors.white,
+    textAlign: 'right',
   },
   dateText: {
     fontSize: 12,
     color: colors.textMuted,
+    textAlign: 'left',
   },
   contentText: {
     fontSize: 14,
     color: colors.textLight,
     lineHeight: 20,
+    textAlign: 'right',
   },
 });
