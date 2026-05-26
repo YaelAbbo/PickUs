@@ -73,13 +73,13 @@ export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
 
       <View style={styles.row}>
         <TouchableOpacity
-          style={[styles.btn, !canIncrement && styles.btnInactive]}
-          onPress={increment}
-          disabled={!canIncrement}
+          style={[styles.btn, !canDecrement && styles.btnInactive]}
+          onPress={decrement}
+          disabled={!canDecrement}
           activeOpacity={0.72}
           hitSlop={8}
         >
-          <Text style={[styles.btnGlyph, !canIncrement && styles.btnGlyphMuted]}>+</Text>
+          <Text style={[styles.btnGlyph, !canDecrement && styles.btnGlyphMuted]}>−</Text>
         </TouchableOpacity>
 
         <View style={styles.center}>
@@ -94,13 +94,13 @@ export const SeatsCounter: FC<SeatsCounterProps> = ({ value, onChange }) => {
         </View>
 
         <TouchableOpacity
-          style={[styles.btn, !canDecrement && styles.btnInactive]}
-          onPress={decrement}
-          disabled={!canDecrement}
+          style={[styles.btn, !canIncrement && styles.btnInactive]}
+          onPress={increment}
+          disabled={!canIncrement}
           activeOpacity={0.72}
           hitSlop={8}
         >
-          <Text style={[styles.btnGlyph, !canDecrement && styles.btnGlyphMuted]}>−</Text>
+          <Text style={[styles.btnGlyph, !canIncrement && styles.btnGlyphMuted]}>+</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -136,9 +136,10 @@ const styles = StyleSheet.create({
   },
   btnGlyph: {
     fontSize: 24,
-    lineHeight: 28,
     fontFamily: typography.fonts.bold,
     color: colors.textLight,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   btnGlyphMuted: {
     color: colors.textMuted,
