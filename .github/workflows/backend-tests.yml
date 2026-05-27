@@ -9,11 +9,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # 1. Spin up the necessary Service Containers
     services:
+      # Replaced with the exact image from your docker-compose.yml 
+      # which has PostGIS pre-installed.
       postgres:
-        # Using pgvector image to support your AddVectorEmbeddings migration
-        image: pgvector/pgvector:pg15 
+        image: timescale/timescaledb-ha:pg17 
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -27,7 +27,6 @@ jobs:
           --health-retries 5
 
       redis:
-        # Added Redis since your .env references it
         image: redis:7-alpine
         ports:
           - 6379:6379
@@ -37,7 +36,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    # 2. Inject ALL Environment Variables for the NestJS application
     env:
       NODE_ENV: test
       APP_NAME: PickUs
@@ -46,15 +44,13 @@ jobs:
       FRONTEND_BASE_URL: http://localhost
       FRONTEND_URL: http://localhost:8081
       
-      # JWT / Auth
       JWT_ACCESS_SECRET: test-access-secret
       JWT_REFRESH_SECRET: test-refresh-secret
       JWT_ACCESS_EXPIRATION: 15m
       JWT_REFRESH_EXPIRATION: 7d
-      BCRYPT_SALT_ROUNDS: 1 # Keep at 1 to make tests fast
+      BCRYPT_SALT_ROUNDS: 1 
       REFRESH_TOKEN_COOKIE_KEY: refreshToken
       
-      # Database Connections (Must be localhost in GitHub Actions)
       DB_HOST: localhost 
       DB_PORT: 5432
       DB_USER: postgres
@@ -62,11 +58,9 @@ jobs:
       DB_NAME: pickus
       DB_LOGGING: false
       
-      # Redis (Must be localhost in GitHub Actions)
       REDIS_HOST: localhost
       REDIS_PORT: 6379
 
-      # Mailer 
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_SECURE: false
@@ -74,7 +68,6 @@ jobs:
       SMTP_PASS: test-password
       SMTP_FROM: pickus.app@gmail.com
       
-      # APIs
       GEMINI_API_KEY: test-key-do-not-use-real-key-in-ci
 
     defaults:
