@@ -38,6 +38,8 @@ export const useTrackUserLocation = () => {
 
     const rideId = currentLiveRideIdRef.current;
 
+    if (!rideId) return;
+
     websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
   }, []);
 
