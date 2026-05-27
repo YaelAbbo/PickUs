@@ -432,6 +432,15 @@ describe('NotificationController', () => {
       });
 
       it('should return notifications for the passenger', async () => {
+        await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: testDriverId,
+            rideId: testRideId,
+            content: 'Passenger notification',
+          });
+
         const response = await request(httpServer)
           .get(`/notifications/user/${testPassengerId}`)
           .set('Authorization', `Bearer ${adminAccessToken}`);
@@ -440,7 +449,7 @@ describe('NotificationController', () => {
         expect(Array.isArray(response.body)).toEqual(true);
         expect(
           response.body.some(
-            (n: Notification) => n.content === 'Driver notification',
+            (n: Notification) => n.content === 'Passenger notification',
           ),
         ).toBe(true);
       });
