@@ -61,7 +61,11 @@ export class UserService {
     const passwordHash = await this.hashPassword(tempPassword);
 
     const existingDeletedUser = await this.usersRepository.findOne({
-      where: { email: createUserDto.email, isDeleted: true },
+      where: {
+        email: createUserDto.email,
+        nationalId: createUserDto.nationalId,
+        isDeleted: true,
+      },
     });
 
     if (existingDeletedUser)
