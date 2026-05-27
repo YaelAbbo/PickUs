@@ -26,10 +26,18 @@ function buildMockSocket(overrides: Partial<Socket> = {}): jest.Mocked<Socket> {
   } as unknown as jest.Mocked<Socket>;
 }
 
-function buildMockServer(): { to: jest.Mock; emit: jest.Mock } {
+function buildMockServer(): {
+  to: jest.Mock;
+  emit: jest.Mock;
+  sockets: { adapter: { rooms: Map<string, Set<string>> } };
+} {
   const emit = jest.fn();
   const to = jest.fn().mockReturnValue({ emit });
-  return { to, emit };
+  return {
+    to,
+    emit,
+    sockets: { adapter: { rooms: new Map() } },
+  };
 }
 
 function buildGateway(
@@ -178,7 +186,7 @@ describe('MapGateway', () => {
 
       expect(mockServer.to).toHaveBeenCalledWith(`ride:${rideId}`);
       expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.LOCATION_UPDATED, {
-        userId: mockUser.sub,
+        id: mockUser.sub,
         rideId,
         location,
         properties: undefined,
