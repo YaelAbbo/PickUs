@@ -1,6 +1,7 @@
 import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
+import { UserLocationProvider } from '@/contexts';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/services/auth/AuthContext';
@@ -42,31 +43,33 @@ export default function TabLayout() {
   if (user.isTempPassword) return <Redirect href={'/(auth)/change-password'} />;
 
   return (
-    <WebAppCard>
-      <Tabs
-        initialRouteName='home'
-        screenOptions={{
-          title: APP_NAME,
-          tabBarActiveTintColor: ThemeColors[colorScheme].tint,
-          headerShown: false,
-          tabBarButton: HapticTab,
-          animation: 'shift',
-          tabBarBackground,
-        }}
-      >
-        {tabScreensConfigs.map(({ icon, name, title, role }) => (
-          <Tabs.Screen
-            key={name}
-            name={name}
-            options={{
-              title,
-              tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
-              href: role && user?.role !== role ? null : undefined,
-            }}
-          />
-        ))}
-      </Tabs>
-    </WebAppCard>
+    <UserLocationProvider>
+      <WebAppCard>
+        <Tabs
+          initialRouteName='home'
+          screenOptions={{
+            title: APP_NAME,
+            tabBarActiveTintColor: ThemeColors[colorScheme].tint,
+            headerShown: false,
+            tabBarButton: HapticTab,
+            animation: 'shift',
+            tabBarBackground,
+          }}
+        >
+          {tabScreensConfigs.map(({ icon, name, title, role }) => (
+            <Tabs.Screen
+              key={name}
+              name={name}
+              options={{
+                title,
+                tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
+                href: role && user?.role !== role ? null : undefined,
+              }}
+            />
+          ))}
+        </Tabs>
+      </WebAppCard>
+    </UserLocationProvider>
   );
 }
 

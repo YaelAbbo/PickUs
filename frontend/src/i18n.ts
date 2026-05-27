@@ -142,4 +142,13 @@ export const i18n = {
     empty_text: 'אין התראות עדיין',
     driver_nearby_alert_title: 'הנהג/ת בקרוב לידך!',
   },
+  location: {
+    loading_title: 'מאתחלים GPS',
+    loading_subtitle: 'תכף נגיע',
+    error_title: 'קרתה שגיאה בקבלת המיקום',
+    location_permission_denied: 'הרשאה לקבלת מיקום נדחתה',
+    location_permission_denied_alert_title: 'הרשאות מיקום נדחתה',
+    location_permission_denied_alert_subtitle: 'בבקשה אפשרו הרשאות מיקום בהגדרות המכשיר',
+    location_update_error_message: 'קרתה שגיאה בעדכון המיקום',
+  },
 };

@@ -1,102 +1,37 @@
 import { MapMarker } from '@/components/MapMarker';
+import { useUserLocationContext } from '@/contexts';
 import { useRide } from '@/services/ride/rideQueries';
-import type { LocationUpdatePayload } from '@/services/ride/rideService';
-import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRideLocationsLogic } from '@hooks';
-import * as Location from 'expo-location';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Region, UrlTile } from 'react-native-maps';
 
-function buildLocationPayload({
-  coords,
-  rideId,
-}: Pick<LocationUpdatePayload, 'rideId'> & { coords: Location.LocationObjectCoords }): LocationUpdatePayload {
-  return {
-    location: {
-      type: 'Point',
-      coordinates: [coords.longitude, coords.latitude],
-    },
-    rideId,
-  };
-}
-
 export default function TrackingScreen() {
+  const { userLocation, joinRideTracking } = useUserLocationContext();
+
   // TODO: Uncomment and remove hard-coded `ride` in Shira's PR for accessing the map screen on ride start [KAN-35]
   // const { ride } = useLocalSearchParams<{ ride: Ride }>();
   const rideId = '657fd615-a228-41af-9902-e416761e2a5b';
   const { data: ride } = useRide(rideId);
 
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    // TODO: Join before entering the Map Screen, not in this useEffect [KAN-35]
+
+    joinRideTracking(rideId);
+  }, [joinRideTracking]);
+
   const mapRef = useRef<MapView>(null);
-  const subscriberRef = useRef<Location.LocationSubscription | null>(null);
 
   const { currentRideLocations } = useRideLocationsLogic({ ride });
 
-  async function startTracking() {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setErrorMsg('Permission to access location was denied');
-      setIsLoading(false);
-      Alert.alert('Permission Denied', 'Please enable location permissions in settings.');
-      return;
-    }
-
-    try {
-      const initialLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      setLocation(initialLocation);
-      setIsLoading(false);
-
-      if (websocketService.isConnected) {
-        websocketService.emit(
-          WsEvent.LOCATION_UPDATE,
-          buildLocationPayload({ coords: initialLocation.coords, rideId }),
-        );
-      }
-
-      subscriberRef.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 60000, // In milliseconds
-          distanceInterval: 50, // In meters
-        },
-        (newLocation) => {
-          setLocation(newLocation);
-
-          if (websocketService.isConnected) {
-            websocketService.emit(
-              WsEvent.LOCATION_UPDATE,
-              buildLocationPayload({ coords: newLocation.coords, rideId }),
-            );
-          }
-        },
-      );
-    } catch (error) {
-      setErrorMsg('Error getting location: ' + (error instanceof Error ? error.message : 'Unknown error'));
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    startTracking();
-
-    return () => {
-      subscriberRef.current?.remove();
-    };
-  }, []);
-
   const handleFocus = () => {
-    if (location && mapRef.current) {
+    if (userLocation && mapRef.current) {
       const animationDuration = 1000;
       mapRef.current.animateToRegion(
         {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
@@ -105,26 +40,9 @@ export default function TrackingScreen() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#007AFF' />
-        <Text style={styles.statusText}>Initializing GPS...</Text>
-      </View>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{errorMsg}</Text>
-      </View>
-    );
-  }
-
   const initialRegion: Region = {
-    latitude: location?.coords.latitude || 0,
-    longitude: location?.coords.longitude || 0,
+    latitude: userLocation?.coords.latitude || 0,
+    longitude: userLocation?.coords.longitude || 0,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
@@ -157,7 +75,7 @@ export default function TrackingScreen() {
 
       <View style={styles.overlay}>
         <Text style={styles.coordinateLabel}>
-          {location?.coords.latitude.toFixed(6)}:{location?.coords.longitude.toFixed(6)}
+          {userLocation?.coords.latitude.toFixed(6)}:{userLocation?.coords.longitude.toFixed(6)}
         </Text>
       </View>
     </View>
