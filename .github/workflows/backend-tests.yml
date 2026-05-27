@@ -9,42 +9,73 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # 1. Spin up the PostgreSQL service container
+    # 1. Spin up the necessary Service Containers
     services:
       postgres:
-        image: postgres:15-alpine # Lightweight postgres image
+        # Using pgvector image to support your AddVectorEmbeddings migration
+        image: pgvector/pgvector:pg15 
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: pickus
-        # Expose port 5432 to the GitHub Actions runner
         ports:
           - 5432:5432
-        # Ensure the database is ready before the job continues
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-    # 2. Inject Environment Variables for the NestJS application
+      redis:
+        # Added Redis since your .env references it
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # 2. Inject ALL Environment Variables for the NestJS application
     env:
       NODE_ENV: test
-      # Connect to the service container mapped to the runner's localhost
+      APP_NAME: PickUs
+      BACKEND_PORT: 3000
+      BASE_URL: http://localhost:3000
+      FRONTEND_BASE_URL: http://localhost
+      FRONTEND_URL: http://localhost:8081
+      
+      # JWT / Auth
+      JWT_ACCESS_SECRET: test-access-secret
+      JWT_REFRESH_SECRET: test-refresh-secret
+      JWT_ACCESS_EXPIRATION: 15m
+      JWT_REFRESH_EXPIRATION: 7d
+      BCRYPT_SALT_ROUNDS: 1 # Keep at 1 to make tests fast
+      REFRESH_TOKEN_COOKIE_KEY: refreshToken
+      
+      # Database Connections (Must be localhost in GitHub Actions)
       DB_HOST: localhost 
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: pickus
-      # Provide required variables so the app does not crash on startup
-      JWT_ACCESS_SECRET: test-access-secret
-      JWT_REFRESH_SECRET: test-refresh-secret
-      JWT_ACCESS_EXPIRATION: 15m
-      JWT_REFRESH_EXPIRATION: 7d
-      # Lowering bcrypt salt rounds heavily speeds up tests involving auth
-      BCRYPT_SALT_ROUNDS: 1 
-      REFRESH_TOKEN_COOKIE_KEY: refreshToken
       DB_LOGGING: false
+      
+      # Redis (Must be localhost in GitHub Actions)
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+
+      # Mailer 
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: pickus.app@gmail.com
+      SMTP_PASS: test-password
+      SMTP_FROM: pickus.app@gmail.com
+      
+      # APIs
+      GEMINI_API_KEY: test-key-do-not-use-real-key-in-ci
 
     defaults:
       run:
@@ -63,11 +94,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      # Optional: If your tests require the database schema to be created via migrations 
-      # before running, uncomment this line based on your package.json scripts:
-      # - name: Run Database Migrations
-      #   run: npm run migration:run
 
       - name: Run Jest tests
         run: npm run test
