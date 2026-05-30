@@ -8,10 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    environment: testing 
 
     services:
-      # Replaced with the exact image from your docker-compose.yml 
-      # which has PostGIS pre-installed.
       postgres:
         image: timescale/timescaledb-ha:pg17 
         env:
@@ -26,49 +26,36 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     env:
       NODE_ENV: test
-      APP_NAME: PickUs
-      BACKEND_PORT: 3000
-      BASE_URL: http://localhost:3000
-      FRONTEND_BASE_URL: http://localhost
-      FRONTEND_URL: http://localhost:8081
-      
-      JWT_ACCESS_SECRET: test-access-secret
-      JWT_REFRESH_SECRET: test-refresh-secret
-      JWT_ACCESS_EXPIRATION: 15m
-      JWT_REFRESH_EXPIRATION: 7d
       BCRYPT_SALT_ROUNDS: 1 
-      REFRESH_TOKEN_COOKIE_KEY: refreshToken
+      DB_LOGGING: false
       
       DB_HOST: localhost 
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: pickus
-      DB_LOGGING: false
-      
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
 
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      SMTP_SECURE: false
-      SMTP_USER: pickus.app@gmail.com
-      SMTP_PASS: test-password
-      SMTP_FROM: pickus.app@gmail.com
+      APP_NAME: ${{ vars.APP_NAME }}
+      BACKEND_PORT: ${{ vars.BACKEND_PORT }}
+      BASE_URL: ${{ vars.BASE_URL }}
+      FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+      REFRESH_TOKEN_COOKIE_KEY: ${{ vars.REFRESH_TOKEN_COOKIE_KEY }}
       
-      GEMINI_API_KEY: test-key-do-not-use-real-key-in-ci
+      SMTP_HOST: ${{ vars.SMTP_HOST }}
+      SMTP_PORT: ${{ vars.SMTP_PORT }}
+      SMTP_SECURE: ${{ vars.SMTP_SECURE }}
+      SMTP_USER: ${{ vars.SMTP_USER }}
+      SMTP_FROM: ${{ vars.SMTP_FROM }}
+
+      JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+      JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
+      JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
     defaults:
       run:
