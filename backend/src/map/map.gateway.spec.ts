@@ -1,11 +1,13 @@
+import type { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
+import type { RideService } from '@/ride/ride.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import type { Point } from 'geojson';
 import type { Server, Socket } from 'socket.io';
 import { UserService } from '../user/user.service';
 import { WsEvent } from '../websocket/events';
 import { MapGateway } from './map.gateway';
 import type { LocationUpdatePayload } from './map.types';
-import type { RideService } from '@/ride/ride.service';
 
 const mockUser = { sub: 'user-1', iat: 0, exp: 9999999999 };
 
@@ -24,10 +26,18 @@ function buildMockSocket(overrides: Partial<Socket> = {}): jest.Mocked<Socket> {
   } as unknown as jest.Mocked<Socket>;
 }
 
-function buildMockServer(): { to: jest.Mock; emit: jest.Mock } {
+function buildMockServer(): {
+  to: jest.Mock;
+  emit: jest.Mock;
+  sockets: { adapter: { rooms: Map<string, Set<string>> } };
+} {
   const emit = jest.fn();
   const to = jest.fn().mockReturnValue({ emit });
-  return { to, emit };
+  return {
+    to,
+    emit,
+    sockets: { adapter: { rooms: new Map() } },
+  };
 }
 
 function buildGateway(
@@ -64,13 +74,25 @@ function buildGateway(
       .mockImplementation((key: string, defaultValue: string) => defaultValue),
   } as unknown as ConfigService;
 
+  const proximityNotificationService = {
+    checkAndNotify: jest.fn().mockResolvedValue(undefined),
+  } as unknown as ProximityNotificationService;
+
   const gateway = new MapGateway(
     jwtService,
     userService,
     rideService,
     configService,
+    proximityNotificationService,
   );
-  return { gateway, jwtService, userService, rideService, configService };
+  return {
+    gateway,
+    jwtService,
+    userService,
+    rideService,
+    configService,
+    proximityNotificationService,
+  };
 }
 
 describe('MapGateway', () => {
@@ -125,6 +147,8 @@ describe('MapGateway', () => {
   describe('handleRoomLeave', () => {
     it('leaves the correct ride room and returns an ack', () => {
       const { gateway } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
       const client = buildMockSocket();
       client.data.user = mockUser;
       const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
@@ -137,7 +161,7 @@ describe('MapGateway', () => {
   });
 
   describe('handleLocationUpdate', () => {
-    const location = { type: 'Point', coordinates: [34.8516, 31.0461] };
+    const location: Point = { type: 'Point', coordinates: [34.8516, 31.0461] };
     const rideId = '550e8400-e29b-41d4-a716-446655440000' as const;
 
     it('persists the location to the user record', async () => {
@@ -164,7 +188,7 @@ describe('MapGateway', () => {
 
       expect(mockServer.to).toHaveBeenCalledWith(`ride:${rideId}`);
       expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.LOCATION_UPDATED, {
-        userId: mockUser.sub,
+        id: mockUser.sub,
         rideId,
         location,
         properties: undefined,

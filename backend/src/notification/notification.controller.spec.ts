@@ -350,7 +350,7 @@ describe('NotificationController', () => {
       it('should return notifications from the last 24h in correct order', async () => {
         const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
         const oldNotification = notificationRepository.create({
-          creator: { id: testDriverId } as User,
+          creator: { id: testPassengerId } as User,
           ride: { id: testRideId } as Ride,
           content: 'Old notification',
           createdAt: oldDate,
@@ -361,14 +361,14 @@ describe('NotificationController', () => {
           .post('/notifications')
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
-            creatorId: testDriverId,
+            creatorId: testPassengerId,
             rideId: testRideId,
             content: 'New notification',
           });
 
         const semiRecentDate = new Date(Date.now() - 1 * 60 * 60 * 1000);
         const semiRecentNotification = notificationRepository.create({
-          creator: { id: testDriverId } as User,
+          creator: { id: testPassengerId } as User,
           ride: { id: testRideId } as Ride,
           content: 'Semi-recent notification',
           createdAt: semiRecentDate,
@@ -413,7 +413,7 @@ describe('NotificationController', () => {
           .post('/notifications')
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
-            creatorId: testDriverId,
+            creatorId: testPassengerId,
             rideId: testRideId,
             content: 'Driver notification',
           });
@@ -432,6 +432,15 @@ describe('NotificationController', () => {
       });
 
       it('should return notifications for the passenger', async () => {
+        await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: testDriverId,
+            rideId: testRideId,
+            content: 'Passenger notification',
+          });
+
         const response = await request(httpServer)
           .get(`/notifications/user/${testPassengerId}`)
           .set('Authorization', `Bearer ${adminAccessToken}`);
@@ -440,7 +449,7 @@ describe('NotificationController', () => {
         expect(Array.isArray(response.body)).toEqual(true);
         expect(
           response.body.some(
-            (n: Notification) => n.content === 'Driver notification',
+            (n: Notification) => n.content === 'Passenger notification',
           ),
         ).toBe(true);
       });

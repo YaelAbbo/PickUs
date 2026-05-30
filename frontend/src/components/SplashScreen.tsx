@@ -6,7 +6,17 @@ import { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { AppBackground } from './ui';
 
-export function SplashScreen() {
+export function SplashScreen({
+  title = 'PickUs',
+  subtitle = i18n.general.app_description,
+  withLogo = true,
+  withLoadingDots = true,
+}: {
+  title?: string;
+  subtitle?: string;
+  withLogo?: boolean;
+  withLoadingDots?: boolean;
+}) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const dot1 = useRef(new Animated.Value(0.3)).current;
@@ -38,21 +48,23 @@ export function SplashScreen() {
   return (
     <AppBackground style={{ alignItems: 'center', justifyContent: 'center' }}>
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
+        {withLogo && <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />}
 
         {isFontsLoaded && (
           <>
-            <Text style={styles.appName}>PickUs</Text>
-            <Text style={styles.tagline}>{i18n.general.app_description}</Text>
+            <Text style={styles.appName}>{title}</Text>
+            <Text style={styles.tagline}>{subtitle}</Text>
           </>
         )}
       </Animated.View>
 
-      <View style={styles.dotsRow}>
-        {[dot1, dot2, dot3].map((dot, i) => (
-          <Animated.View key={i} style={[styles.dot, { opacity: dot }]} />
-        ))}
-      </View>
+      {withLoadingDots && (
+        <View style={styles.dotsRow}>
+          {[dot1, dot2, dot3].map((dot, i) => (
+            <Animated.View key={i} style={[styles.dot, { opacity: dot }]} />
+          ))}
+        </View>
+      )}
     </AppBackground>
   );
 }
@@ -77,6 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 52,
     color: colors.yellow,
     letterSpacing: -1,
+    textAlign: 'center',
   },
   tagline: {
     fontFamily: typography.fonts.light,
