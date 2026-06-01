@@ -145,7 +145,15 @@ export class RideService {
   async getRidesByDriverId(driverId: User['id']): Promise<Ride[]> {
     const rides = await this.createRideQueryBuilder()
       .andWhere('ride.driverId = :driverId', { driverId })
-      .andWhere('ride.startsAt >= :now', { now: new Date() })
+      .andWhere(
+        '(ride.estimatedEndsAt >= :now OR ride.rideStatus = :active) AND ride.rideStatus != :cancelled AND ride.rideStatus != :done',
+        {
+          now: new Date(),
+          active: RideStatus.ACTIVE,
+          cancelled: RideStatus.CANCELLED,
+          done: RideStatus.DONE,
+        },
+      )
       .orderBy('ride.startsAt', 'ASC')
       .getMany();
 
@@ -160,7 +168,15 @@ export class RideService {
         'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
         { passengerId },
       )
-      .andWhere('ride.startsAt >= :now', { now: new Date() })
+      .andWhere(
+        '(ride.estimatedEndsAt >= :now OR ride.rideStatus = :active) AND ride.rideStatus != :cancelled AND ride.rideStatus != :done',
+        {
+          now: new Date(),
+          active: RideStatus.ACTIVE,
+          cancelled: RideStatus.CANCELLED,
+          done: RideStatus.DONE,
+        },
+      )
       .orderBy('ride.startsAt', 'ASC')
       .getMany();
 

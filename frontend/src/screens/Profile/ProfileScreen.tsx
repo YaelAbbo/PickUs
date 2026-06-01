@@ -32,10 +32,18 @@ export const ProfileScreen = () => {
     rides = passengerRides;
   }
 
+  const now = new Date();
+  const activeOrFutureRides = rides.filter((ride) => {
+    const endsAt = new Date(ride.estimatedEndsAt);
+    const isFutureOrActive = endsAt >= now || ride.rideStatus === 'ACTIVE';
+    const isNotDoneOrCancelled = ride.rideStatus !== 'DONE' && ride.rideStatus !== 'CANCELLED';
+    return isFutureOrActive && isNotDoneOrCancelled;
+  });
+
   return (
     <AppBackground>
       <SafeAreaView style={styles.container}>
-        <PageHead title='Profile' icon='user' />
+        <PageHead title='Profile' />
 
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
@@ -93,13 +101,13 @@ export const ProfileScreen = () => {
           <View style={styles.centerContainer}>
             <ActivityIndicator size='large' color={colors.yellow} />
           </View>
-        ) : rides.length === 0 ? (
+        ) : activeOrFutureRides.length === 0 ? (
           <View style={styles.centerContainer}>
             <Text style={styles.emptyText}>No rides found.</Text>
           </View>
         ) : (
           <FlatList
-            data={rides}
+            data={activeOrFutureRides}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <RideCard
