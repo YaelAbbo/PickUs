@@ -1,7 +1,7 @@
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
-import { useRouter } from 'expo-router';
+import { i18n } from '@/i18n';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export const ProfileScreen = () => {
   const { user } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger'>('all');
 
   const { data: driverRides = [], isLoading: isDriverLoading } = useRidesByDriverId(user?.id || '');
@@ -78,21 +77,25 @@ export const ProfileScreen = () => {
               style={[styles.filterChip, activeTab === 'all' && styles.filterChipActive]}
               onPress={() => setActiveTab('all')}
             >
-              <Text style={[styles.filterChipText, activeTab === 'all' && styles.filterChipTextActive]}>הכל</Text>
+              <Text style={[styles.filterChipText, activeTab === 'all' && styles.filterChipTextActive]}>
+                {i18n.profile.filter_all}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.filterChip, activeTab === 'passenger' && styles.filterChipActive]}
               onPress={() => setActiveTab('passenger')}
             >
               <Text style={[styles.filterChipText, activeTab === 'passenger' && styles.filterChipTextActive]}>
-                טרמפיסט/ית
+                {i18n.profile.filter_passenger}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.filterChip, activeTab === 'driver' && styles.filterChipActive]}
               onPress={() => setActiveTab('driver')}
             >
-              <Text style={[styles.filterChipText, activeTab === 'driver' && styles.filterChipTextActive]}>נהג/ת</Text>
+              <Text style={[styles.filterChipText, activeTab === 'driver' && styles.filterChipTextActive]}>
+                {i18n.profile.filter_driver}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -109,12 +112,7 @@ export const ProfileScreen = () => {
           <FlatList
             data={activeOrFutureRides}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <RideCard
-                item={item}
-                onPress={() => router.push({ pathname: '/rideDetailModal', params: { rideId: item.id } })}
-              />
-            )}
+            renderItem={({ item }) => <RideCard item={item} onPress={() => {}} />}
             contentContainerStyle={styles.listContainer}
           />
         )}

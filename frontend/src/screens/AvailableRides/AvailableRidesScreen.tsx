@@ -21,7 +21,6 @@ export const AvailableRidesScreen: FC = () => {
     isLoading,
     isError,
     refetch,
-    handleRidePress,
   } = useAvailableRidesLogic();
 
   return (
@@ -71,7 +70,7 @@ export const AvailableRidesScreen: FC = () => {
         ) : (
           <FlatList
             data={rides}
-            renderItem={({ item }) => <RideCard item={item} onPress={() => handleRidePress(item.id)} />}
+            renderItem={({ item }) => <RideCard item={item} onPress={() => {}} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: spacing.xxl }}
             showsVerticalScrollIndicator={false}

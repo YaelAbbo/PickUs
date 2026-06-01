@@ -155,4 +155,9 @@ export const i18n = {
     location_permission_denied_alert_subtitle: 'בבקשה אפשרו הרשאות מיקום בהגדרות המכשיר',
     location_update_error_message: 'קרתה שגיאה בעדכון המיקום',
   },
+  profile: {
+    filter_all: 'הכל',
+    filter_passenger: 'נוסע/ת',
+    filter_driver: 'נהג/ת',
+  },
 };
