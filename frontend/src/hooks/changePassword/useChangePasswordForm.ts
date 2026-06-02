@@ -9,7 +9,7 @@ import { z } from 'zod';
 const schema = z
   .object({
     newPassword: z.string().min(8, i18n.change_password.validation_password_length),
-    confirmPassword: z.string().nonempty(i18n.change_password.validation_required),
+    confirmPassword: z.string().nonempty(i18n.general.validation_required),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: i18n.change_password.passwords_do_not_match,

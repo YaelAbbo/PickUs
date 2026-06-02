@@ -13,7 +13,7 @@ type RideDriverSectionProps = {
 
 export const RideDriverSection: FC<RideDriverSectionProps> = ({ name, initials, isDriver }) => (
   <View style={styles.peopleSection}>
-    {isDriver ? <Text style={styles.sectionTitle}>{i18n.ride_detail.driver_label}</Text> : null}
+    {isDriver ? <Text style={styles.sectionTitle}>{i18n.general.driver}</Text> : null}
     <View style={styles.personRow}>
       <Avatar.Text
         size={44}

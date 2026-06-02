@@ -78,7 +78,7 @@ export const ProfileScreen = () => {
               onPress={() => setActiveTab('all')}
             >
               <Text style={[styles.filterChipText, activeTab === 'all' && styles.filterChipTextActive]}>
-                {i18n.profile.filter_all}
+                {i18n.general.all}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -86,7 +86,7 @@ export const ProfileScreen = () => {
               onPress={() => setActiveTab('passenger')}
             >
               <Text style={[styles.filterChipText, activeTab === 'passenger' && styles.filterChipTextActive]}>
-                {i18n.profile.filter_passenger}
+                {i18n.general.passenger}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -94,7 +94,7 @@ export const ProfileScreen = () => {
               onPress={() => setActiveTab('driver')}
             >
               <Text style={[styles.filterChipText, activeTab === 'driver' && styles.filterChipTextActive]}>
-                {i18n.profile.filter_driver}
+                {i18n.general.driver}
               </Text>
             </TouchableOpacity>
           </View>

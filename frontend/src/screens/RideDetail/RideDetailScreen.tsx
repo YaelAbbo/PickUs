@@ -4,8 +4,8 @@ import type { ComponentProps, FC } from 'react';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { AppBackground, AppButton } from '@/components/ui';
 import { RideForm } from '@/components/RideForm';
+import { AppBackground, AppButton } from '@/components/ui';
 import { useAuth } from '@/services/auth';
 import { useJoinRide, useLeaveRide, useRide, useUpdateRideStop } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
@@ -74,7 +74,7 @@ export const RideDetailScreen: FC = () => {
         locationPoint: { type: 'Point' as const, coordinates: [0, 0] as [number, number] },
         time: (() => {
           if (stop.estimatedArrivalAt === i18n.general.unknown) return new Date();
-          const [hours, minutes] = stop.estimatedArrivalAt.split(':');
+          const [hours, minutes] = stop.estimatedArrivalAt.split(':') as [string, string];
           const d = new Date(ride.startsAt);
           d.setHours(parseInt(hours, 10) || 0);
           d.setMinutes(parseInt(minutes, 10) || 0);
@@ -115,7 +115,7 @@ export const RideDetailScreen: FC = () => {
               </Text>
             </View>
             <Text style={styles.seatsRemainingText}>
-              {ride.availableSeats} {i18n.ride_detail.seats_available}
+              {ride.availableSeats} {i18n.rideForm.available_seats}
             </Text>
           </View>
 

@@ -89,7 +89,7 @@ export const ChangePasswordFormCard: FC<ChangePasswordFormCardProps> = ({
       </View>
 
       <AppButton
-        label={i18n.change_password.change_password}
+        label={i18n.change_password.title}
         loading={isSubmitting}
         disabled={!!errors.newPassword || !!errors.confirmPassword}
         onPress={onSubmit}

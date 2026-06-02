@@ -7,7 +7,7 @@ import { useAvailableRides } from '@/services/ride/rideQueries';
 import type { Ride } from '@/schemas/ride';
 
 export const MAX_SEATS = 4;
-export const FILTER_ALL = i18n.available_rides_screen.filter_all;
+export const FILTER_ALL = i18n.general.all;
 export const FILTER_START = i18n.rideForm.start;
 export const FILTER_DEST = i18n.rideForm.destination;
 export const FILTERS = [FILTER_ALL, FILTER_START, FILTER_DEST];

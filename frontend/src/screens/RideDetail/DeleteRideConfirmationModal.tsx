@@ -10,7 +10,7 @@ export const DeleteRideConfirmationModal: FC<DeleteRideConfirmationModalProps> =
     <Modal visible={visible} transparent animationType='fade' onRequestClose={onClose}>
       <View style={popupStyles.overlay}>
         <View style={popupStyles.container}>
-          <Text style={popupStyles.title}>{i18n.ride_detail.delete_ride_title}</Text>
+          <Text style={popupStyles.title}>{i18n.ride_detail.delete_ride}</Text>
 
           <Text style={styles.message}>{i18n.ride_detail.delete_ride_message}</Text>
 
