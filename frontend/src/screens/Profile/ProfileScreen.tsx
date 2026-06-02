@@ -69,7 +69,9 @@ export const ProfileScreen = () => {
             </View>
             <View style={styles.detailRow}>
               <MaterialCommunityIcons name='shield-account-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user?.role}</Text>
+              <Text style={styles.detailText}>
+                {user?.role ? i18n.roles[user.role as keyof typeof i18n.roles] || user.role : ''}
+              </Text>
             </View>
           </View>
         </View>
