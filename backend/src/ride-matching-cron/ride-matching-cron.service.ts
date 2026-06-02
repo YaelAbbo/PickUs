@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { UUID } from 'crypto';
@@ -7,10 +8,10 @@ import { Notification } from '../database/entities/notification.entity';
 import { Ride, RideStatus } from '../database/entities/ride.entity';
 import { User, UserRole } from '../database/entities/user.entity';
 
-/** Cosine distance threshold: lower = more similar.
+/** Default cosine distance threshold: lower = more similar.
  * 0.3 means ~0.7 cosine similarity.
- * */
-const COSINE_DISTANCE_THRESHOLD = 0.3;
+ */
+const DEFAULT_COSINE_DISTANCE_THRESHOLD = 0.3;
 
 const MATCH_NOTIFICATION_CONTENT =
   'מצאנו נסיעה חדשה שמתאימה למסלולים הרגילים שלך! לחץ כאן כדי לראות את הפרטים ולהצטרף.';
@@ -31,7 +32,15 @@ export class RideMatchingCronService {
     private readonly rideRepository: Repository<Ride>,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
+    private readonly configService: ConfigService,
   ) {}
+
+  private get cosineDistanceThreshold(): number {
+    return this.configService.get<number>(
+      'COSINE_DISTANCE_THRESHOLD',
+      DEFAULT_COSINE_DISTANCE_THRESHOLD,
+    );
+  }
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleRideMatching(): Promise<void> {
@@ -106,31 +115,49 @@ export class RideMatchingCronService {
   private async findMatchingUsersForRides(
     rides: Ride[],
   ): Promise<MatchedUserRide[]> {
-    const matches: MatchedUserRide[] = [];
+    if (rides.length === 0) return [];
 
-    for (const ride of rides) {
-      const matchedUsers = await this.userRepository
-        .createQueryBuilder('user')
-        .select(['user.id'])
-        .where('user.avgRideEmbedding IS NOT NULL')
-        .andWhere('user.isDeleted = false')
-        .andWhere('user.id != :driverId', { driverId: ride.driverId })
-        .andWhere(
-          'user.avg_ride_embedding <=> :rideEmbedding < :distanceThreshold',
-          {
-            rideEmbedding: JSON.stringify(ride.embedding),
-            distanceThreshold: COSINE_DISTANCE_THRESHOLD,
-          },
-        )
-        .getMany();
+    const rideIds = rides.map((ride) => ride.id);
+    const rideEmbeddings = rides.map((ride) => JSON.stringify(ride.embedding));
+    const rideDriverIds = rides.map((ride) => ride.driverId);
+    const rideOrgIds = rides.map((ride) => ride.orgId);
 
-      for (const user of matchedUsers) {
-        matches.push({
-          userId: user.id,
-          rideId: ride.id,
-        });
-      }
-    }
+    // Uses LATERAL JOIN for efficient per-ride user matching with index support
+    // Filters: User has an embedding, is not deleted, is not the driver,
+    // belongs to same org, is not already a passenger, and has cosine distance below threshold.
+    const matches = await this.userRepository.query<MatchedUserRide[]>(
+      `
+      SELECT u.id AS "userId", r.ride_id AS "rideId"
+      FROM (
+        SELECT 
+          unnest($1::uuid[]) AS ride_id,
+          unnest($2::vector[]) AS embedding,
+          unnest($3::uuid[]) AS driver_id,
+          unnest($4::uuid[]) AS org_id
+      ) r
+      CROSS JOIN LATERAL (
+        SELECT id FROM "user" u
+        WHERE u.avg_ride_embedding IS NOT NULL
+          AND u.is_deleted = false
+          AND u.id != r.driver_id
+          AND u.org_id = r.org_id
+          AND NOT EXISTS (
+            SELECT 1 FROM ride_passenger rp
+            WHERE rp.user_id = u.id
+              AND rp.ride_id = r.ride_id
+              AND rp.is_deleted = false
+          )
+          AND u.avg_ride_embedding <=> r.embedding < $5
+      ) u
+      `,
+      [
+        rideIds,
+        rideEmbeddings,
+        rideDriverIds,
+        rideOrgIds,
+        this.cosineDistanceThreshold,
+      ],
+    );
 
     return matches;
   }
@@ -140,8 +167,8 @@ export class RideMatchingCronService {
   ): Promise<MatchedUserRide[]> {
     if (matches.length === 0) return [];
 
-    const rideIds = [...new Set(matches.map((m) => m.rideId))];
-    const userIds = [...new Set(matches.map((m) => m.userId))];
+    const rideIds = [...new Set(matches.map((match) => match.rideId))];
+    const userIds = [...new Set(matches.map((match) => match.userId))];
 
     const existingNotifications = await this.notificationRepository
       .createQueryBuilder('notification')
@@ -155,8 +182,8 @@ export class RideMatchingCronService {
 
     const existingPairs = new Set(
       existingNotifications.map(
-        (n: { recipientId: string; rideId: string }) =>
-          `${n.recipientId}:${n.rideId}`,
+        (notification: { recipientId: string; rideId: string }) =>
+          `${notification.recipientId}:${notification.rideId}`,
       ),
     );
 
@@ -169,15 +196,17 @@ export class RideMatchingCronService {
     aiUserId: UUID,
     matches: MatchedUserRide[],
   ): Promise<void> {
-    const notifications = matches.map((match) =>
-      this.notificationRepository.create({
-        creator: { id: aiUserId },
-        recipient: { id: match.userId },
-        ride: { id: match.rideId },
-        content: MATCH_NOTIFICATION_CONTENT,
-      }),
-    );
+    await this.notificationRepository.manager.transaction(async (manager) => {
+      const notifications = matches.map((match) =>
+        manager.create(Notification, {
+          creator: { id: aiUserId },
+          recipient: { id: match.userId },
+          ride: { id: match.rideId },
+          content: MATCH_NOTIFICATION_CONTENT,
+        }),
+      );
 
-    await this.notificationRepository.save(notifications);
+      await manager.save(notifications);
+    });
   }
 }
