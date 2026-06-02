@@ -1,14 +1,15 @@
+import { PageHead } from '@/components/PageHead';
+import { AppBackground } from '@/components/ui';
+import { useAvailableRidesLogic } from '@/hooks/rides';
+import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
-import { i18n } from '@/i18n';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RideCard } from '../AvailableRides/RideCard';
-import { PageHead } from '@/components/PageHead';
-import { AppBackground } from '@/components/ui';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export const ProfileScreen = () => {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export const ProfileScreen = () => {
   const { data: passengerRides = [], isLoading: isPassengerLoading } = useRidesByPassengerId(user?.id || '');
 
   const isLoading = isDriverLoading || isPassengerLoading;
+
+  const { handleRidePress } = useAvailableRidesLogic();
 
   let rides = [];
   if (activeTab === 'all') {
@@ -112,7 +115,19 @@ export const ProfileScreen = () => {
           <FlatList
             data={activeOrFutureRides}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <RideCard item={item} onPress={() => {}} />}
+            renderItem={({ item }) => {
+              const isDriver = item.driverId === user?.id;
+              return (
+                <RideCard
+                  item={item}
+                  onPress={() => {
+                    if (isDriver) {
+                      handleRidePress(item.id);
+                    }
+                  }}
+                />
+              );
+            }}
             contentContainerStyle={styles.listContainer}
           />
         )}

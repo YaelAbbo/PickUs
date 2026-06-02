@@ -6,8 +6,8 @@ import { AppBackground, AppTextInput } from '@/components/ui';
 import { i18n } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
-import { RideCard } from './RideCard';
 import { FILTERS, useAvailableRidesLogic } from '../../hooks/rides/useAvailableRidesLogic';
+import { RideCard } from './RideCard';
 
 export const AvailableRidesScreen: FC = () => {
   const {
@@ -21,6 +21,7 @@ export const AvailableRidesScreen: FC = () => {
     isLoading,
     isError,
     refetch,
+    handleRidePress,
   } = useAvailableRidesLogic();
 
   return (
@@ -70,7 +71,7 @@ export const AvailableRidesScreen: FC = () => {
         ) : (
           <FlatList
             data={rides}
-            renderItem={({ item }) => <RideCard item={item} onPress={() => {}} />}
+            renderItem={({ item }) => <RideCard item={item} onPress={() => handleRidePress(item.id)} />}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: spacing.xxl }}
             showsVerticalScrollIndicator={false}
