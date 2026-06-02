@@ -42,27 +42,14 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
   const stops = useWatch({ control, name: 'stops' });
   const destinationIndex = stops.length - 1;
 
-  const isEditing = !!useRideFormArgs.defaultValues?.id;
-
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView
-        style={[styles.root, isEditing && { backgroundColor: 'transparent' }]}
-        contentContainerStyle={[styles.scrollContent, isEditing && { paddingVertical: spacing.sm }]}
-        keyboardShouldPersistTaps='handled'
-      >
-        <View style={[styles.inner, isEditing && { marginTop: 0 }]}>
-          <Text style={styles.screenTitle}>{isEditing ? i18n.rideForm.update_ride : i18n.rideForm.create_ride}</Text>
+      <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
+        <View style={styles.inner}>
+          <Text style={styles.screenTitle}>{i18n.rideForm.create_ride}</Text>
 
-          <SectionCard
-            title={i18n.rideForm.general_details}
-            style={{
-              zIndex: 30,
-              marginBottom: isEditing ? spacing.sm : spacing.md,
-              paddingTop: isEditing ? spacing.xs : spacing.sm,
-            }}
-          >
-            <View style={{ gap: isEditing ? spacing.sm : spacing.md }}>
+          <SectionCard title={i18n.rideForm.general_details} style={{ zIndex: 30 }}>
+            <View style={{ gap: spacing.md }}>
               <Controller
                 control={control}
                 name='rideDate'
@@ -104,7 +91,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
               />
             </View>
 
-            <View style={{ gap: spacing.xs, marginTop: isEditing ? spacing.sm : spacing.md }}>
+            <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
               <Controller control={control} name='seats' render={({ field }) => <SeatsCounter {...field} />} />
               <Controller
                 control={control}
@@ -114,15 +101,8 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
             </View>
           </SectionCard>
 
-          <SectionCard
-            title={i18n.rideForm.stops_in_the_way}
-            style={{
-              zIndex: 10,
-              marginBottom: isEditing ? spacing.sm : spacing.md,
-              paddingTop: isEditing ? spacing.xs : spacing.sm,
-            }}
-          >
-            <View style={{ gap: isEditing ? spacing.sm : spacing.md }}>
+          <SectionCard title={i18n.rideForm.stops_in_the_way} style={{ zIndex: 10 }}>
+            <View style={{ gap: spacing.md }}>
               {waypointFields.map((waypoint, index) => {
                 const stopIndex = index + 1;
 
@@ -153,7 +133,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
 
           {mutationError instanceof Error && <Text style={styles.mutationError}>{mutationError.message}</Text>}
 
-          <View style={[styles.actions, isEditing && { marginBottom: spacing.sm, marginTop: 0 }]}>
+          <View style={styles.actions}>
             <AppButton label={i18n.general.accept} onPress={onSubmit} loading={isPending} style={styles.confirmBtn} />
 
             <AppButton
@@ -164,23 +144,6 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
               labelStyle={{ color: colors.textPrimary }}
             />
           </View>
-
-          {isEditing && (
-            <View style={styles.editActionsContainer}>
-              <AppButton
-                label={i18n.ride_detail.start_ride}
-                onPress={() => {}}
-                style={styles.startBtn}
-                labelStyle={styles.startBtnLabel}
-              />
-              <AppButton
-                label={i18n.ride_detail.delete_ride}
-                onPress={() => {}}
-                style={styles.deleteBtn}
-                labelStyle={styles.deleteBtnLabel}
-              />
-            </View>
-          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -210,7 +173,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
-
   mutationError: {
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.sm,
@@ -232,33 +194,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputBg,
     borderWidth: 1,
     borderColor: colors.inputBorder,
-  },
-  editActionsContainer: {
-    marginTop: spacing.xs,
-    gap: spacing.sm,
-  },
-  startBtn: {
-    backgroundColor: colors.yellow,
-    minHeight: 36,
-    paddingVertical: 6,
-    borderRadius: 18,
-  },
-  startBtnLabel: {
-    color: colors.textDark,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  deleteBtn: {
-    backgroundColor: 'transparent',
-    minHeight: 36,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: 18,
-  },
-  deleteBtnLabel: {
-    color: colors.error,
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

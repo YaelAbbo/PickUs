@@ -47,7 +47,7 @@ const Toast: FC<ToastProps> = ({ message, type = 'success', visible, onHide }) =
         });
       }, 2500);
     });
-  }, [visible, onHide, opacity, translateY]);
+  }, [visible]);
 
   if (!visible && !isAnimating) return null;
 
