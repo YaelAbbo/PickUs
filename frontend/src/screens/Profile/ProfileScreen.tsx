@@ -2,6 +2,7 @@ import { PageHead } from '@/components/PageHead';
 import { AppBackground } from '@/components/ui';
 import { useAvailableRidesLogic } from '@/hooks/rides';
 import { i18n } from '@/i18n';
+import type { Ride } from '@/schemas/ride';
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
@@ -10,6 +11,22 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RideCard } from '../AvailableRides/RideCard';
+
+const filterAndSortRides = (
+  activeTab: 'all' | 'driver' | 'passenger',
+  driverRides: Ride[],
+  passengerRides: Ride[],
+): Ride[] => {
+  if (activeTab === 'driver') {
+    return driverRides;
+  }
+  if (activeTab === 'passenger') {
+    return passengerRides;
+  }
+  return [...driverRides, ...passengerRides]
+    .filter((ride, index, self) => index === self.findIndex((t) => t.id === ride.id))
+    .sort((rideA, rideB) => new Date(rideA.startsAt).getTime() - new Date(rideB.startsAt).getTime());
+};
 
 export const ProfileScreen = () => {
   const { user } = useAuth();
@@ -23,16 +40,9 @@ export const ProfileScreen = () => {
 
   const { handleRidePress } = useAvailableRidesLogic();
 
-  let rides = [];
-  if (activeTab === 'all') {
-    rides = [...driverRides, ...passengerRides]
-      .filter((value, index, self) => index === self.findIndex((t) => t.id === value.id))
-      .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
-  } else if (activeTab === 'driver') {
-    rides = driverRides;
-  } else {
-    rides = passengerRides;
-  }
+  if (!user) return <View style={styles.container} />;
+
+  const rides = filterAndSortRides(activeTab, driverRides, passengerRides);
 
   const now = new Date();
   const activeOrFutureRides = rides.filter((ride) => {
@@ -50,27 +60,25 @@ export const ProfileScreen = () => {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <Text style={styles.avatarText}>
-              {user?.firstName?.[0]}
-              {user?.lastName?.[0]}
+              {user.firstName?.[0]}
+              {user.lastName?.[0]}
             </Text>
           </View>
-          <Text style={styles.userName}>
-            {user?.firstName} {user?.lastName}
-          </Text>
+          <Text style={styles.userName}>{user.fullName}</Text>
 
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
               <MaterialCommunityIcons name='email-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user?.email}</Text>
+              <Text style={styles.detailText}>{user.email}</Text>
             </View>
             <View style={styles.detailRow}>
               <MaterialCommunityIcons name='card-account-details-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user?.nationalId}</Text>
+              <Text style={styles.detailText}>{user.nationalId}</Text>
             </View>
             <View style={styles.detailRow}>
               <MaterialCommunityIcons name='shield-account-outline' size={20} color={colors.textMuted} />
               <Text style={styles.detailText}>
-                {user?.role ? i18n.roles[user.role as keyof typeof i18n.roles] || user.role : ''}
+                {user.role ? i18n.roles[user.role as keyof typeof i18n.roles] || user.role : ''}
               </Text>
             </View>
           </View>
@@ -116,15 +124,15 @@ export const ProfileScreen = () => {
         ) : (
           <FlatList
             data={activeOrFutureRides}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const isDriver = item.driverId === user?.id;
+            keyExtractor={(ride) => ride.id}
+            renderItem={({ item: ride }) => {
+              const isDriver = ride.driverId === user.id;
               return (
                 <RideCard
-                  item={item}
+                  item={ride}
                   onPress={() => {
                     if (isDriver) {
-                      handleRidePress(item.id);
+                      handleRidePress(ride.id);
                     }
                   }}
                 />

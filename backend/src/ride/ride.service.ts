@@ -15,7 +15,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Point } from 'geojson';
 import { omit } from 'lodash';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 
@@ -74,6 +74,21 @@ export class RideService {
 
   private sanitizeRideCollection(rides: Ride[]): Ride[] {
     return rides.map((ride) => this.sanitizeRideRelations(ride));
+  }
+
+  private addActiveOrFutureRidesFilter(
+    queryBuilder: SelectQueryBuilder<Ride>,
+    alias = 'ride',
+  ): SelectQueryBuilder<Ride> {
+    return queryBuilder.andWhere(
+      `(${alias}.estimatedEndsAt >= :now OR ${alias}.rideStatus = :active) AND ${alias}.rideStatus != :cancelled AND ${alias}.rideStatus != :done`,
+      {
+        now: new Date(),
+        active: RideStatus.ACTIVE,
+        cancelled: RideStatus.CANCELLED,
+        done: RideStatus.DONE,
+      },
+    );
   }
 
   async createRide({
@@ -143,17 +158,12 @@ export class RideService {
   }
 
   async getRidesByDriverId(driverId: User['id']): Promise<Ride[]> {
-    const rides = await this.createRideQueryBuilder()
-      .andWhere('ride.driverId = :driverId', { driverId })
-      .andWhere(
-        '(ride.estimatedEndsAt >= :now OR ride.rideStatus = :active) AND ride.rideStatus != :cancelled AND ride.rideStatus != :done',
-        {
-          now: new Date(),
-          active: RideStatus.ACTIVE,
-          cancelled: RideStatus.CANCELLED,
-          done: RideStatus.DONE,
-        },
-      )
+    const query = this.createRideQueryBuilder().andWhere(
+      'ride.driverId = :driverId',
+      { driverId },
+    );
+
+    const rides = await this.addActiveOrFutureRidesFilter(query)
       .orderBy('ride.startsAt', 'ASC')
       .getMany();
 
@@ -161,22 +171,14 @@ export class RideService {
   }
 
   async getRidesByPassengerId(passengerId: User['id']): Promise<Ride[]> {
-    const rides = await this.createRideQueryBuilder()
-      .innerJoin(
-        'ride.passengers',
-        'passengerFilter',
-        'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
-        { passengerId },
-      )
-      .andWhere(
-        '(ride.estimatedEndsAt >= :now OR ride.rideStatus = :active) AND ride.rideStatus != :cancelled AND ride.rideStatus != :done',
-        {
-          now: new Date(),
-          active: RideStatus.ACTIVE,
-          cancelled: RideStatus.CANCELLED,
-          done: RideStatus.DONE,
-        },
-      )
+    const query = this.createRideQueryBuilder().innerJoin(
+      'ride.passengers',
+      'passengerFilter',
+      'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
+      { passengerId },
+    );
+
+    const rides = await this.addActiveOrFutureRidesFilter(query)
       .orderBy('ride.startsAt', 'ASC')
       .getMany();
 
