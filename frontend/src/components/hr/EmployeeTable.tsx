@@ -22,7 +22,7 @@ const UserRow: React.FC<{
   item: User;
   onPress?: () => void;
   isActionMode?: boolean;
-  onResendMail?: () => VoidFunction;
+  onResendMail?: () => void;
 }> = ({ item, onPress, isActionMode, onResendMail }) => (
   <TouchableOpacity
     style={styles.tableRow}

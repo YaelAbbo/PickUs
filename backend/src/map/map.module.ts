@@ -4,17 +4,18 @@ import { ProximityNotificationService } from '@/ride-proximity-notification/ride
 import { RideModule } from '@/ride/ride.module';
 import { UserModule } from '@/user/user.module';
 import { WebSocketCoreModule } from '@/websocket/websocket.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MapGateway } from './map.gateway';
 
 @Module({
   imports: [
     WebSocketCoreModule,
     UserModule,
-    RideModule,
+    forwardRef(() => RideModule),
     RidePassengerModule,
     NotificationModule,
   ],
   providers: [MapGateway, ProximityNotificationService],
+  exports: [MapGateway],
 })
 export class MapModule {}

@@ -70,7 +70,7 @@ export const RideDetailScreen: FC = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <View style={styles.statusRow}>
             <View style={styles.statusPill}>
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   closeButton: { padding: 8, width: 40, alignItems: 'center', paddingBottom: spacing.md },
-  scrollContent: { paddingHorizontal: spacing.md, paddingBottom: 100 },
+  scrollContent: { paddingHorizontal: spacing.md, paddingBottom: 180 },
   card: {
     backgroundColor: colors.purpleCard,
     borderRadius: 20,

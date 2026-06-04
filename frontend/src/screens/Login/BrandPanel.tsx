@@ -1,6 +1,7 @@
 import { colors, spacing, typography } from '@/theme';
 import type { FC } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { i18n } from '@/i18n';
 
 export type BrandPanelProps = { bounceAnimationScale: Animated.Value };
 
@@ -12,7 +13,7 @@ export const BrandPanel: FC<BrandPanelProps> = ({ bounceAnimationScale }) => {
 
         <Text style={styles.appName}>PickUs</Text>
 
-        <Text style={styles.tagline}>הדרך החכמה{'\n'}לנסוע ביחד</Text>
+        <Text style={styles.tagline}>{i18n.general.app_description_tagline}</Text>
 
         <View style={styles.dots}>
           {[0, 1, 2].map((i) => (

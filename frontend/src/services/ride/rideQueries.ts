@@ -106,3 +106,14 @@ export const useUpdateRideStop = (rideId: string) => {
     },
   });
 };
+
+export const useUpdateRide = (rideId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<Ride>) => rideService.updateRide(rideId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
+    },
+  });
+};

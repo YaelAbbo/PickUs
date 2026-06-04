@@ -64,7 +64,7 @@
     "תעודת"
   ],
   "workbench.startupEditor": "none",
-  "files.autoSave": "afterDelay",
+  "files.autoSave": "off",
   "liveServer.settings.donotShowInfoMsg": true,
   "workbench.iconTheme": "vscode-icons",
   "editor.formatOnSave": true,
@@ -101,7 +101,10 @@
   "workbench.productIconTheme": "fluent-icons",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "errorLens.lintFilePaths": {
-    "eslint": ["**/*.eslintrc.{js,cjs,yaml,yml,json}", "**/*package.json"],
+    "eslint": [
+      "**/*.eslintrc.{js,cjs,yaml,yml,json}",
+      "**/*package.json"
+    ],
     "Stylelint": [
       "**/*.stylelintrc",
       "**/*.stylelintrc.{cjs,js,json,yaml,yml}",
