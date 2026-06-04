@@ -14,13 +14,13 @@ import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
-type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName; role?: UserRole };
+type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName; role?: UserRole | null };
 
 const tabScreensConfigs: TabScreenConfig[] = [
   { name: 'profile', title: 'Profile', icon: 'user' },
   { name: 'home', title: 'Home', icon: 'home' },
   { name: 'create-ride', title: 'Create Ride', icon: 'car' },
-  { name: 'map', title: 'Map', icon: 'compass' },
+  { name: 'map', title: 'Map', icon: 'compass', role: null },
   { name: 'notifications', title: 'Notifications', icon: 'bell' },
   { name: 'hr', title: 'HR', icon: 'team', role: UserRole.HR_MANAGER },
 ];
@@ -64,7 +64,7 @@ export default function TabLayout() {
               options={{
                 title,
                 tabBarIcon: ({ color, size }) => <AntDesign {...{ color, size, name: icon }} />,
-                href: role && user?.role !== role ? null : undefined,
+                href: role !== undefined && user?.role !== role ? null : undefined,
               }}
             />
           ))}

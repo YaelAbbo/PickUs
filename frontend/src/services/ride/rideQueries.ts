@@ -1,5 +1,6 @@
 import { joinRide, leaveRide, updateRideStop } from '@/api/ridePassenger';
 import { type Ride } from '@/schemas/ride';
+import type { User } from '@schemas';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RideFilters, rideService } from './rideService';
 
@@ -10,6 +11,8 @@ export const RIDES_QUERY_KEYS = {
   locations: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'locations', id] as const,
   byDriver: (driverId: string) => [...RIDES_QUERY_KEYS.all, 'byDriver', driverId] as const,
   byPassenger: (passengerId: string) => [...RIDES_QUERY_KEYS.all, 'byPassenger', passengerId] as const,
+  activeRideByPassenger: (passengerId: User['id']) =>
+    [...RIDES_QUERY_KEYS.all, 'activeRideByPassenger', passengerId] as const,
 };
 
 export const useRideLocations = (rideId: Ride['id'] | undefined) => {
@@ -63,6 +66,14 @@ export const useRidesByPassengerId = (passengerId: string) => {
   return useQuery({
     queryKey: RIDES_QUERY_KEYS.byPassenger(passengerId),
     queryFn: () => rideService.getRidesByPassengerId(passengerId),
+    enabled: !!passengerId,
+  });
+};
+
+export const useActiveRideByPassengerId = (passengerId: User['id']) => {
+  return useQuery({
+    queryKey: RIDES_QUERY_KEYS.activeRideByPassenger(passengerId),
+    queryFn: () => rideService.getActiveRideByPassengerId(passengerId),
     enabled: !!passengerId,
   });
 };

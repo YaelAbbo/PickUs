@@ -11,7 +11,7 @@ export interface JSONObject {
 export interface LocationUpdatePayload {
   location: Point;
   properties?: JSONObject;
-  rideId?: Ride['id'];
+  rideId: Ride['id'];
 }
 
 export type RideEntityLocationPayload = {

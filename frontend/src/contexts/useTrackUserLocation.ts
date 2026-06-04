@@ -1,7 +1,9 @@
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
+import { useActiveRideByPassengerId } from '@/services/ride/rideQueries';
 import type { LocationUpdatePayload } from '@/services/ride/rideService';
-import { WsEvent, websocketService } from '@services';
+import type { User } from '@schemas';
+import { WsEvent, useAuth, websocketService } from '@services';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
@@ -18,78 +20,76 @@ const buildLocationPayload = ({
 export type UseTrackUserLocationContent = ReturnType<typeof useTrackUserLocation>;
 
 export const useTrackUserLocation = () => {
+  const { user } = useAuth();
+
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [userLocationErrorMessage, setUserLocationErrorMessage] = useState<string | null>(null);
-  const { value: isUserLocationLoading, setFalse: stopLoading } = useBoolean(true);
+  const { value: isUserLocationLoading, setTrue: startLoading, setFalse: stopLoading } = useBoolean();
 
   const locationSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
-  const currentLiveRideIdRef = useRef<Ride['id']>(undefined);
 
-  const joinRideTracking = (rideId: Ride['id']) => {
-    currentLiveRideIdRef.current = rideId;
-  };
+  const { data: activeRide } = useActiveRideByPassengerId(user?.id || ('' as User['id']));
 
-  const leaveRideTracking = () => {
-    currentLiveRideIdRef.current = undefined;
-  };
-
-  const emitLocationUpdated = useCallback((coords: Location.LocationObjectCoords) => {
+  const emitLocationUpdated = useCallback((coords: Location.LocationObjectCoords, rideId: Ride['id']) => {
     if (!websocketService.isConnected) return;
-
-    const rideId = currentLiveRideIdRef.current;
-
-    if (!rideId) return;
 
     websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
   }, []);
 
-  const startTracking = useCallback(async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+  const startTracking = useCallback(
+    async (rideId: Ride['id']) => {
+      startLoading();
 
-    if (status !== 'granted') {
-      setUserLocationErrorMessage(i18n.location.location_permission_denied);
-      stopLoading();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-      return Alert.alert(
-        i18n.location.location_permission_denied_alert_title,
-        i18n.location.location_permission_denied_alert_subtitle,
-      );
-    }
+      if (status !== 'granted') {
+        setUserLocationErrorMessage(i18n.location.location_permission_denied);
+        stopLoading();
 
-    try {
-      const initialUserLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        return Alert.alert(
+          i18n.location.location_permission_denied_alert_title,
+          i18n.location.location_permission_denied_alert_subtitle,
+        );
+      }
 
-      setUserLocation(initialUserLocation);
-      stopLoading();
+      try {
+        const initialUserLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
 
-      emitLocationUpdated(initialUserLocation.coords);
+        setUserLocation(initialUserLocation);
+        stopLoading();
 
-      locationSubscriptionRef.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 60000, // In milliseconds
-          distanceInterval: 50, // In meters
-        },
-        (newLocation) => {
-          setUserLocation(newLocation);
+        emitLocationUpdated(initialUserLocation.coords, rideId);
 
-          emitLocationUpdated(newLocation.coords);
-        },
-      );
-    } catch (error) {
-      console.error(error);
+        locationSubscriptionRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 60000, // In milliseconds
+            distanceInterval: 50, // In meters
+          },
+          (newLocation) => {
+            setUserLocation(newLocation);
 
-      setUserLocationErrorMessage(i18n.location.location_update_error_message);
-    } finally {
-      stopLoading();
-    }
-  }, [emitLocationUpdated, stopLoading]);
+            emitLocationUpdated(newLocation.coords, rideId);
+          },
+        );
+      } catch (error) {
+        console.error(error);
+
+        setUserLocationErrorMessage(i18n.location.location_update_error_message);
+      } finally {
+        stopLoading();
+      }
+    },
+    [emitLocationUpdated, startLoading, stopLoading],
+  );
 
   useEffect(() => {
-    startTracking();
+    if (!activeRide?.id) return;
+
+    startTracking(activeRide.id);
 
     return () => locationSubscriptionRef.current?.remove();
-  }, [startTracking]);
+  }, [activeRide?.id, startTracking]);
 
-  return { userLocation, isUserLocationLoading, userLocationErrorMessage, joinRideTracking, leaveRideTracking };
+  return { userLocation, isUserLocationLoading, userLocationErrorMessage, activeRide };
 };
