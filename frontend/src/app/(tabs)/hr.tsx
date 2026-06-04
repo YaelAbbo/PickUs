@@ -60,7 +60,7 @@ export default function HRPage() {
             {actionMode === 'edit' ? i18n.hr_actions.select_to_edit : i18n.hr_actions.select_to_delete}
           </Text>
           <TouchableOpacity onPress={() => setActionMode('idle')} activeOpacity={0.7}>
-            <Text style={styles.cancelModeText}>{i18n.hr_popup.cancel}</Text>
+            <Text style={styles.cancelModeText}>{i18n.general.cancel}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -85,7 +85,7 @@ export default function HRPage() {
             : ''
         }
         confirmText={i18n.hr_actions.delete_user}
-        cancelText={i18n.hr_popup.cancel}
+        cancelText={i18n.general.cancel}
         onClose={() => setDeleteDialogVisible(false)}
         onConfirm={handleConfirmDelete}
       />

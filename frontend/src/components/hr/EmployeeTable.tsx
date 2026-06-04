@@ -8,10 +8,10 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 
 export const TableHeader: React.FC = () => (
   <View style={styles.tableHeader}>
-    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.first_name || 'First Name'}</Text>
-    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.hr_table.last_name || 'Last Name'}</Text>
-    <Text style={[styles.headerCell, { width: 180 }]}>{i18n.hr_table.email || 'Email'}</Text>
-    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.hr_table.role || 'Role'}</Text>
+    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.general.first_name || 'First Name'}</Text>
+    <Text style={[styles.headerCell, { width: 100 }]}>{i18n.general.last_name || 'Last Name'}</Text>
+    <Text style={[styles.headerCell, { width: 180 }]}>{i18n.general.email || 'Email'}</Text>
+    <Text style={[styles.headerCell, { width: 120 }]}>{i18n.general.role || 'Role'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.created_at || 'Created At'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}> </Text>

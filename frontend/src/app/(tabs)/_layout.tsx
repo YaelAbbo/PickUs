@@ -17,11 +17,12 @@ type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
 type TabScreenConfig = { name: string; title: string; icon: AntDesignIconName; role?: UserRole };
 
 const tabScreensConfigs: TabScreenConfig[] = [
+  { name: 'profile', title: 'Profile', icon: 'user' },
   { name: 'home', title: 'Home', icon: 'home' },
   { name: 'create-ride', title: 'Create Ride', icon: 'car' },
-  { name: 'hr', title: 'HR', icon: 'user', role: UserRole.HR_MANAGER },
   { name: 'map', title: 'Map', icon: 'compass' },
   { name: 'notifications', title: 'Notifications', icon: 'bell' },
+  { name: 'hr', title: 'HR', icon: 'team', role: UserRole.HR_MANAGER },
 ];
 
 const tabBarBackground = () => (

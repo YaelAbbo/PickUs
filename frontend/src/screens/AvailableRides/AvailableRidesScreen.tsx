@@ -6,8 +6,8 @@ import { AppBackground, AppTextInput } from '@/components/ui';
 import { i18n } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
-import { RideCard } from './RideCard';
 import { FILTERS, useAvailableRidesLogic } from '../../hooks/rides/useAvailableRidesLogic';
+import { RideCard } from './RideCard';
 
 export const AvailableRidesScreen: FC = () => {
   const {

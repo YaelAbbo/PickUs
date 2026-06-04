@@ -10,10 +10,10 @@ export const exportEmployeesToExcel = async (users: User[]) => {
   }
 
   const exportData = users.map((u) => ({
-    [i18n.hr_table.first_name]: u.firstName,
-    [i18n.hr_table.last_name]: u.lastName,
-    [i18n.hr_table.email]: u.email,
-    [i18n.hr_table.role]: i18n.roles[u.role as keyof typeof i18n.roles] || u.role,
+    [i18n.general.first_name]: u.firstName,
+    [i18n.general.last_name]: u.lastName,
+    [i18n.general.email]: u.email,
+    [i18n.general.role]: i18n.roles[u.role as keyof typeof i18n.roles] || u.role,
     [i18n.hr_table.org_id]: u.orgId,
     [i18n.hr_table.created_at]: new Date(u.createdAt).toLocaleDateString(),
   }));

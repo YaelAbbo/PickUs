@@ -24,7 +24,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
       ? hrFormSchema.extend({
           nationalId: z
             .string()
-            .min(1, { message: i18n.hr_popup.validation_required })
+            .min(1, { message: i18n.general.validation_required })
             .regex(/^\d{9}$/, { message: i18n.hr_popup.validation_national_id_length }),
         })
       : hrFormSchema;
@@ -84,7 +84,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           <Text style={popupStyles.title}>{title}</Text>
 
           <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.hr_popup.first_name}</Text>
+            <Text style={popupStyles.label}>{i18n.general.first_name}</Text>
             <Controller
               control={control}
               name='firstName'
@@ -101,7 +101,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           </View>
 
           <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.hr_popup.last_name}</Text>
+            <Text style={popupStyles.label}>{i18n.general.last_name}</Text>
             <Controller
               control={control}
               name='lastName'
@@ -118,7 +118,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           </View>
 
           <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.hr_popup.email}</Text>
+            <Text style={popupStyles.label}>{i18n.general.email}</Text>
             <Controller
               control={control}
               name='email'
@@ -157,7 +157,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           )}
 
           <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.hr_popup.role}</Text>
+            <Text style={popupStyles.label}>{i18n.general.role}</Text>
             <Controller
               control={control}
               name='role'
@@ -181,7 +181,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
 
           <View style={popupStyles.actions}>
             <TouchableOpacity style={[popupStyles.button, popupStyles.cancelBtn]} onPress={onClose}>
-              <Text style={popupStyles.cancelText}>{i18n.hr_popup.cancel}</Text>
+              <Text style={popupStyles.cancelText}>{i18n.general.cancel}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[popupStyles.button, popupStyles.submitBtn]} onPress={handleSubmit(onFormSubmit)}>
               <Text style={popupStyles.submitText}>{submitText}</Text>

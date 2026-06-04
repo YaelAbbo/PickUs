@@ -374,6 +374,258 @@ describe('RideController', () => {
       expect(response.body[0].organization).toBeDefined();
     });
 
+    it('GET /rides/passenger/:passengerId should return rides for the passenger', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+        ],
+      } as DeepPartial<Ride>);
+
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+      const firstRideStop = savedRide.rideStops?.[0];
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: firstRideStop!.id },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/passenger/${testPassengerId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toEqual(true);
+      const responseRide = response.body.find(
+        (r: Ride) => r.id === savedRide.id,
+      );
+      expect(responseRide).toBeDefined();
+      expect(responseRide.passengers[0].user.id).toEqual(testPassengerId);
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/driver/:driverId should return only future and active drives (excluding past, done, cancelled)', async () => {
+      // 1. Future ride (startsAt in future, status PENDING)
+      const futureRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() + 1000 * 60 * 120), // 2 hours from now
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        } as DeepPartial<Ride>),
+      );
+
+      // 2. Active ride (startsAt in past, estimatedEndsAt in future, status ACTIVE)
+      const activeRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 90), // 90 mins from now
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.ACTIVE,
+        } as DeepPartial<Ride>),
+      );
+
+      // 3. Past ride (startsAt and estimatedEndsAt in the past)
+      const pastRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() - 1000 * 60 * 180), // 3 hours ago
+          estimatedEndsAt: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        } as DeepPartial<Ride>),
+      );
+
+      // 4. Done ride (startsAt in future but status DONE)
+      const doneRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() + 1000 * 60 * 120),
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.DONE,
+        } as DeepPartial<Ride>),
+      );
+
+      // 5. Cancelled ride (startsAt in future but status CANCELLED)
+      const cancelledRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() + 1000 * 60 * 120),
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.CANCELLED,
+        } as DeepPartial<Ride>),
+      );
+
+      const response = await request(httpServer)
+        .get(`/rides/driver/${testDriverId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toEqual(true);
+
+      const returnedIds = response.body.map((r: Ride) => r.id);
+
+      expect(returnedIds).toContain(futureRide.id);
+      expect(returnedIds).toContain(activeRide.id);
+      expect(returnedIds).not.toContain(pastRide.id);
+      expect(returnedIds).not.toContain(doneRide.id);
+      expect(returnedIds).not.toContain(cancelledRide.id);
+
+      // Cleanup
+      await rideRepository.delete(futureRide.id);
+      await rideRepository.delete(activeRide.id);
+      await rideRepository.delete(pastRide.id);
+      await rideRepository.delete(doneRide.id);
+      await rideRepository.delete(cancelledRide.id);
+    });
+
+    it('GET /rides/passenger/:passengerId should return only future and active drives (excluding past, done, cancelled)', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      // 1. Future ride
+      const futureRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() + 1000 * 60 * 120),
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+          rideStops: [
+            {
+              location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+              locationName: 'Stop1',
+              estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+              orderIndex: 1,
+            },
+          ],
+        } as DeepPartial<Ride>),
+      );
+
+      // 2. Active ride
+      const activeRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() - 1000 * 60 * 30),
+          estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 90),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.ACTIVE,
+          rideStops: [
+            {
+              location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+              locationName: 'Stop2',
+              estimatedArrivalAt: new Date(Date.now() - 1000 * 60 * 30),
+              orderIndex: 1,
+            },
+          ],
+        } as DeepPartial<Ride>),
+      );
+
+      // 3. Past ride
+      const pastRide = await rideRepository.save(
+        rideRepository.create({
+          organization: { id: testOrgId },
+          driver: { id: testDriverId },
+          startsAt: new Date(Date.now() - 1000 * 60 * 180),
+          estimatedEndsAt: new Date(Date.now() - 1000 * 60 * 120),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+          rideStops: [
+            {
+              location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+              locationName: 'Stop3',
+              estimatedArrivalAt: new Date(Date.now() - 1000 * 60 * 180),
+              orderIndex: 1,
+            },
+          ],
+        } as DeepPartial<Ride>),
+      );
+
+      // Link passenger to stops
+      const futureStopId = futureRide.rideStops?.[0]?.id;
+      const activeStopId = activeRide.rideStops?.[0]?.id;
+      const pastStopId = pastRide.rideStops?.[0]?.id;
+
+      await passengerRepo.save(
+        passengerRepo.create({
+          ride: { id: futureRide.id },
+          user: { id: testPassengerId },
+          rideStop: { id: futureStopId },
+        } as DeepPartial<RidePassenger>),
+      );
+
+      await passengerRepo.save(
+        passengerRepo.create({
+          ride: { id: activeRide.id },
+          user: { id: testPassengerId },
+          rideStop: { id: activeStopId },
+        } as DeepPartial<RidePassenger>),
+      );
+
+      await passengerRepo.save(
+        passengerRepo.create({
+          ride: { id: pastRide.id },
+          user: { id: testPassengerId },
+          rideStop: { id: pastStopId },
+        } as DeepPartial<RidePassenger>),
+      );
+
+      const response = await request(httpServer)
+        .get(`/rides/passenger/${testPassengerId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toEqual(true);
+
+      const returnedIds = response.body.map((r: Ride) => r.id);
+
+      expect(returnedIds).toContain(futureRide.id);
+      expect(returnedIds).toContain(activeRide.id);
+      expect(returnedIds).not.toContain(pastRide.id);
+
+      // Cleanup
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" IN ('${futureRide.id}', '${activeRide.id}', '${pastRide.id}')`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" IN ('${futureRide.id}', '${activeRide.id}', '${pastRide.id}')`,
+      );
+      await rideRepository.delete(futureRide.id);
+      await rideRepository.delete(activeRide.id);
+      await rideRepository.delete(pastRide.id);
+    });
+
     it('GET /rides/organization/:orgId should omit deleted passengers and deleted ride stops', async () => {
       const passengerRepo = dataSource.getRepository(RidePassenger);
 
@@ -701,8 +953,9 @@ describe('RideController', () => {
         `/rides/organization/${fakeId}`,
       );
       const res6 = await request(httpServer).get(`/rides/driver/${fakeId}`);
-      const res7 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
-      const res8 = await request(httpServer).delete(`/rides/${fakeId}`);
+      const res7 = await request(httpServer).get(`/rides/passenger/${fakeId}`);
+      const res8 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
+      const res9 = await request(httpServer).delete(`/rides/${fakeId}`);
 
       expect(res1.status).toEqual(401);
       expect(res2.status).toEqual(401);
@@ -712,6 +965,7 @@ describe('RideController', () => {
       expect(res6.status).toEqual(401);
       expect(res7.status).toEqual(401);
       expect(res8.status).toEqual(401);
+      expect(res9.status).toEqual(401);
     });
   });
 });

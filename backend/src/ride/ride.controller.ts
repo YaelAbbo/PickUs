@@ -73,6 +73,14 @@ export class RideController {
   }
 
   @UseAccessAuth()
+  @Get('passenger/:passengerId')
+  async getRidesByPassengerId(
+    @Param('passengerId') passengerId: User['id'],
+  ): Promise<Ride[]> {
+    return await this.rideService.getRidesByPassengerId(passengerId);
+  }
+
+  @UseAccessAuth()
   @Patch(':id')
   async updateRide(
     @Param('id') id: Ride['id'],

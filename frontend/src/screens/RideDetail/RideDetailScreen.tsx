@@ -79,7 +79,7 @@ export const RideDetailScreen: FC = () => {
               </Text>
             </View>
             <Text style={styles.seatsRemainingText}>
-              {ride.availableSeats} {i18n.ride_detail.seats_available}
+              {ride.availableSeats} {i18n.rideForm.available_seats}
             </Text>
           </View>
 

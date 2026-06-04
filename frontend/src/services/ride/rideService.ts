@@ -52,4 +52,16 @@ export const rideService = {
   },
 
   deleteRide: (rideId: Ride['id']) => api.delete(`/rides/${rideId}`),
+
+  getRidesByDriverId: async (driverId: string): Promise<Ride[]> => {
+    const { data } = await api.get(`/rides/driver/${driverId}`);
+
+    return z.array(rideEntitySchema).parse(data);
+  },
+
+  getRidesByPassengerId: async (passengerId: string): Promise<Ride[]> => {
+    const { data } = await api.get(`/rides/passenger/${passengerId}`);
+
+    return z.array(rideEntitySchema).parse(data);
+  },
 };

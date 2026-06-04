@@ -97,7 +97,10 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
     reset: resetCreateRideMutation,
   } = useMutation({
     mutationFn: createRide,
-    onSuccess: clearFormAndExit,
+    onSuccess: () => {
+      updateRideState();
+      clearFormAndExit();
+    },
     onError: () => setError('root', { message: i18n.rideForm.create_ride_error_happened }),
   });
 
@@ -110,8 +113,8 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
     reset: resetUpdateRideMutation,
   } = useMutation({
     mutationFn: updateRide,
-    onSuccess: (updatedRide) => {
-      updateRideState(updatedRide);
+    onSuccess: () => {
+      updateRideState();
 
       clearFormAndExit();
     },
