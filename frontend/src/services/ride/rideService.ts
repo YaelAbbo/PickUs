@@ -65,8 +65,8 @@ export const rideService = {
     return z.array(rideEntitySchema).parse(data);
   },
 
-  getActiveRideByPassengerId: async (passengerId: User['id']): Promise<Ride | null> => {
-    const { data } = await api.get(`/rides/passenger/${passengerId}/active-ride`);
+  getActiveRideByPassengerId: async (): Promise<Ride | null> => {
+    const { data } = await api.get(`/rides/active-ride`);
 
     if (!data) return null;
 
