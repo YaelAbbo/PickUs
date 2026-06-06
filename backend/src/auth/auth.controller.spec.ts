@@ -1,7 +1,9 @@
 import { createTestApp } from '@/test/createTestApp';
+import { afterAll, beforeAll, expect } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { UUID } from 'crypto';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { Organization } from '../database/entities';
@@ -21,6 +23,7 @@ describe('AuthController (e2e)', () => {
     firstName: 'Test',
     lastName: 'User',
     email: `auth-test-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`, // ← add
   };
 
   let createdOrganizationId: Organization['id'] | null = null;
@@ -68,6 +71,7 @@ describe('AuthController (e2e)', () => {
       firstName: testUser.firstName,
       lastName: testUser.lastName,
       email: testUser.email,
+      phoneNumber: testUser.phoneNumber,
       passwordHash: passwordHash,
       role: UserRole.BASIC_USER,
       organization: savedOrganization,
