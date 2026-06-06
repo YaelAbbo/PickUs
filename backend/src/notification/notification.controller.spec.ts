@@ -329,8 +329,6 @@ describe('NotificationController', () => {
         expect(response.status).toEqual(HttpStatus.CREATED);
         expect(response.body).toHaveProperty('id');
         expect(response.body.content).toEqual('Test notification content');
-
-        createdNotificationId = response.body.id;
       });
 
       it('should create a new notification without rideId', async () => {
