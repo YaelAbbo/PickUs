@@ -132,37 +132,38 @@ jobs:
             ghcr.io/yaelabbo/pickus/gateway:${{ steps.meta.outputs.sha_tag }}
 
   # ─── Job 3: Deploy on the remote VM ─────────────────────────────────────────
-  deploy:
-    name: Deploy to VM
-    runs-on: ubuntu-latest
-    needs: build-and-push # CRITICAL: This ensures deploy only runs if build succeeds
-    environment: production
+  # This job currently commented out until we have a domain name for the VM and able to access it.
+  # deploy:
+  #   name: Deploy to VM
+  #   runs-on: ubuntu-latest
+  #   needs: build-and-push # CRITICAL: This ensures deploy only runs if build succeeds
+  #   environment: production
 
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
+  #   steps:
+  #     - name: Deploy via SSH
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       with:
+  #         host: ${{ secrets.VM_HOST }}
+  #         username: ${{ secrets.REMOTE_USER }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         script: |
+  #           set -e
 
-            cd /home/cs103/PickUs
+  #           cd /home/cs103/PickUs
 
-            # Fetch branches and dynamically pull the branch that triggered this workflow
-            git fetch origin
-            git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+  #           # Fetch branches and dynamically pull the branch that triggered this workflow
+  #           git fetch origin
+  #           git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
+  #           git pull origin ${{ github.ref_name }}
 
-            # Authenticate with GHCR so we can pull private images
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+  #           # Authenticate with GHCR so we can pull private images
+  #           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Pull the newly built images
-            docker compose -f docker-compose.prod.yml pull backend gateway
+  #           # Pull the newly built images
+  #           docker compose -f docker-compose.prod.yml pull backend gateway
 
-            # Restart only backend and gateway — db and pgadmin are untouched
-            docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
+  #           # Restart only backend and gateway — db and pgadmin are untouched
+  #           docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
 
-            # Clean up dangling images to save disk space
-            docker image prune -f
+  #           # Clean up dangling images to save disk space
+  #           docker image prune -f
