@@ -38,8 +38,6 @@ async function bootstrap() {
     BASE_URL,
   } = process.env;
 
-  console.log({ FRONTEND_BASE_URL });
-
   app.enableCors({ origin: [FRONTEND_BASE_URL], credentials: true });
 
   await app.listen(BACKEND_PORT);
