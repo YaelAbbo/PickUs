@@ -18,15 +18,33 @@ export class NotificationService {
   async create(
     createNotificationDto: CreateNotificationDto,
   ): Promise<Notification> {
-    const { creatorId, rideId, content } = createNotificationDto;
+    const { creatorId, recipientId, rideId, content } = createNotificationDto;
 
     const notification = this.notificationRepository.create({
       creator: { id: creatorId },
+      recipient: { id: recipientId },
       ride: rideId ? { id: rideId } : null,
       content,
     });
 
     return await this.notificationRepository.save(notification);
+  }
+
+  async createBulk(
+    createNotificationDtos: CreateNotificationDto[],
+  ): Promise<void> {
+    await this.notificationRepository.manager.transaction(async (manager) => {
+      const notifications = createNotificationDtos.map((dto) =>
+        manager.create(Notification, {
+          creator: { id: dto.creatorId },
+          recipient: { id: dto.recipientId },
+          ride: dto.rideId ? { id: dto.rideId } : null,
+          content: dto.content,
+        }),
+      );
+
+      await manager.save(notifications);
+    });
   }
 
   update = (
@@ -78,5 +96,31 @@ export class NotificationService {
       )
       .orderBy('notification.createdAt', 'DESC')
       .getMany();
+  }
+
+  async getExistingRecipientRidePairs(
+    rideIds: string[],
+    userIds: string[],
+  ): Promise<Set<string>> {
+    if (rideIds.length === 0 || userIds.length === 0) {
+      return new Set();
+    }
+
+    const existingNotifications = await this.notificationRepository
+      .createQueryBuilder('notification')
+      .select(['notification.id'])
+      .addSelect('notification.recipient_user_id', 'recipientId')
+      .addSelect('notification.ride_id', 'rideId')
+      .where('notification.isDeleted = false')
+      .andWhere('notification.ride_id IN (:...rideIds)', { rideIds })
+      .andWhere('notification.recipient_user_id IN (:...userIds)', { userIds })
+      .getRawMany();
+
+    return new Set(
+      existingNotifications.map(
+        (notification: { recipientId: string; rideId: string }) =>
+          `${notification.recipientId}:${notification.rideId}`,
+      ),
+    );
   }
 }

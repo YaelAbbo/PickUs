@@ -4,9 +4,10 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { UUID } from 'crypto';
 import { Repository } from 'typeorm';
-import { Notification } from '../database/entities/notification.entity';
 import { Ride, RideStatus } from '../database/entities/ride.entity';
 import { User, UserRole } from '../database/entities/user.entity';
+import { CreateNotificationDto } from '../notification/dto/create-notification.dto';
+import { NotificationService } from '../notification/notification.service';
 
 /** Default cosine distance threshold: lower = more similar.
  * 0.3 means ~0.7 cosine similarity.
@@ -16,10 +17,10 @@ const DEFAULT_COSINE_DISTANCE_THRESHOLD = 0.3;
 const MATCH_NOTIFICATION_CONTENT =
   'מצאנו נסיעה חדשה שמתאימה למסלולים הרגילים שלך! לחץ כאן כדי לראות את הפרטים ולהצטרף.';
 
-interface MatchedUserRide {
+type MatchedUserRide = {
   userId: UUID;
   rideId: UUID;
-}
+};
 
 @Injectable()
 export class RideMatchingCronService {
@@ -30,8 +31,7 @@ export class RideMatchingCronService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ride)
     private readonly rideRepository: Repository<Ride>,
-    @InjectRepository(Notification)
-    private readonly notificationRepository: Repository<Notification>,
+    private readonly notificationService: NotificationService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -170,22 +170,11 @@ export class RideMatchingCronService {
     const rideIds = [...new Set(matches.map((match) => match.rideId))];
     const userIds = [...new Set(matches.map((match) => match.userId))];
 
-    const existingNotifications = await this.notificationRepository
-      .createQueryBuilder('notification')
-      .select(['notification.id'])
-      .addSelect('notification.recipient_user_id', 'recipientId')
-      .addSelect('notification.ride_id', 'rideId')
-      .where('notification.isDeleted = false')
-      .andWhere('notification.ride_id IN (:...rideIds)', { rideIds })
-      .andWhere('notification.recipient_user_id IN (:...userIds)', { userIds })
-      .getRawMany();
-
-    const existingPairs = new Set(
-      existingNotifications.map(
-        (notification: { recipientId: string; rideId: string }) =>
-          `${notification.recipientId}:${notification.rideId}`,
-      ),
-    );
+    const existingPairs =
+      await this.notificationService.getExistingRecipientRidePairs(
+        rideIds,
+        userIds,
+      );
 
     return matches.filter(
       (match) => !existingPairs.has(`${match.userId}:${match.rideId}`),
@@ -196,17 +185,13 @@ export class RideMatchingCronService {
     aiUserId: UUID,
     matches: MatchedUserRide[],
   ): Promise<void> {
-    await this.notificationRepository.manager.transaction(async (manager) => {
-      const notifications = matches.map((match) =>
-        manager.create(Notification, {
-          creator: { id: aiUserId },
-          recipient: { id: match.userId },
-          ride: { id: match.rideId },
-          content: MATCH_NOTIFICATION_CONTENT,
-        }),
-      );
+    const notificationDtos: CreateNotificationDto[] = matches.map((match) => ({
+      creatorId: aiUserId,
+      recipientId: match.userId,
+      rideId: match.rideId,
+      content: MATCH_NOTIFICATION_CONTENT,
+    }));
 
-      await manager.save(notifications);
-    });
+    await this.notificationService.createBulk(notificationDtos);
   }
 }

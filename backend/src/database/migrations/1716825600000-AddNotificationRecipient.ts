@@ -6,7 +6,7 @@ export class AddNotificationRecipient1716825600000 implements MigrationInterface
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "notification"
-      ADD COLUMN "recipient_user_id" uuid
+      ADD COLUMN "recipient_user_id" uuid NOT NULL
       REFERENCES "user"("id")
     `);
 
