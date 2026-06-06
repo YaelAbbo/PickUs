@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Notification } from '../database/entities/notification.entity';
 import { Ride } from '../database/entities/ride.entity';
 import { User } from '../database/entities/user.entity';
+import { NotificationModule } from '../notification/notification.module';
 import { RideMatchingCronService } from './ride-matching-cron.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Ride, Notification])],
+  imports: [TypeOrmModule.forFeature([User, Ride]), NotificationModule],
   providers: [RideMatchingCronService],
   exports: [RideMatchingCronService],
 })

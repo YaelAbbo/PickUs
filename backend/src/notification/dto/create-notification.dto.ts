@@ -7,6 +7,10 @@ export class CreateNotificationDto {
   creatorId: User['id'];
 
   @IsUUID()
+  @IsNotEmpty()
+  recipientId: User['id'];
+
+  @IsUUID()
   @IsOptional()
   rideId?: Ride['id'];
 

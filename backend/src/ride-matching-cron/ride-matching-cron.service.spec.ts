@@ -1,6 +1,7 @@
 import { createTestApp } from '@/test/createTestApp';
 import { INestApplication } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
   Notification,
@@ -74,6 +75,7 @@ describe('RideMatchingCronService', () => {
     ({ app, dataSource } = await createTestApp(
       ScheduleModule.forRoot(),
       RideMatchingCronModule,
+      TypeOrmModule.forFeature([Notification]),
     ));
 
     service = app.get(RideMatchingCronService);

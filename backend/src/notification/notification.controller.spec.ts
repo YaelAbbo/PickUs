@@ -36,7 +36,6 @@ describe('NotificationController', () => {
   let testPassengerId: Pick<User, 'id'>['id'] | null = null;
   let testUnrelatedUserId: Pick<User, 'id'>['id'] | null = null;
   let adminAccessToken: string;
-  let createdNotificationId: Pick<Notification, 'id'>['id'] | null = null;
   let testRideId: Pick<Ride, 'id'>['id'] | null = null;
   let testDeletedRideId: Pick<Ride, 'id'>['id'] | null = null;
 
@@ -208,6 +207,41 @@ describe('NotificationController', () => {
     }
   });
 
+  beforeEach(async () => {
+    if (notificationRepository && testRideId) {
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('ride_id = :id', { id: testRideId })
+        .execute();
+    }
+    if (notificationRepository && testDeletedRideId) {
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('ride_id = :id', { id: testDeletedRideId })
+        .execute();
+    }
+    if (notificationRepository && testDriverId) {
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('recipient_user_id = :id OR created_by_user_id = :id', {
+          id: testDriverId,
+        })
+        .execute();
+    }
+    if (notificationRepository && testPassengerId) {
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('recipient_user_id = :id OR created_by_user_id = :id', {
+          id: testPassengerId,
+        })
+        .execute();
+    }
+  });
+
   const cleanup = async () => {
     try {
       if (testRideId) {
@@ -287,6 +321,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testDriverId,
+            recipientId: testPassengerId,
             rideId: testRideId,
             content: 'Test notification content',
           });
@@ -304,6 +339,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testDriverId,
+            recipientId: testPassengerId,
             content: 'Ride-less notification',
           });
 
@@ -316,6 +352,7 @@ describe('NotificationController', () => {
           .post('/notifications')
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
+            recipientId: testPassengerId,
             content: 'Invalid notification',
           });
 
@@ -328,6 +365,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: 'not-a-uuid',
+            recipientId: testPassengerId,
             content: 'Invalid UUID',
           });
 
@@ -340,6 +378,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testDriverId,
+            recipientId: testPassengerId,
           });
 
         expect(response.status).toEqual(HttpStatus.BAD_REQUEST);
@@ -348,10 +387,41 @@ describe('NotificationController', () => {
 
     describe('GET /notifications/user/:userId', () => {
       it('should return notifications from the last 24h in correct order', async () => {
+        const oldRide = rideRepository.create({
+          driver: { id: testDriverId } as User,
+          organization: { id: testOrgId } as Organization,
+          startsAt: new Date(),
+          estimatedEndsAt: new Date(Date.now() + 3600000),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        });
+        const savedOldRide = await rideRepository.save(oldRide);
+
+        const newRide = rideRepository.create({
+          driver: { id: testDriverId } as User,
+          organization: { id: testOrgId } as Organization,
+          startsAt: new Date(),
+          estimatedEndsAt: new Date(Date.now() + 3600000),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        });
+        const savedNewRide = await rideRepository.save(newRide);
+
+        const semiRecentRide = rideRepository.create({
+          driver: { id: testDriverId } as User,
+          organization: { id: testOrgId } as Organization,
+          startsAt: new Date(),
+          estimatedEndsAt: new Date(Date.now() + 3600000),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        });
+        const savedSemiRecentRide = await rideRepository.save(semiRecentRide);
+
         const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
         const oldNotification = notificationRepository.create({
           creator: { id: testPassengerId } as User,
-          ride: { id: testRideId } as Ride,
+          recipient: { id: testDriverId } as User,
+          ride: { id: savedOldRide.id } as Ride,
           content: 'Old notification',
           createdAt: oldDate,
         });
@@ -362,14 +432,16 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testPassengerId,
-            rideId: testRideId,
+            recipientId: testDriverId,
+            rideId: savedNewRide.id,
             content: 'New notification',
           });
 
         const semiRecentDate = new Date(Date.now() - 1 * 60 * 60 * 1000);
         const semiRecentNotification = notificationRepository.create({
           creator: { id: testPassengerId } as User,
-          ride: { id: testRideId } as Ride,
+          recipient: { id: testDriverId } as User,
+          ride: { id: savedSemiRecentRide.id } as Ride,
           content: 'Semi-recent notification',
           createdAt: semiRecentDate,
         });
@@ -414,6 +486,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testPassengerId,
+            recipientId: testDriverId,
             rideId: testRideId,
             content: 'Driver notification',
           });
@@ -437,6 +510,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testDriverId,
+            recipientId: testPassengerId,
             rideId: testRideId,
             content: 'Passenger notification',
           });
@@ -472,6 +546,7 @@ describe('NotificationController', () => {
           .set('Authorization', `Bearer ${adminAccessToken}`)
           .send({
             creatorId: testDriverId,
+            recipientId: testPassengerId,
             rideId: testDeletedRideId,
             content: 'Notification for deleted ride',
           });
@@ -514,22 +589,31 @@ describe('NotificationController', () => {
 
     describe('DELETE /notifications/:id', () => {
       it('should mark notification as deleted', async () => {
+        const createResponse = await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: testDriverId,
+            recipientId: testPassengerId,
+            rideId: testRideId,
+            content: 'Notification to delete',
+          });
+
+        const notificationId = createResponse.body.id;
+
         const deleteResponse = await request(httpServer)
-          .delete(`/notifications/${createdNotificationId}`)
+          .delete(`/notifications/${notificationId}`)
           .set('Authorization', `Bearer ${adminAccessToken}`);
 
         expect(deleteResponse.status).toEqual(HttpStatus.OK);
 
         const getResponse = await request(httpServer)
-          .get(`/notifications/user/${testDriverId}`)
+          .get(`/notifications/user/${testPassengerId}`)
           .set('Authorization', `Bearer ${adminAccessToken}`);
 
         expect(
-          getResponse.body.find(
-            (n: Notification) => n.id === createdNotificationId,
-          ),
+          getResponse.body.find((n: Notification) => n.id === notificationId),
         ).toBeUndefined();
-        createdNotificationId = null;
       });
 
       it('should fail with 404 for non-existent notification', async () => {
