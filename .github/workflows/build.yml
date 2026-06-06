@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - feat/eas-apk-build # CHANGE TO dev
+      - dev
       - main
 
 defaults:
@@ -69,7 +69,7 @@ jobs:
         run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
 
       - name: Publish Dev APK
-        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
+        if: github.ref == 'refs/heads/dev'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
