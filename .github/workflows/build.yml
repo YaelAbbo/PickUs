@@ -1,22 +1,59 @@
-# .github/workflows/build.yml
-name: EAS Build
+name: Build APK
+
 on:
   push:
     branches:
-      - '**'
+      - feat/eas-apk-build # CHANGE TO dev
+      - main
+
+defaults:
+  run:
+    working-directory: ./frontend
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install -g eas-cli
-      - run: npm install
-      - run: eas build --platform android --profile preview --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prebuild (generate android/ folder)
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build Debug APK (feat/eas-apk-build branch) # CHANGE TO dev
+        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
+        working-directory: ./frontend/android
+        run: ./gradlew assembleDebug
+
+      - name: Build Release APK (main branch)
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./frontend/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload Debug APK
+        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Release APK
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk
