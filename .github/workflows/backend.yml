@@ -1,0 +1,168 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**' # Runs on all branches for testing. Change to 'main' or 'dev' later if needed.
+
+jobs:
+  # ─── Job 1: Run Unit Tests ──────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    environment: testing 
+
+    services:
+      postgres:
+        image: timescale/timescaledb-ha:pg17 
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pickus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      BCRYPT_SALT_ROUNDS: 1 
+      DB_LOGGING: false
+      
+      DB_HOST: localhost 
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: pickus
+
+      APP_NAME: ${{ vars.APP_NAME }}
+      BACKEND_PORT: ${{ vars.BACKEND_PORT }}
+      BASE_URL: ${{ vars.BASE_URL }}
+      FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+      REFRESH_TOKEN_COOKIE_KEY: ${{ vars.REFRESH_TOKEN_COOKIE_KEY }}
+      
+      SMTP_HOST: ${{ vars.SMTP_HOST }}
+      SMTP_PORT: ${{ vars.SMTP_PORT }}
+      SMTP_SECURE: ${{ vars.SMTP_SECURE }}
+      SMTP_USER: ${{ vars.SMTP_USER }}
+      SMTP_FROM: ${{ vars.SMTP_FROM }}
+
+      JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+      JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
+      JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest tests
+        run: npm run test
+
+  # ─── Job 2: Build images and push to GHCR ───────────────────────────────────
+  build-and-push:
+    name: Build & Push to GHCR
+    runs-on: ubuntu-latest
+    needs: test # CRITICAL: This ensures build only runs if tests succeed
+    environment: production
+
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.sha_tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: meta
+        run: echo "sha_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      # ── Backend ──────────────────────────────────────────────────────────────
+      - name: Build & push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: production
+          push: true
+          tags: |
+            ghcr.io/yaelabbo/pickus/backend:latest
+            ghcr.io/yaelabbo/pickus/backend:${{ steps.meta.outputs.sha_tag }}
+
+      # ── Gateway ──────────────────────────────────────────────────────────────
+      - name: Build & push gateway image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./gateway
+          file: ./gateway/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/yaelabbo/pickus/gateway:latest
+            ghcr.io/yaelabbo/pickus/gateway:${{ steps.meta.outputs.sha_tag }}
+
+  # ─── Job 3: Deploy on the remote VM ─────────────────────────────────────────
+  deploy:
+    name: Deploy to VM
+    runs-on: ubuntu-latest
+    needs: build-and-push # CRITICAL: This ensures deploy only runs if build succeeds
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            cd /home/cs103/PickUs
+
+            # Fetch branches and dynamically pull the branch that triggered this workflow
+            git fetch origin
+            git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+
+            # Authenticate with GHCR so we can pull private images
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull the newly built images
+            docker compose -f docker-compose.prod.yml pull backend gateway
+
+            # Restart only backend and gateway — db and pgadmin are untouched
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
+
+            # Clean up dangling images to save disk space
+            docker image prune -f
