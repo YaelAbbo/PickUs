@@ -32,6 +32,22 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('frontend/android/**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
       - name: Get build info
         id: info
         run: |
@@ -58,10 +74,10 @@ jobs:
 
       - name: Build APK
         working-directory: ./frontend/android
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease -x bundleReleaseJsAndAssets --stacktrace
 
       - name: List APK output
-        run: find frontend/android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
+        run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
 
       - name: Publish Dev APK
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
@@ -70,7 +86,7 @@ jobs:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: true
-          files: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          files: frontend/android/app/build/outputs/apk/release/*.apk
 
       - name: Publish Release APK
         if: github.ref == 'refs/heads/main'
@@ -79,4 +95,4 @@ jobs:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: false
-          files: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          files: frontend/android/app/build/outputs/apk/release/*.apk
