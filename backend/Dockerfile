@@ -1,37 +1,33 @@
-# Specify node version and choose image
-# also name our image as development (can be anything)
+# ── Development stage ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS development
 
-# Specify our working directory, this is in our container/in our image
 WORKDIR /usr/src/app
 
-# Copy the package.json-s from host to container
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
-
-# Here we install all the deps
 RUN npm install
 
-# Bundle app source / copy all other files
 COPY . .
 
-################
-## PRODUCTION ##
-################
-# Build another image named production
+# ── Build stage ────────────────────────────────────────────────────────────────
+FROM development AS builder
+
+RUN npm run build
+
+# ── Production stage ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS production
 
-# Set node env to prod
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-# Set Working Directory
 WORKDIR /usr/src/app
 
-# Copy all from development stage
-COPY --from=development /usr/src/app/ .
+# Copy only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy the compiled output from the builder stage
+COPY --from=builder /usr/src/app/dist ./dist
 
 EXPOSE 3000
 
-# Run app
 CMD ["node", "dist/main"]
