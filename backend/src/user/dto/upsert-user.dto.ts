@@ -29,4 +29,8 @@ export class UpsertUserDto {
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string | null;
 }

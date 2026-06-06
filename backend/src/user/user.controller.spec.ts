@@ -1,8 +1,10 @@
 import { createTestApp } from '@/test/createTestApp';
+import { afterAll, beforeAll, expect } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { UUID } from 'crypto';
 import { Server } from 'http';
+import { describe, it } from 'node:test';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
@@ -30,6 +32,7 @@ describe('UserController (e2e)', () => {
     lastName: 'Employee',
     nationalId: `employee-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `new.employee-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
     role: UserRole.BASIC_USER,
   };
 
@@ -108,6 +111,7 @@ describe('UserController (e2e)', () => {
       expect(response.body.firstName).toBe(newUser.firstName);
       expect(response.body.nationalId).toBe(newUser.nationalId);
       expect(response.body.email).toBe(newUser.email);
+      expect(response.body.phoneNumber).toBe(newUser.phoneNumber);
       expect(response.body.isTempPassword).toBe(true);
       createdUserId = response.body.id;
     });
@@ -126,6 +130,7 @@ describe('UserController (e2e)', () => {
           lastName: 'Fails',
           nationalId: `email-fail-nid-${crypto.randomUUID().slice(0, 8)}`,
           email: `email.fails-${crypto.randomUUID().slice(0, 8)}@test.com`,
+          phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
           orgId: testOrgId,
         });
 
