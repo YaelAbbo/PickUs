@@ -276,7 +276,7 @@ describe('UserController (e2e)', () => {
     });
   });
 
-  void it('All endpoints should fail without token', async () => {
+  it('All endpoints should fail without token', async () => {
     const res1 = await request(httpServer).post('/users').send({});
     const res2 = await request(httpServer).get('/users/some-id');
     const res3 = await request(httpServer).patch('/users/some-id').send({});
