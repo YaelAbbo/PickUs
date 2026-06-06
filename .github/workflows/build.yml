@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - uses: actions/checkout@v4
@@ -30,16 +32,34 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
+      - name: Get build info
+        id: info
+        run: |
+          echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "branch=$(echo ${{ github.ref_name }} | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         run: npm install
 
       - name: Prebuild (generate android/ folder)
         run: npx expo prebuild --platform android --clean
 
+      - name: Bundle JS (dev branch)
+        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+
       - name: Build Debug APK (dev branch)
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
         working-directory: ./frontend/android
-        run: ./gradlew assembleDebug -PbundleInDebug=true
+        run: ./gradlew assembleDebug
 
       - name: Build Release APK (main branch)
         if: github.ref == 'refs/heads/main'
@@ -50,8 +70,8 @@ jobs:
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: dev-${{ github.sha }}
-          name: 'Dev build ${{ github.sha }}'
+          tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
+          name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: true
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
 
@@ -59,7 +79,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v-${{ github.sha }}
-          name: 'Release ${{ github.sha }}'
+          tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
+          name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: false
           files: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk
