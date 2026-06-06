@@ -1,0 +1,19 @@
+# .github/workflows/build.yml
+name: EAS Build
+on:
+  push:
+    branches:
+      - '**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g eas-cli
+      - run: npm install
+      - run: eas build --platform android --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
