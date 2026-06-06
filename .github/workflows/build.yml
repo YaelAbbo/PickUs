@@ -40,41 +40,36 @@ jobs:
           echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
-        run: npm install
+        run: npm install && npm install lightningcss-linux-x64-gnu --no-save
 
       - name: Prebuild (generate android/ folder)
         run: npx expo prebuild --platform android --clean
 
-      - name: Bundle JS (dev branch)
-        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
+      - name: Bundle JS
         run: |
           mkdir -p android/app/src/main/assets
           npx expo export:embed \
             --platform android \
+            --dev false \
             --entry-file node_modules/expo-router/entry.js \
             --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
+            --assets-dest android/app/src/main/res \
+            --reset-cache
 
-      - name: Build Debug APK (dev branch)
-        if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
-        working-directory: ./frontend/android
-        run: ./gradlew assembleDebug
-
-      - name: Build Release APK (main branch)
-        if: github.ref == 'refs/heads/main'
+      - name: Build APK
         working-directory: ./frontend/android
         run: ./gradlew assembleRelease
 
-      - name: Publish Debug Release
+      - name: Publish Dev APK
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: true
-          files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          files: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk
 
-      - name: Publish Release
+      - name: Publish Release APK
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
