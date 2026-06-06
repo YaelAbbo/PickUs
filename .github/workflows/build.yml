@@ -60,6 +60,9 @@ jobs:
         working-directory: ./frontend/android
         run: ./gradlew assembleRelease
 
+      - name: List APK output
+        run: find frontend/android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
+
       - name: Publish Dev APK
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
         uses: softprops/action-gh-release@v2
