@@ -3,7 +3,8 @@ name: Build & Deploy (Backend + Gateway)
 on:
   push:
     branches:
-      - dev
+      # - dev
+      - "**" # For testing purposes, deploy on pushes to any branch. Change to specific branches in production.
 
 jobs:
   # ─── Job 1: Build images and push to GHCR ───────────────────────────────────
