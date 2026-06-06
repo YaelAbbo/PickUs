@@ -44,10 +44,7 @@ services:
       - pickus_network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/yaelabbo/pickus/backend:latest
     container_name: pickus_backend
     restart: unless-stopped
     env_file: .env
@@ -58,7 +55,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - 3000:3000
+      - '3000:3000'
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
@@ -68,30 +65,14 @@ services:
     networks:
       - pickus_network
 
-  frontend:
-    build: ./frontend
-    container_name: pickus_frontend
-    restart: unless-stopped
-    ports:
-      - '8081:8081'
-    env_file: .env
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - pickus_network
-
   gateway:
-    build:
-      context: gateway
-      dockerfile: Dockerfile
+    image: ghcr.io/yaelabbo/pickus/gateway:latest
     container_name: pickus_gateway
     restart: unless-stopped
     ports:
       - '80:80'
     depends_on:
       - backend
-      - frontend
     networks:
       - pickus_network
 
