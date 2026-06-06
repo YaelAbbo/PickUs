@@ -1,4 +1,5 @@
 import { DatabaseModule } from '@/database/database.module';
+import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -47,6 +48,7 @@ describe('NotificationController', () => {
     lastName: 'User',
     nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `admin.notification-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `admin.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testDriver = {
@@ -55,6 +57,7 @@ describe('NotificationController', () => {
     lastName: 'Test',
     nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `driver.notification-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `driver.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testPassenger = {
@@ -63,6 +66,7 @@ describe('NotificationController', () => {
     lastName: 'Test',
     nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `passenger.notification-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const unrelatedUser = {
@@ -71,6 +75,7 @@ describe('NotificationController', () => {
     lastName: 'User',
     nationalId: `unrelated-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `unrelated.notification-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `unrelated.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   beforeAll(async () => {
@@ -120,6 +125,7 @@ describe('NotificationController', () => {
       lastName: testDriver.lastName,
       nationalId: testDriver.nationalId,
       email: testDriver.email,
+      phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -133,6 +139,7 @@ describe('NotificationController', () => {
       lastName: testPassenger.lastName,
       nationalId: testPassenger.nationalId,
       email: testPassenger.email,
+      phoneNumber: testPassenger.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -146,6 +153,7 @@ describe('NotificationController', () => {
       lastName: unrelatedUser.lastName,
       nationalId: unrelatedUser.nationalId,
       email: unrelatedUser.email,
+      phoneNumber: unrelatedUser.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -161,6 +169,7 @@ describe('NotificationController', () => {
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
         email: adminUser.email,
+        phoneNumber: adminUser.phoneNumber,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,

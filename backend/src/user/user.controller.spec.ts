@@ -1,10 +1,9 @@
 import { createTestApp } from '@/test/createTestApp';
-import { afterAll, beforeAll, expect } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { UUID } from 'crypto';
 import { Server } from 'http';
-import { describe, it } from 'node:test';
 import request from 'supertest';
 import { DataSource, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
@@ -25,6 +24,7 @@ describe('UserController (e2e)', () => {
     lastName: 'User',
     nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `admin-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `admin.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const newUser = {
@@ -65,6 +65,7 @@ describe('UserController (e2e)', () => {
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
         email: adminUser.email,
+        phoneNumber: adminUser.phoneNumber,
         passwordHash,
         role: UserRole.HR_MANAGER,
         organization: savedOrg,
@@ -149,6 +150,7 @@ describe('UserController (e2e)', () => {
       expect(response.body.id).toBe(createdUserId);
       expect(response.body.firstName).toBe(newUser.firstName);
       expect(response.body.email).toBe(newUser.email);
+      expect(response.body.phoneNumber).toBe(newUser.phoneNumber);
     });
 
     it('GET /users/organization/:orgId should return all users in organization', async () => {
@@ -274,7 +276,7 @@ describe('UserController (e2e)', () => {
     });
   });
 
-  it('All endpoints should fail without token', async () => {
+  void it('All endpoints should fail without token', async () => {
     const res1 = await request(httpServer).post('/users').send({});
     const res2 = await request(httpServer).get('/users/some-id');
     const res3 = await request(httpServer).patch('/users/some-id').send({});
