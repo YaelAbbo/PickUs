@@ -34,10 +34,10 @@ jobs:
       - name: Prebuild (generate android/ folder)
         run: npx expo prebuild --platform android --clean
 
-      - name: Build Debug APK (feat/eas-apk-build branch) # CHANGE TO dev
+      - name: Build Debug APK (feat/eas-apk-build) # CHANGE TO dev branch
         if: github.ref == 'refs/heads/feat/eas-apk-build' # CHANGE TO dev
         working-directory: ./frontend/android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug -PbundleInDebug=true
 
       - name: Build Release APK (main branch)
         if: github.ref == 'refs/heads/main'
