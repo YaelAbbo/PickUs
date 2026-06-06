@@ -72,6 +72,10 @@ export const ProfileScreen = () => {
               <Text style={styles.detailText}>{user.email}</Text>
             </View>
             <View style={styles.detailRow}>
+              <MaterialCommunityIcons name='phone' size={20} color={colors.textMuted} />
+              <Text style={styles.detailText}>{user.phoneNumber}</Text>
+            </View>
+            <View style={styles.detailRow}>
               <MaterialCommunityIcons name='card-account-details-outline' size={20} color={colors.textMuted} />
               <Text style={styles.detailText}>{user.nationalId}</Text>
             </View>

@@ -23,6 +23,10 @@ export const i18n = {
     last_name: 'שם משפחה',
     role: 'תפקיד',
     email: 'דוא"ל',
+    phone_number: `מס' טלפון`,
+    phone_number_too_short: 'מספר טלפון קצר מדי',
+    phone_number_too_long: 'מספר טלפון ארוך מדי',
+    phone_number_non_israeli_format: 'מספר טלפון לא בפורמט ישראלי',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
@@ -53,6 +57,7 @@ export const i18n = {
     validation_national_id_length: 'תעודת זהות חייבת להכיל 9 ספרות',
     validation_name_length: 'שם אינו יכול להכיל יותר מ-20 תווים',
     validation_email: 'כתובת דוא"ל אינה תקינה',
+    validation_phone_number: 'מספר טלפון אינו תקין',
     create_success: 'העובד/ת נוספ/ה בהצלחה',
     update_success: 'העובד/ת עודכנ/ה בהצלחה',
     delete_success: 'העובד/ת נמחק/ה בהצלחה',

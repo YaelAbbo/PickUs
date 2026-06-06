@@ -40,6 +40,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
       firstName: '',
       lastName: '',
       email: '',
+      phoneNumber: '',
       nationalId: '',
       role: UserRole.BASIC_USER,
     },
@@ -52,6 +53,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           firstName: initialData.firstName || '',
           lastName: initialData.lastName || '',
           email: initialData.email || '',
+          phoneNumber: initialData.phoneNumber || '',
           role: initialData.role || UserRole.BASIC_USER,
           nationalId: '',
         });
@@ -60,6 +62,7 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
           firstName: '',
           lastName: '',
           email: '',
+          phoneNumber: '',
           nationalId: '',
           role: UserRole.BASIC_USER,
         });
@@ -134,6 +137,25 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
               )}
             />
             {errors.email && <Text style={popupStyles.errorText}>{errors.email.message}</Text>}
+          </View>
+
+          <View style={popupStyles.inputGroup}>
+            <Text style={popupStyles.label}>{i18n.general.phone_number}</Text>
+            <Controller
+              control={control}
+              name='phoneNumber'
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[popupStyles.input, errors.phoneNumber && popupStyles.inputError]}
+                  value={value}
+                  placeholderTextColor={colors.textLight}
+                  onChangeText={onChange}
+                  keyboardType='phone-pad'
+                  autoCapitalize='none'
+                />
+              )}
+            />
+            {errors.phoneNumber && <Text style={popupStyles.errorText}>{errors.phoneNumber.message}</Text>}
           </View>
 
           {mode === 'create' && (
