@@ -61,20 +61,9 @@ jobs:
       - name: Prebuild (generate android/ folder)
         run: npx expo prebuild --platform android --clean
 
-      - name: Bundle JS
-        run: |
-          mkdir -p android/app/src/main/assets
-          npx expo export:embed \
-            --platform android \
-            --dev false \
-            --entry-file node_modules/expo-router/entry.js \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res \
-            --reset-cache
-
       - name: Build APK
         working-directory: ./frontend/android
-        run: ./gradlew assembleRelease -x bundleReleaseJsAndAssets --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: List APK output
         run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
