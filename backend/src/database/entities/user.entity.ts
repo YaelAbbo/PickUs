@@ -41,6 +41,9 @@ export class User extends BaseEntity {
   @Column({ name: 'email', type: 'varchar', unique: true })
   email: string;
 
+  @Column({ name: 'phone_number', type: 'varchar', unique: true })
+  phoneNumber: string;
+
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
   passwordHash: string;
 
