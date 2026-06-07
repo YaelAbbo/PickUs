@@ -1,8 +1,6 @@
 import { useUserLocationContext } from '@/contexts';
-import { useRide } from '@/services/ride/rideQueries';
 import { useRideLocationsLogic } from '@hooks';
 import type { Coordinates } from '@types';
-import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { DEFAULT_ZOOM } from './constants';
 import { FocusControl } from './FocusControl.web';
@@ -16,22 +14,12 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(link);
 }
 
-const RIDE_ID = '657fd615-a228-41af-9902-e416761e2a5b';
-
 export const LeafletMap = () => {
-  const { userLocation, joinRideTracking } = useUserLocationContext();
+  const { userLocation, activeRide } = useUserLocationContext();
 
-  const { data: ride } = useRide(RIDE_ID);
-  const { currentRideLocations } = useRideLocationsLogic({ ride });
+  const { currentRideLocations } = useRideLocationsLogic({ ride: activeRide });
 
-  useEffect(() => {
-    joinRideTracking(RIDE_ID);
-  }, [joinRideTracking]);
-
-  const center = useMemo<Coordinates>(
-    () => [userLocation?.coords.latitude ?? 0, userLocation?.coords.longitude ?? 0],
-    [userLocation],
-  );
+  const center = [userLocation?.coords.latitude ?? 0, userLocation?.coords.longitude ?? 0] as Coordinates;
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>
