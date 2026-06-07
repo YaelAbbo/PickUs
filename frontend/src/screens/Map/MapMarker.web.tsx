@@ -14,7 +14,6 @@ const MARKER_ICONS = Object.fromEntries(
         border:2px solid white;
         box-shadow:0 1px 4px rgba(0,0,0,0.4);
       "/>`,
-      // className: '',
       iconAnchor: [8, 8],
     }),
   ]),
