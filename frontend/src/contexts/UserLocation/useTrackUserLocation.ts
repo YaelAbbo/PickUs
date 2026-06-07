@@ -1,19 +1,11 @@
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
-import type { LocationUpdatePayload } from '@/services/ride/rideService';
 import { WsEvent, websocketService } from '@services';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useBoolean } from 'usehooks-ts';
-
-const buildLocationPayload = ({
-  coords,
-  rideId,
-}: Pick<LocationUpdatePayload, 'rideId'> & { coords: Location.LocationObjectCoords }): LocationUpdatePayload => ({
-  location: { type: 'Point', coordinates: [coords.longitude, coords.latitude] },
-  rideId,
-});
+import { buildLocationPayload } from './helpers';
 
 export type UseTrackUserLocationContent = ReturnType<typeof useTrackUserLocation>;
 

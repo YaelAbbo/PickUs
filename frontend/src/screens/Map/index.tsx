@@ -1,13 +1,13 @@
-import { MapMarker } from '@/components/MapScreen/MapMarker';
 import { useUserLocationContext } from '@/contexts';
 import { useRide } from '@/services/ride/rideQueries';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRideLocationsLogic } from '@hooks';
 import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Region, UrlTile } from 'react-native-maps';
+import MapView, { UrlTile, type Region } from 'react-native-maps';
+import { MapMarker } from './MapMarker';
 
-export default function MapScreen() {
+export const MapScreen = () => {
   const { userLocation, joinRideTracking } = useUserLocationContext();
 
   // TODO: Uncomment and remove hard-coded `ride` in Shira's PR for accessing the map screen on ride start [KAN-35]
@@ -26,18 +26,19 @@ export default function MapScreen() {
   const { currentRideLocations } = useRideLocationsLogic({ ride });
 
   const handleFocus = () => {
-    if (userLocation && mapRef.current) {
-      const animationDuration = 1000;
-      mapRef.current.animateToRegion(
-        {
-          latitude: userLocation.coords.latitude,
-          longitude: userLocation.coords.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        },
-        animationDuration,
-      );
-    }
+    if (!userLocation || !mapRef.current) return;
+
+    const animationDuration = 1000;
+
+    mapRef.current.animateToRegion(
+      {
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      },
+      animationDuration,
+    );
   };
 
   const initialRegion: Region = {
@@ -64,8 +65,8 @@ export default function MapScreen() {
           zIndex={1}
         />
 
-        {currentRideLocations.map(({ id, location, type, name }) => (
-          <MapMarker key={id} coordinates={location.coordinates} title={name} type={type} />
+        {currentRideLocations.map((currentRideLocation) => (
+          <MapMarker key={currentRideLocation.id} {...currentRideLocation} />
         ))}
       </MapView>
 
@@ -80,7 +81,7 @@ export default function MapScreen() {
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

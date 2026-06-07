@@ -5,3 +5,5 @@ export const MARKER_CONFIG: Record<RideEntityType, { iconPath: string; pinColor:
   PASSENGER: { iconPath: 'TODO [KAN-54]', pinColor: '#279846' },
   STOP: { iconPath: 'TODO [KAN-54]', pinColor: '#EA4335' },
 };
+
+export const DEFAULT_ZOOM = 15;

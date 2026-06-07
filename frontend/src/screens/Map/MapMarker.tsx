@@ -1,18 +1,19 @@
-import type { RideEntityType } from '@/services/ride/rideService';
-import type { Coordinates } from '@types';
+import type { RideEntityLocationPayloadWithDetails } from '@/services/ride/rideService';
 import type { FC } from 'react';
 import { Marker } from 'react-native-maps';
 import { MARKER_CONFIG } from './constants';
 
-export type MapMarkerProps = { type: RideEntityType; coordinates: Coordinates; title: string };
+export type MapMarkerProps = RideEntityLocationPayloadWithDetails;
 
-export const MapMarker: FC<MapMarkerProps> = ({ type, coordinates: [longitude, latitude], title }) => {
+export const MapMarker: FC<MapMarkerProps> = ({ type, location: { coordinates }, name }) => {
   const { pinColor } = MARKER_CONFIG[type];
+
+  const [longitude, latitude] = coordinates;
 
   return (
     <Marker
       coordinate={{ latitude, longitude }}
-      title={title}
+      title={name}
       tracksViewChanges={false}
       anchor={{ x: 0.5, y: 1 }}
       zIndex={100}

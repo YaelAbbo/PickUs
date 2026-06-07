@@ -1,1 +1,1 @@
-export * from './UserLocationContext';
+export * from './UserLocation/UserLocationContext';

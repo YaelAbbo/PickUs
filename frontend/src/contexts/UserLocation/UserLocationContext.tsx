@@ -2,7 +2,7 @@ import { useCustomContext } from '@/hooks/useCustomContext';
 import { i18n } from '@/i18n';
 import { SplashScreen } from '@components';
 import { createContext, type PropsWithChildren } from 'react';
-import { useTrackUserLocation, type UseTrackUserLocationContent } from './useTrackUserLocation';
+import { useTrackUserLocation, type UseTrackUserLocationContent } from '../UserLocation/useTrackUserLocation';
 
 export type UserLocationContextValue = Omit<
   UseTrackUserLocationContent,

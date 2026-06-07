@@ -1,16 +1,8 @@
 import type { Ride } from '@/schemas/ride';
-import type { LocationUpdatePayload } from '@/services/ride/rideService';
 import { WsEvent, websocketService } from '@services';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-const buildLocationPayload = ({
-  coords,
-  rideId,
-}: Pick<LocationUpdatePayload, 'rideId'> & { coords: GeolocationCoordinates }): LocationUpdatePayload => ({
-  location: { type: 'Point', coordinates: [coords.longitude, coords.latitude] },
-  rideId,
-});
+import { buildLocationPayload } from './helpers';
 
 // Convert browser GeolocationPosition to expo-location LocationObject shape
 const convertPositionToLocationObject = ({
