@@ -9,11 +9,11 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    environment: testing 
+    environment: testing
 
     services:
       postgres:
-        image: timescale/timescaledb-ha:pg17 
+        image: timescale/timescaledb-ha:pg17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -28,9 +28,9 @@ jobs:
 
     env:
       NODE_ENV: test
-      BCRYPT_SALT_ROUNDS: 1 
+      BCRYPT_SALT_ROUNDS: 1
       DB_LOGGING: false
-      DB_HOST: localhost 
+      DB_HOST: localhost
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
@@ -78,6 +78,7 @@ jobs:
     name: Build & Push to GHCR
     runs-on: ubuntu-latest
     needs: test
+    if: github.ref == 'refs/heads/dev'
     environment: production
     permissions:
       contents: read
@@ -124,6 +125,7 @@ jobs:
     name: Deploy to VM
     runs-on: ubuntu-latest
     needs: build-and-push
+    if: github.ref == 'refs/heads/dev'
     environment: production
     steps:
       - name: Deploy via SSH
@@ -173,10 +175,10 @@ jobs:
 
             # sudo -S reads the password from standard input (echo) so it doesn't hang waiting for user input
             echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker login ghcr.io -u ${{ github.actor }} -p "${{ secrets.GITHUB_TOKEN }}"
-            
+
             echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker compose -f docker-compose.prod.yml pull backend gateway
-            
+
             # Restart only backend and gateway. db and pgadmin remain untouched to preserve connections.
             echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
-            
+
             echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker image prune -f
