@@ -147,7 +147,7 @@ jobs:
             BCRYPT_SALT_ROUNDS=10
             DB_HOST=db
             DB_PORT=${{ vars.DB_PORT }}
-            DB_USER=${{ vars.DB_USER }}
+            DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_NAME=${{ vars.DB_NAME }}
             APP_NAME=${{ vars.APP_NAME }}
