@@ -15,7 +15,7 @@ const upsertRideLocation =
       append(updatedLocationPayload),
     );
 
-export type UseRideLocationsLogicArgs = { ride: Ride | undefined };
+export type UseRideLocationsLogicArgs = { ride: Ride | undefined | null };
 
 export type UseRideLocationsLogicContent = ReturnType<typeof useRideLocations>;
 

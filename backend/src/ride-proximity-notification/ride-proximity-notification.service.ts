@@ -122,6 +122,7 @@ export class ProximityNotificationService {
       const createdNotification = await this.notificationService.create({
         content,
         creatorId: driver.id,
+        recipientId: passenger.user.id,
         rideId,
       });
 

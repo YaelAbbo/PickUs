@@ -167,9 +167,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { rideId, location } = payload;
     const userId = jwtPayload.sub as User['id'];
 
-    this.logger.log(
-      `Location update from user=${userId} rideId=${rideId ?? 'none'}`,
-    );
+    this.logger.log(`Location update from user=${userId} rideId=${rideId}`);
 
     try {
       await this.userService.updateLocation(userId, location);
@@ -247,8 +245,6 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     location,
     properties,
   }: LocationUpdatePayload & { userId: User['id'] }) => {
-    if (!rideId) return;
-
     try {
       await this.emitLocationUpdatedToRideRoom({
         rideId,
