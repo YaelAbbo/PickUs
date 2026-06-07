@@ -141,7 +141,6 @@ jobs:
             git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
 
-            # Dynamically generate the .env file using GitHub Secrets and Variables
             cat << 'EOF' > .env
             NODE_ENV=production
             BCRYPT_SALT_ROUNDS=10
@@ -172,9 +171,12 @@ jobs:
             PGADMIN_PORT=${{ vars.PGADMIN_PORT }}
             EOF
 
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose -f docker-compose.prod.yml pull backend gateway
-
+            # sudo -S reads the password from standard input (echo) so it doesn't hang waiting for user input
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker login ghcr.io -u ${{ github.actor }} -p "${{ secrets.GITHUB_TOKEN }}"
+            
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker compose -f docker-compose.prod.yml pull backend gateway
+            
             # Restart only backend and gateway. db and pgadmin remain untouched to preserve connections.
-            docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
-            docker image prune -f
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker compose -f docker-compose.prod.yml up -d --no-deps backend gateway
+            
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S docker image prune -f
