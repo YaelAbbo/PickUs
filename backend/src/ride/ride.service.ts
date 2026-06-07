@@ -91,6 +91,18 @@ export class RideService {
     );
   }
 
+  private addPassengerFilter(
+    queryBuilder: SelectQueryBuilder<Ride>,
+    passengerId: User['id'],
+  ): SelectQueryBuilder<Ride> {
+    return queryBuilder.innerJoin(
+      'ride.passengers',
+      'passengerFilter',
+      'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
+      { passengerId },
+    );
+  }
+
   async createRide({
     organizationId,
     driverId,
@@ -171,11 +183,9 @@ export class RideService {
   }
 
   async getRidesByPassengerId(passengerId: User['id']): Promise<Ride[]> {
-    const query = this.createRideQueryBuilder().innerJoin(
-      'ride.passengers',
-      'passengerFilter',
-      'passengerFilter.userId = :passengerId AND passengerFilter.isDeleted = false',
-      { passengerId },
+    const query = this.addPassengerFilter(
+      this.createRideQueryBuilder(),
+      passengerId,
     );
 
     const rides = await this.addActiveOrFutureRidesFilter(query)
@@ -183,6 +193,21 @@ export class RideService {
       .getMany();
 
     return this.sanitizeRideCollection(rides);
+  }
+
+  async getActiveRideByPassengerId(
+    passengerId: User['id'],
+  ): Promise<Ride | null> {
+    const ride = await this.addPassengerFilter(
+      this.createRideQueryBuilder(),
+      passengerId,
+    )
+      .andWhere('ride.rideStatus = :status', { status: RideStatus.ACTIVE })
+      .getOne();
+
+    if (!ride) return null;
+
+    return this.sanitizeRideRelations(ride);
   }
 
   async updateRide(

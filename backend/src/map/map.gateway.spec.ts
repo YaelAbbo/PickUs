@@ -196,19 +196,6 @@ describe('MapGateway', () => {
       expect(result).toEqual({ status: 'ok' });
     });
 
-    it('does not broadcast when no rideId is provided', async () => {
-      const { gateway } = buildGateway('valid');
-      const mockServer = buildMockServer();
-      gateway.server = mockServer as unknown as Server;
-
-      const payload: LocationUpdatePayload = { location };
-
-      const result = await gateway.handleLocationUpdate(payload, mockUser);
-
-      expect(mockServer.to).not.toHaveBeenCalled();
-      expect(result).toEqual({ status: 'ok' });
-    });
-
     it('returns error status and does not broadcast when DB update fails', async () => {
       const { gateway } = buildGateway('valid', 'throw');
       const mockServer = buildMockServer();

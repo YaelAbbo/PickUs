@@ -10,6 +10,7 @@ export const RIDES_QUERY_KEYS = {
   locations: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'locations', id] as const,
   byDriver: (driverId: string) => [...RIDES_QUERY_KEYS.all, 'byDriver', driverId] as const,
   byPassenger: (passengerId: string) => [...RIDES_QUERY_KEYS.all, 'byPassenger', passengerId] as const,
+  activeRideByPassenger: () => [...RIDES_QUERY_KEYS.all, 'activeRideByPassenger'] as const,
 };
 
 export const useRideLocations = (rideId: Ride['id'] | undefined) => {
@@ -64,6 +65,13 @@ export const useRidesByPassengerId = (passengerId: string) => {
     queryKey: RIDES_QUERY_KEYS.byPassenger(passengerId),
     queryFn: () => rideService.getRidesByPassengerId(passengerId),
     enabled: !!passengerId,
+  });
+};
+
+export const useActiveRideByPassengerId = () => {
+  return useQuery({
+    queryKey: RIDES_QUERY_KEYS.activeRideByPassenger(),
+    queryFn: () => rideService.getActiveRideByPassengerId(),
   });
 };
 

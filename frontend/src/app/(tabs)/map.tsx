@@ -1,29 +1,17 @@
 import { MapMarker } from '@/components/MapMarker';
 import { useUserLocationContext } from '@/contexts';
-import { useRide } from '@/services/ride/rideQueries';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRideLocationsLogic } from '@hooks';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Region, UrlTile } from 'react-native-maps';
 
 export default function TrackingScreen() {
-  const { userLocation, joinRideTracking } = useUserLocationContext();
-
-  // TODO: Uncomment and remove hard-coded `ride` in Shira's PR for accessing the map screen on ride start [KAN-35]
-  // const { ride } = useLocalSearchParams<{ ride: Ride }>();
-  const rideId = '657fd615-a228-41af-9902-e416761e2a5b';
-  const { data: ride } = useRide(rideId);
-
-  useEffect(() => {
-    // TODO: Join before entering the Map Screen, not in this useEffect [KAN-35]
-
-    joinRideTracking(rideId);
-  }, [joinRideTracking]);
+  const { userLocation, activeRide } = useUserLocationContext();
 
   const mapRef = useRef<MapView>(null);
 
-  const { currentRideLocations } = useRideLocationsLogic({ ride });
+  const { currentRideLocations } = useRideLocationsLogic({ ride: activeRide });
 
   const handleFocus = () => {
     if (userLocation && mapRef.current) {
