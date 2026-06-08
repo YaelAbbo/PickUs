@@ -6,19 +6,39 @@ import { RideEntityType } from '@/services/ride/rideService';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRideLocationsLogic } from '@hooks';
 import { colors } from '@theme';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRide } from '@/services/ride/rideQueries';
+import type { UUID } from 'crypto';
 import { useRef } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Region, UrlTile } from 'react-native-maps';
 
-
 export default function TrackingScreen() {
-
   const router = useRouter();
-  const { userLocation, activeRide } = useUserLocationContext();
+  const { rideId } = useLocalSearchParams<{ rideId: string }>();
+  const { data: routeRide } = useRide(rideId as UUID);
+  const { userLocation, activeRide, isUserLocationLoading, userLocationErrorMessage } = useUserLocationContext();
   const mapRef = useRef<MapView>(null);
 
-  const { currentRideLocations } = useRideLocationsLogic({ ride: activeRide });
+  const displayRide = routeRide || activeRide;
+  const { currentRideLocations } = useRideLocationsLogic({ ride: displayRide });
+
+  if (isUserLocationLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size='large' color={colors.purple} />
+        <Text style={styles.statusText}>{i18n.location.loading_subtitle}</Text>
+      </View>
+    );
+  }
+
+  if (userLocationErrorMessage) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{userLocationErrorMessage}</Text>
+      </View>
+    );
+  }
 
   const handleFocus = () => {
     if (userLocation && mapRef.current) {

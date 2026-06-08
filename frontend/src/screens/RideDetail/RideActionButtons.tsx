@@ -38,6 +38,7 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
 
   if (!isUserRideCreator) return null;
   const isRidePending = ride.rideStatus === RideStatus.PENDING;
+  const isRideActive = ride.rideStatus === RideStatus.ACTIVE;
 
   const hasActiveRide = driverRides?.some((r) => r.rideStatus === RideStatus.ACTIVE);
   const isStartDisabled = isRidePending && hasActiveRide;
@@ -60,10 +61,16 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
         <RideActionButton
           iconName='create-outline'
           label={i18n.general.edit}
+          disabled={isRideActive}
           onPress={() => navigateToEditRide(ride.id)}
         />
 
-        <RideActionButton iconName='trash-outline' label={i18n.general.delete} onPress={openDeleteRideModal} />
+        <RideActionButton
+          iconName='trash-outline'
+          label={i18n.general.delete}
+          disabled={isRideActive}
+          onPress={openDeleteRideModal}
+        />
       </View>
 
       <DeleteRideConfirmationModal

@@ -18,7 +18,7 @@ export const userSchema = entityMetadata.extend({
     .refine(isValidIsraeliId, i18n.hr_popup.validation_national_id_invalid),
   firstName: z.string().nonempty(REQUIRED),
   lastName: z.string().nonempty(REQUIRED),
-  role: z.enum(UserRole, 'User role must be of type UserRole'),
+  role: z.nativeEnum(UserRole, { message: 'User role must be of type UserRole' }),
   isTempPassword: z.boolean(),
   profileImageUrl: z.url().nullable(),
   currentLocation: pointSchema.nullable(),

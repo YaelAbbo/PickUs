@@ -7,6 +7,7 @@ import {
 import { MapGateway } from '@/map/map.gateway';
 import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
 import { NotificationService } from '@/notification/notification.service';
+import { CreateNotificationDto } from '@/notification/dto/create-notification.dto';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -262,11 +263,17 @@ export class RideService {
   private async sendRideStartedNotifications(ride: Ride): Promise<void> {
     const content = `הנסיעה עם ${ride.driver.fullName} התחילה!`;
     // Create DB notification
-    await this.notificationService.create({
-      creatorId: ride.driver.id,
-      rideId: ride.id,
-      content,
-    });
+    if (ride.passengers && ride.passengers.length > 0) {
+      const notificationDtos: CreateNotificationDto[] = ride.passengers.map(
+        (passenger) => ({
+          creatorId: ride.driver.id,
+          recipientId: passenger.userId,
+          rideId: ride.id,
+          content,
+        }),
+      );
+      await this.notificationService.createBulk(notificationDtos);
+    }
 
     // Send WS notification to all passengers
     const passengerIds = ride.passengers.map((p) => p.userId);
