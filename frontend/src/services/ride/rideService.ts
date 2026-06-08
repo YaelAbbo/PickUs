@@ -64,4 +64,12 @@ export const rideService = {
 
     return z.array(rideEntitySchema).parse(data);
   },
+
+  getActiveRideByPassengerId: async (): Promise<Ride | null> => {
+    const { data } = await api.get(`/rides/active-ride`);
+
+    if (!data) return null;
+
+    return rideEntitySchema.parse(data);
+  },
 };

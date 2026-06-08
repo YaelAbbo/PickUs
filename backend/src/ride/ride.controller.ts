@@ -1,4 +1,4 @@
-import { UseAccessAuth } from '@/auth/decorators';
+import { CurrentUserId, UseAccessAuth } from '@/auth/decorators';
 import { Organization, Ride, User } from '@/database/entities';
 import {
   BadRequestException,
@@ -42,6 +42,14 @@ export class RideController {
     }
 
     return await this.rideService.getAvailableRides(orgId);
+  }
+
+  @UseAccessAuth()
+  @Get('active-ride')
+  async getActiveRideByPassengerId(
+    @CurrentUserId() passengerId: User['id'],
+  ): Promise<Ride | null> {
+    return await this.rideService.getActiveRideByPassengerId(passengerId);
   }
 
   @UseAccessAuth()
