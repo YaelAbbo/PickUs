@@ -42,8 +42,6 @@ async function bootstrap() {
 
   await app.listen(BACKEND_PORT);
 
-  logger.log(process.env);
-
   logger.log(`Backend running on ${BASE_URL}/api`);
 }
 
