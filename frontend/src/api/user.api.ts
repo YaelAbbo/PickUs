@@ -28,8 +28,6 @@ export const createUser = async (user: CreateUserDto): Promise<User> => {
 };
 
 export const updateUser = async ({ id, ...user }: { id: string } & UpdateUserDto): Promise<User> => {
-  console.log(user);
-
   const { data } = await baseApi.patch<User>(`/users/${id}`, user);
   return data;
 };
