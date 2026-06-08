@@ -64,7 +64,7 @@
     "תעודת"
   ],
   "workbench.startupEditor": "none",
-  "files.autoSave": "off",
+  "files.autoSave": "afterDelay",
   "liveServer.settings.donotShowInfoMsg": true,
   "workbench.iconTheme": "vscode-icons",
   "editor.formatOnSave": true,

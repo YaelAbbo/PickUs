@@ -20,9 +20,9 @@ export const TableHeader: React.FC = () => (
 
 const UserRow: React.FC<{
   item: User;
-  onPress?: () => void;
+  onPress?: VoidFunction;
   isActionMode?: boolean;
-  onResendMail?: () => void;
+  onResendMail?: VoidFunction;
 }> = ({ item, onPress, isActionMode, onResendMail }) => (
   <TouchableOpacity
     style={styles.tableRow}
