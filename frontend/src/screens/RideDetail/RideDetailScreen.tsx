@@ -123,7 +123,7 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <RideActionButtons ride={ride} />
+        {isDriver && <RideActionButtons ride={ride} />}
 
         {isPassenger ? (
           <View style={styles.footerRow}>

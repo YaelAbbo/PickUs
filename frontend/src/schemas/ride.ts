@@ -39,7 +39,7 @@ export const rideDtoSchema = entityMetadata.extend({
   estimatedEndsAt: z.coerce.date().or(z.string()),
   maxSeatsAmount: z.number().positive(),
   availableSeats: z.number().optional(),
-  rideStatus: z.nativeEnum(RideStatus).optional(),
+  rideStatus: z.enum(RideStatus).optional(),
   currentLocation: pointSchema.nullable().optional(),
   rideStops: z.array(rideStopSchema).optional(),
   driver: userBasicDtoSchema.optional(),

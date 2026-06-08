@@ -3,7 +3,11 @@ import { colors } from '@theme';
 import { useRef, useState } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-export const MapMenu = () => {
+type MapMenuProps = {
+  onFinishRide?: () => void;
+};
+
+export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
 
@@ -69,7 +73,7 @@ export const MapMenu = () => {
 
         {/* Button 3: Finish Ride (סיום נסיעה) - Styled distinctly with a green background */}
         <Animated.View style={[styles.fabSubButton, { transform: [{ translateX: translateX3 }, { scale: scale3 }] }]}>
-          <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
+          <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable} onPress={onFinishRide}>
             <MaterialIcons name='check' size={20} color='#4CAF50' />
           </TouchableOpacity>
         </Animated.View>

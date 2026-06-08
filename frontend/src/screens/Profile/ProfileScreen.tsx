@@ -1,17 +1,14 @@
-import { PageHead } from '@/components/PageHead';
+import { FlickeringWrapper, PageHead } from '@/components';
 import { AppBackground } from '@/components/ui';
-import { useUserLocationContext } from '@/contexts';
 import { useRideNavigation } from '@/hooks/rides';
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
-import { useNativeDriver } from '@constants';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RideCard } from '../AvailableRides/RideCard';
 
@@ -31,35 +28,7 @@ const filterAndSortRides = (
     .sort((rideA, rideB) => new Date(rideA.startsAt).getTime() - new Date(rideB.startsAt).getTime());
 };
 
-const FlickeringWrapper = ({ children }: { children: React.ReactNode }) => {
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.4,
-          duration: 800,
-          useNativeDriver,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver,
-        }),
-      ]),
-    );
-    animation.start();
-
-    return () => animation.stop();
-  }, [opacity]);
-
-  return <Animated.View style={{ opacity }}>{children}</Animated.View>;
-};
-
 export const ProfileScreen = () => {
-  const router = useRouter();
-  const { activeRide } = useUserLocationContext();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger'>('all');
 
@@ -156,17 +125,7 @@ export const ProfileScreen = () => {
             data={activeOrFutureRides}
             keyExtractor={(ride) => ride.id}
             renderItem={({ item: ride }) => {
-              const isDriver = ride.driverId === user.id;
-              const card = (
-                <RideCard
-                  item={ride}
-                  onPress={() => {
-                    if (isDriver) {
-                      navigateToRideDetail(ride.id);
-                    }
-                  }}
-                />
-              );
+              const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id)} />;
               return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
             }}
             contentContainerStyle={styles.listContainer}
