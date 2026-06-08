@@ -50,7 +50,6 @@ services:
     env_file: .env
     environment:
       DB_HOST: db
-      FRONTEND_BASE_URL: http://localhost
     depends_on:
       db:
         condition: service_healthy
