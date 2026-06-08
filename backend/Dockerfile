@@ -19,6 +19,9 @@ FROM node:20-alpine AS production
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 WORKDIR /usr/src/app
 
 # Copy only production dependencies
