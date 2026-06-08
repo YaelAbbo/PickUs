@@ -78,7 +78,7 @@ jobs:
     name: Build & Push to GHCR
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/KAN-76-set-up-vm-deployment'
     environment: production
     permissions:
       contents: read
@@ -125,7 +125,7 @@ jobs:
     name: Deploy to VM
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/KAN-76-set-up-vm-deployment'
     environment: production
     steps:
       - name: Deploy via SSH
