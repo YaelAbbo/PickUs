@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { colors } from '@theme';
+import { useRef, useState } from 'react';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const MapMenu = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,12 +48,14 @@ export const MapMenu = () => {
   return (
     <>
       <View pointerEvents={menuOpen ? 'auto' : 'none'} style={StyleSheet.absoluteFill}>
+        {/* Button 1: Navigation */}
         <Animated.View style={[styles.fabSubButton, { transform: [{ translateY: translateY1 }, { scale: scale1 }] }]}>
           <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
-            <MaterialIcons name='place' size={20} color={colors.purple} />
+            <MaterialIcons name='navigation' size={20} color={colors.purple} />
           </TouchableOpacity>
         </Animated.View>
 
+        {/* Button 2: Info */}
         <Animated.View
           style={[
             styles.fabSubButton,
@@ -61,13 +63,14 @@ export const MapMenu = () => {
           ]}
         >
           <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
-            <MaterialIcons name='navigation' size={20} color={colors.purple} />
+            <MaterialIcons name='info' size={20} color={colors.purple} />
           </TouchableOpacity>
         </Animated.View>
 
+        {/* Button 3: Finish Ride (סיום נסיעה) - Styled distinctly with a green background */}
         <Animated.View style={[styles.fabSubButton, { transform: [{ translateX: translateX3 }, { scale: scale3 }] }]}>
           <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
-            <MaterialIcons name='info' size={20} color={colors.purple} />
+            <MaterialIcons name='check' size={20} color='#4CAF50' />
           </TouchableOpacity>
         </Animated.View>
       </View>
