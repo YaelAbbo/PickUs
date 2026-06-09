@@ -75,34 +75,45 @@ export const useActiveRideByPassengerId = () => {
   });
 };
 
-export const useJoinRide = (rideId: string) => {
+export const useJoinRide = (rideId: Ride['id']) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (rideStopId: string) => joinRide(rideId, rideStopId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId) });
     },
   });
 };
 
-export const useLeaveRide = (rideId: string) => {
+export const useLeaveRide = (rideId: Ride['id']) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (userId: string) => leaveRide(rideId, userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId) });
       queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.available() });
     },
   });
 };
 
-export const useUpdateRideStop = (rideId: string) => {
+export const useUpdateRideStop = (rideId: Ride['id']) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ userId, rideStopId }: { userId: string; rideStopId: string }) =>
       updateRideStop(rideId, userId, rideStopId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId as Ride['id']) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId) });
+    },
+  });
+};
+
+export const useUpdateRide = (rideId: Ride['id']) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<Ride>) => rideService.updateRide(rideId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.detail(rideId) });
+      queryClient.invalidateQueries({ queryKey: RIDES_QUERY_KEYS.all });
     },
   });
 };

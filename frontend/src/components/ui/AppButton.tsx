@@ -20,6 +20,7 @@ export const AppButton: FC<AppButtonProps> = ({
   labelStyle,
   iconName,
   iconColor = colors.purple,
+  onPress,
   ...props
 }) => {
   const isDisabled = props.loading || disabled;
@@ -27,9 +28,10 @@ export const AppButton: FC<AppButtonProps> = ({
   return (
     <Button
       mode='contained'
-      disabled={isDisabled}
+      accessibilityState={{ disabled: isDisabled }}
+      onPress={isDisabled ? undefined : onPress}
       style={[{ borderRadius: radii.md, backgroundColor: isDisabled ? colors.inputBg : colors.yellow }, style]}
-      icon={({ size }) => <Ionicons name={iconName} size={size} color={iconColor} />}
+      icon={({ size }) => <Ionicons name={iconName} size={size} color={isDisabled ? colors.textMuted : iconColor} />}
       contentStyle={[
         {
           paddingVertical: spacing.xs,

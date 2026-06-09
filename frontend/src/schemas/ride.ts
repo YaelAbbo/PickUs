@@ -24,6 +24,7 @@ const userBasicDtoSchema = z.object({
   fullName: z.string(),
   avgRideEmbedding: z.array(z.number()).nullable(),
   profileImageUrl: z.string().nullable().optional(),
+  currentLocation: pointSchema.nullable().optional(),
 });
 
 export const ridePassengerSchema = z.object({

@@ -63,7 +63,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
                 name='stops.0'
                 render={({ field, fieldState: { error } }) => (
                   <LocationRow
-                    label='מוצא'
+                    label={i18n.rideForm.origin}
                     timeValue={field.value.time}
                     onTimeChange={(time) => field.onChange({ ...field.value, time })}
                     timeError={(error as StopError)?.time?.message}
@@ -79,7 +79,7 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
                 name={`stops.${destinationIndex}`}
                 render={({ field, fieldState: { error } }) => (
                   <LocationRow
-                    label={i18n.rideForm.general_details}
+                    label={i18n.rideForm.destination}
                     timeValue={field.value.time}
                     onTimeChange={(time) => field.onChange({ ...field.value, time })}
                     timeError={(error as StopError)?.time?.message}

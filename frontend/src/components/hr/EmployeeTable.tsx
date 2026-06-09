@@ -21,7 +21,7 @@ export const TableHeader: React.FC = () => (
 
 const UserRow: React.FC<{
   item: User;
-  onPress?: () => void;
+  onPress?: VoidFunction;
   isActionMode?: boolean;
   onResendMail?: VoidFunction;
 }> = ({ item, onPress, isActionMode, onResendMail }) => (

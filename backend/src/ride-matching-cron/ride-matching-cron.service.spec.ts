@@ -157,6 +157,11 @@ describe('RideMatchingCronService', () => {
     await ridePassengerRepository.createQueryBuilder().delete().execute();
     await rideStopRepository.createQueryBuilder().delete().execute();
     await rideRepository.createQueryBuilder().delete().execute();
+    await organizationRepository
+      .createQueryBuilder()
+      .update()
+      .set({ admin: null })
+      .execute();
     await userRepository.createQueryBuilder().delete().execute();
     await organizationRepository.createQueryBuilder().delete().execute();
 

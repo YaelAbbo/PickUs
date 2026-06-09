@@ -5,6 +5,8 @@ import {
   Notification,
   Organization,
   Ride,
+  RidePassenger,
+  RideStop,
   User,
   UserRole,
 } from '../database/entities';
@@ -20,6 +22,8 @@ describe('NotificationService', () => {
   let userRepository: Repository<User>;
   let rideRepository: Repository<Ride>;
   let organizationRepository: Repository<Organization>;
+  let ridePassengerRepository: Repository<RidePassenger>;
+  let rideStopRepository: Repository<RideStop>;
 
   let testOrgId: Organization['id'] | null = null;
   let creatorUserId: User['id'] | null = null;
@@ -59,6 +63,8 @@ describe('NotificationService', () => {
     userRepository = dataSource.getRepository(User);
     rideRepository = dataSource.getRepository(Ride);
     organizationRepository = dataSource.getRepository(Organization);
+    ridePassengerRepository = dataSource.getRepository(RidePassenger);
+    rideStopRepository = dataSource.getRepository(RideStop);
   }, 60000);
 
   beforeEach(async () => {
@@ -123,7 +129,14 @@ describe('NotificationService', () => {
 
   const cleanup = async () => {
     await notificationRepository.createQueryBuilder().delete().execute();
+    await ridePassengerRepository.createQueryBuilder().delete().execute();
+    await rideStopRepository.createQueryBuilder().delete().execute();
     await rideRepository.createQueryBuilder().delete().execute();
+    await organizationRepository
+      .createQueryBuilder()
+      .update()
+      .set({ admin: null })
+      .execute();
     await userRepository.createQueryBuilder().delete().execute();
     await organizationRepository.createQueryBuilder().delete().execute();
 

@@ -1,18 +1,25 @@
-import type { RideEntityType } from '@/services/ride/rideService';
+import { RideEntityType } from '@/services/ride/rideService';
 import type { Coordinates } from '@types';
 import type { FC } from 'react';
 import { Marker } from 'react-native-maps';
+import { StopMarker } from './StopMarker';
+import { colors } from '@theme';
+import { View, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const MARKER_CONFIG: Record<RideEntityType, { iconPath: string; pinColor: string }> = {
-  DRIVER: { iconPath: 'TODO [KAN-54]', pinColor: '#1A73E8' },
-  PASSENGER: { iconPath: 'TODO [KAN-54]', pinColor: '#279846' },
-  STOP: { iconPath: 'TODO [KAN-54]', pinColor: '#EA4335' },
+export type MapMarkerProps = {
+  type: RideEntityType;
+  coordinates: Coordinates;
+  title: string;
+  totalStops?: number;
 };
 
-export type MapMarkerProps = { type: RideEntityType; coordinates: Coordinates; title: string };
+export const MapMarker: FC<MapMarkerProps> = ({ type, coordinates, title, totalStops }) => {
+  if (type === RideEntityType.STOP) {
+    return <StopMarker coordinates={coordinates} title={title} totalStops={totalStops} />;
+  }
 
-export const MapMarker: FC<MapMarkerProps> = ({ type, coordinates: [longitude, latitude], title }) => {
-  const { pinColor } = MARKER_CONFIG[type];
+  const [longitude, latitude] = coordinates;
 
   return (
     <Marker
@@ -21,7 +28,89 @@ export const MapMarker: FC<MapMarkerProps> = ({ type, coordinates: [longitude, l
       tracksViewChanges={false}
       anchor={{ x: 0.5, y: 1 }}
       zIndex={100}
-      pinColor={pinColor}
-    />
+    >
+      {type === RideEntityType.DRIVER ? (
+        <View style={styles.driverMarkerContainer}>
+          <View style={styles.driverCircle}>
+            <MaterialIcons name='directions-car' size={18} color='#fff' />
+          </View>
+          <View style={styles.driverPinTip} />
+        </View>
+      ) : (
+        <View style={styles.passengerMarkerContainer}>
+          <View style={styles.passengerCircle}>
+            <MaterialIcons name='person' size={16} color={colors.purple} />
+          </View>
+          <View style={styles.passengerPinTip} />
+        </View>
+      )}
+    </Marker>
   );
 };
+
+const styles = StyleSheet.create({
+  driverMarkerContainer: {
+    alignItems: 'center',
+  },
+  driverCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.purple,
+    borderWidth: 2,
+    borderColor: colors.yellow,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  driverPinTip: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 7,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.purple,
+    alignSelf: 'center',
+    marginTop: -1.5,
+  },
+  passengerMarkerContainer: {
+    alignItems: 'center',
+  },
+  passengerCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.yellow,
+    borderWidth: 2,
+    borderColor: colors.purple,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  passengerPinTip: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderTopWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.yellow,
+    alignSelf: 'center',
+    marginTop: -1.5,
+  },
+});
