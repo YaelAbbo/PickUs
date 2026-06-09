@@ -1,4 +1,4 @@
-import { FlickeringWrapper, PageHead } from '@/components';
+import { FlickeringWrapper, PageHead, ProfileCard } from '@/components';
 import { AppBackground } from '@/components/ui';
 import { useRideNavigation } from '@/hooks/rides';
 import { i18n } from '@/i18n';
@@ -6,7 +6,6 @@ import type { Ride } from '@/schemas/ride';
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -56,36 +55,7 @@ export const ProfileScreen = () => {
       <SafeAreaView style={styles.container}>
         <PageHead title='Profile' />
 
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {user.firstName?.[0]}
-              {user.lastName?.[0]}
-            </Text>
-          </View>
-          <Text style={styles.userName}>{user.fullName}</Text>
-
-          <View style={styles.detailsContainer}>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name='email-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user.email}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name='phone' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user.phoneNumber}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name='card-account-details-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>{user.nationalId}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name='shield-account-outline' size={20} color={colors.textMuted} />
-              <Text style={styles.detailText}>
-                {user.role ? i18n.roles[user.role as keyof typeof i18n.roles] || user.role : ''}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <ProfileCard user={user} />
 
         <View style={styles.filtersContainer}>
           <View style={styles.filtersRow}>

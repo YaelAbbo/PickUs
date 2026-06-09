@@ -31,6 +31,7 @@ const userBasicDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   fullName: z.string(),
+  phoneNumber: z.string().optional(),
   avgRideEmbedding: z.array(z.number()).nullable(),
   profileImageUrl: z.string().nullable().optional(),
   currentLocation: pointSchema.nullable().optional(),
@@ -102,6 +103,7 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
           lastName: p.user.lastName,
           fullName: p.user.fullName,
           profileImageUrl: p.user.profileImageUrl,
+          phoneNumber: p.user.phoneNumber,
         }
       : undefined,
   }));
