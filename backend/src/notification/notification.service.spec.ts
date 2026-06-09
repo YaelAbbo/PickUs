@@ -32,6 +32,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `creator-${crypto.randomUUID().slice(0, 8)}`,
     email: `creator-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const recipient1User = {
@@ -39,6 +40,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `recipient1-${crypto.randomUUID().slice(0, 8)}`,
     email: `recipient1-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const recipient2User = {
@@ -46,6 +48,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `recipient2-${crypto.randomUUID().slice(0, 8)}`,
     email: `recipient2-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   beforeAll(async () => {
