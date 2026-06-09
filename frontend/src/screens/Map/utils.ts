@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import type { RideEntityType } from '@/services/ride/rideService';
 
 export const MARKER_CONFIG: Record<RideEntityType, { iconPath: string; pinColor: string }> = {
@@ -7,3 +8,12 @@ export const MARKER_CONFIG: Record<RideEntityType, { iconPath: string; pinColor:
 };
 
 export const DEFAULT_ZOOM = 15;
+
+export const getStopNumber = (title?: string): string => {
+  if (!title) return '?';
+
+  const regex = new RegExp(`${i18n.rideForm.ride_stop} (\\d+)`);
+  const match = title.match(regex);
+
+  return (match && match[1]) || '?';
+};

@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { useMap } from 'react-leaflet';
-import { DEFAULT_ZOOM } from './constants';
+import { DEFAULT_ZOOM } from './utils';
 
 export const FocusControl = ({ userLocation }: { userLocation: Location.LocationObject | null }) => {
   const map = useMap();

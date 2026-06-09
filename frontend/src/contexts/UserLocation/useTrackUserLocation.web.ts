@@ -1,8 +1,8 @@
+import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
-import { WsEvent, websocketService } from '@services';
-import * as Location from 'expo-location';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { buildLocationPayload } from './helpers';
+import type * as Location from 'expo-location';
+import { useCallback, useEffect, useRef } from 'react';
+import { useRideTrackingData } from './useRideTrackingData';
 
 // Convert browser GeolocationPosition to expo-location LocationObject shape
 const convertPositionToLocationObject = ({
@@ -16,68 +16,83 @@ const convertPositionToLocationObject = ({
 export type UseTrackUserLocationContent = ReturnType<typeof useTrackUserLocation>;
 
 export const useTrackUserLocation = () => {
-  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  const [userLocationErrorMessage, setUserLocationErrorMessage] = useState<string | null>(null);
-  const [isUserLocationLoading, setIsUserLocationLoading] = useState(true);
-
   const watchIdRef = useRef<number | null>(null);
-  const currentLiveRideIdRef = useRef<Ride['id']>(undefined);
 
-  const joinRideTracking = (rideId: Ride['id']) => {
-    currentLiveRideIdRef.current = rideId;
-  };
+  const {
+    userLocation,
+    setUserLocation,
+    userLocationErrorMessage,
+    setUserLocationErrorMessage,
+    isUserLocationLoading,
+    startLoading,
+    stopLoading,
+    activeRide,
+    emitLocationUpdated,
+  } = useRideTrackingData();
 
-  const leaveRideTracking = () => {
-    currentLiveRideIdRef.current = undefined;
-  };
+  const startTracking = useCallback(
+    (rideId: Ride['id']) => {
+      startLoading();
 
-  const emitLocationUpdated = useCallback((coords: GeolocationCoordinates) => {
-    if (!websocketService.isConnected) return;
+      if (!navigator.geolocation) {
+        setUserLocationErrorMessage(i18n.location.location_permission_denied);
+        stopLoading();
 
-    const rideId = currentLiveRideIdRef.current;
+        return window.alert(
+          `${i18n.location.location_permission_denied_alert_title}\n\n${i18n.location.location_permission_denied_alert_subtitle}`,
+        );
+      }
 
-    if (!rideId) return;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = convertPositionToLocationObject(position);
 
-    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
-  }, []);
+          setUserLocation(location);
+          stopLoading();
+
+          emitLocationUpdated(position.coords, rideId);
+        },
+        (error) => {
+          console.error(error);
+
+          setUserLocationErrorMessage(i18n.location.location_permission_denied);
+          stopLoading();
+
+          window.alert(
+            `${i18n.location.location_permission_denied_alert_title}\n\n${i18n.location.location_permission_denied_alert_subtitle}`,
+          );
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 },
+      );
+
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const location = convertPositionToLocationObject(position);
+
+          setUserLocation(location);
+
+          emitLocationUpdated(position.coords, rideId);
+        },
+        (error) => {
+          console.error(error);
+
+          setUserLocationErrorMessage(i18n.location.location_update_error_message);
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 },
+      );
+    },
+    [emitLocationUpdated, startLoading, stopLoading, setUserLocation, setUserLocationErrorMessage],
+  );
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setUserLocationErrorMessage('Geolocation is not supported by your browser');
-      setIsUserLocationLoading(false);
+    if (!activeRide?.id) return;
 
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = convertPositionToLocationObject(position);
-
-        setUserLocation(location);
-        setIsUserLocationLoading(false);
-        emitLocationUpdated(position.coords);
-      },
-      () => {
-        setUserLocationErrorMessage('Location permission denied');
-
-        setIsUserLocationLoading(false);
-      },
-    );
-
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const location = convertPositionToLocationObject(position);
-
-        setUserLocation(location);
-        emitLocationUpdated(position.coords);
-      },
-      () => setUserLocationErrorMessage('Location update error'),
-    );
+    startTracking(activeRide.id);
 
     return () => {
       if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     };
-  }, [emitLocationUpdated]);
+  }, [activeRide?.id, startTracking]);
 
-  return { userLocation, isUserLocationLoading, userLocationErrorMessage, joinRideTracking, leaveRideTracking };
+  return { userLocation, isUserLocationLoading, userLocationErrorMessage, activeRide };
 };

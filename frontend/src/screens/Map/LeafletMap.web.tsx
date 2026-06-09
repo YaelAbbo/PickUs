@@ -1,8 +1,9 @@
 import { useUserLocationContext } from '@/contexts';
+import { RideEntityType } from '@/services/ride/rideService';
 import { useRideLocationsLogic } from '@hooks';
 import type { Coordinates } from '@types';
 import { MapContainer, TileLayer } from 'react-leaflet';
-import { DEFAULT_ZOOM } from './constants';
+import { DEFAULT_ZOOM } from './utils';
 import { FocusControl } from './FocusControl.web';
 import { MapMarker } from './MapMarker';
 
@@ -19,6 +20,8 @@ export const LeafletMap = () => {
 
   const { currentRideLocations } = useRideLocationsLogic({ ride: activeRide });
 
+  const stopLocations = currentRideLocations.filter(({ type }) => type === RideEntityType.STOP);
+
   const center = [userLocation?.coords.latitude ?? 0, userLocation?.coords.longitude ?? 0] as Coordinates;
 
   return (
@@ -29,7 +32,7 @@ export const LeafletMap = () => {
         <FocusControl userLocation={userLocation} />
 
         {currentRideLocations.map((currentRideLocation) => (
-          <MapMarker key={currentRideLocation.id} {...currentRideLocation} />
+          <MapMarker key={currentRideLocation.id} {...currentRideLocation} totalStops={stopLocations.length} />
         ))}
       </MapContainer>
     </div>
