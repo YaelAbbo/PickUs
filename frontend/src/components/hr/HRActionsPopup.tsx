@@ -86,95 +86,112 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
         <View style={popupStyles.container}>
           <Text style={popupStyles.title}>{title}</Text>
 
-          <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.general.first_name}</Text>
-            <Controller
-              control={control}
-              name='firstName'
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  style={[popupStyles.input, errors.firstName && popupStyles.inputError]}
-                  value={value}
-                  placeholderTextColor={colors.textLight}
-                  onChangeText={onChange}
+          <View style={styles.row}>
+            <View style={styles.column}>
+              <View style={[popupStyles.inputGroup, { marginBottom: 0 }]}>
+                <Text style={popupStyles.label}>{i18n.general.first_name}</Text>
+                <Controller
+                  control={control}
+                  name='firstName'
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={[popupStyles.input, errors.firstName && popupStyles.inputError]}
+                      value={value}
+                      placeholderTextColor={colors.textLight}
+                      onChangeText={onChange}
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.firstName && <Text style={popupStyles.errorText}>{errors.firstName.message}</Text>}
+                {errors.firstName && <Text style={popupStyles.errorText}>{errors.firstName.message}</Text>}
+              </View>
+            </View>
+
+            <View style={styles.column}>
+              <View style={[popupStyles.inputGroup, { marginBottom: 0 }]}>
+                <Text style={popupStyles.label}>{i18n.general.last_name}</Text>
+                <Controller
+                  control={control}
+                  name='lastName'
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={[popupStyles.input, errors.lastName && popupStyles.inputError]}
+                      value={value}
+                      placeholderTextColor={colors.textLight}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+                {errors.lastName && <Text style={popupStyles.errorText}>{errors.lastName.message}</Text>}
+              </View>
+            </View>
           </View>
 
-          <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.general.last_name}</Text>
-            <Controller
-              control={control}
-              name='lastName'
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  style={[popupStyles.input, errors.lastName && popupStyles.inputError]}
-                  value={value}
-                  placeholderTextColor={colors.textLight}
-                  onChangeText={onChange}
+          <View style={styles.row}>
+            <View style={styles.column}>
+              <View style={[popupStyles.inputGroup, { marginBottom: 0 }]}>
+                <Text style={popupStyles.label}>{i18n.general.email}</Text>
+                <Controller
+                  control={control}
+                  name='email'
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={[popupStyles.input, errors.email && popupStyles.inputError]}
+                      value={value}
+                      placeholderTextColor={colors.textLight}
+                      onChangeText={onChange}
+                      keyboardType='email-address'
+                      autoCapitalize='none'
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.lastName && <Text style={popupStyles.errorText}>{errors.lastName.message}</Text>}
-          </View>
+                {errors.email && <Text style={popupStyles.errorText}>{errors.email.message}</Text>}
+              </View>
+            </View>
 
-          <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.general.email}</Text>
-            <Controller
-              control={control}
-              name='email'
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  style={[popupStyles.input, errors.email && popupStyles.inputError]}
-                  value={value}
-                  placeholderTextColor={colors.textLight}
-                  onChangeText={onChange}
-                  keyboardType='email-address'
-                  autoCapitalize='none'
+            <View style={styles.column}>
+              <View style={[popupStyles.inputGroup, { marginBottom: 0 }]}>
+                <Text style={popupStyles.label}>{i18n.general.phone_number}</Text>
+                <Controller
+                  control={control}
+                  name='phoneNumber'
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={[popupStyles.input, errors.phoneNumber && popupStyles.inputError]}
+                      value={value}
+                      placeholderTextColor={colors.textLight}
+                      onChangeText={onChange}
+                      keyboardType='phone-pad'
+                      autoCapitalize='none'
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.email && <Text style={popupStyles.errorText}>{errors.email.message}</Text>}
-          </View>
-
-          <View style={popupStyles.inputGroup}>
-            <Text style={popupStyles.label}>{i18n.general.phone_number}</Text>
-            <Controller
-              control={control}
-              name='phoneNumber'
-              render={({ field: { onChange, value } }) => (
-                <TextInput
-                  style={[popupStyles.input, errors.phoneNumber && popupStyles.inputError]}
-                  value={value}
-                  placeholderTextColor={colors.textLight}
-                  onChangeText={onChange}
-                  keyboardType='phone-pad'
-                  autoCapitalize='none'
-                />
-              )}
-            />
-            {errors.phoneNumber && <Text style={popupStyles.errorText}>{errors.phoneNumber.message}</Text>}
+                {errors.phoneNumber && <Text style={popupStyles.errorText}>{errors.phoneNumber.message}</Text>}
+              </View>
+            </View>
           </View>
 
           {mode === 'create' && (
-            <View style={popupStyles.inputGroup}>
-              <Text style={popupStyles.label}>{i18n.hr_popup.national_id}</Text>
-              <Controller
-                control={control}
-                name='nationalId'
-                render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[popupStyles.input, errors.nationalId && popupStyles.inputError]}
-                    value={value}
-                    placeholderTextColor={colors.textLight}
-                    onChangeText={onChange}
-                    keyboardType='number-pad'
+            <View style={styles.row}>
+              <View style={styles.column}>
+                <View style={[popupStyles.inputGroup, { marginBottom: 0 }]}>
+                  <Text style={popupStyles.label}>{i18n.hr_popup.national_id}</Text>
+                  <Controller
+                    control={control}
+                    name='nationalId'
+                    render={({ field: { onChange, value } }) => (
+                      <TextInput
+                        style={[popupStyles.input, errors.nationalId && popupStyles.inputError]}
+                        value={value}
+                        placeholderTextColor={colors.textLight}
+                        onChangeText={onChange}
+                        keyboardType='number-pad'
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.nationalId && <Text style={popupStyles.errorText}>{errors.nationalId.message}</Text>}
+                  {errors.nationalId && <Text style={popupStyles.errorText}>{errors.nationalId.message}</Text>}
+                </View>
+              </View>
+              <View style={styles.column} />
             </View>
           )}
 
@@ -216,6 +233,14 @@ const HRActionsPopup: React.FC<HRActionsPopupProps> = ({ visible, mode, initialD
 };
 
 const styles = {
+  row: {
+    flexDirection: 'row-reverse',
+    gap: 12,
+    marginBottom: 16,
+  },
+  column: {
+    flex: 1,
+  },
   roleContainer: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
