@@ -55,7 +55,7 @@ export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
       (updatedLocationPayload: RideEntityLocationPayload) => {
         if (updatedLocationPayload.id === currentUserId) return;
 
-        const isDriver = driverId === currentUserId;
+        const isDriver = updatedLocationPayload.id === driverId;
 
         const passengerFullName = passengers.find(({ userId }) => userId === updatedLocationPayload.id)?.user?.fullName;
 

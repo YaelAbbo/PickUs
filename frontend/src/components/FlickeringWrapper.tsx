@@ -1,10 +1,8 @@
 import { useNativeDriver } from '@constants';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, type PropsWithChildren } from 'react';
 import { Animated } from 'react-native';
 
-type FlickeringWrapperProps = {
-  children: React.ReactNode;
-};
+type FlickeringWrapperProps = PropsWithChildren;
 
 export const FlickeringWrapper = ({ children }: FlickeringWrapperProps) => {
   const opacity = useRef(new Animated.Value(1)).current;
