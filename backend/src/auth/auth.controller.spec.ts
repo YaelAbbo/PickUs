@@ -30,7 +30,7 @@ describe('AuthController (e2e)', () => {
     firstName: 'Test',
     lastName: 'User',
     email: `auth-test-${crypto.randomUUID().slice(0, 8)}@test.com`,
-    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`, // ← add
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   let createdOrganizationId: Organization['id'] | null = null;
