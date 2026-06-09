@@ -82,7 +82,6 @@ export const rideService = {
     const { data } = await api.get(`/rides/active-ride`);
 
     if (!data) return null;
-    
 
     return rideEntitySchema.parse(data);
   },
@@ -92,5 +91,4 @@ export const rideService = {
 
     return rideEntitySchema.parse(data);
   },
-
 };

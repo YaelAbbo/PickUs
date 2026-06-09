@@ -1,5 +1,6 @@
 import { UserRole } from '@/api/user';
 import { i18n } from '@/i18n';
+import { israelPhoneSchema } from '@/schemas/genericSchemas';
 import * as z from 'zod';
 
 export const hrFormSchema = z.object({
@@ -15,6 +16,7 @@ export const hrFormSchema = z.object({
     .string()
     .min(1, { message: i18n.general.validation_required })
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: i18n.hr_popup.validation_email }),
+  phoneNumber: israelPhoneSchema,
   nationalId: z.string().optional(),
   role: z.enum(UserRole, { message: i18n.general.validation_required }),
 });

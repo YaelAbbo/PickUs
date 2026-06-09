@@ -19,5 +19,9 @@ export class CreateUserDto extends UpsertUserDto {
 
   @IsString()
   @IsNotEmpty()
+  declare phoneNumber: User['phoneNumber'];
+
+  @IsString()
+  @IsNotEmpty()
   orgId: User['orgId'];
 }

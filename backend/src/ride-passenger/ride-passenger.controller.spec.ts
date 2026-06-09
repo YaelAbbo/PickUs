@@ -1,3 +1,12 @@
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { UUID } from 'crypto';
@@ -44,6 +53,7 @@ describe('RidePassengerController', () => {
     lastName: 'User',
     nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `admin.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `admin.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testDriver = {
@@ -52,6 +62,7 @@ describe('RidePassengerController', () => {
     lastName: 'Test',
     nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `driver.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `driver.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const passengerUser = {
@@ -61,6 +72,7 @@ describe('RidePassengerController', () => {
     lastName: 'User',
     nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `passenger.rp-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const baseRideDto = {
@@ -97,6 +109,7 @@ describe('RidePassengerController', () => {
         lastName: testDriver.lastName,
         nationalId: testDriver.nationalId,
         email: testDriver.email,
+        phoneNumber: testDriver.phoneNumber,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: savedOrg,
@@ -112,6 +125,7 @@ describe('RidePassengerController', () => {
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
         email: adminUser.email,
+        phoneNumber: adminUser.phoneNumber,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
@@ -193,6 +207,7 @@ describe('RidePassengerController', () => {
         lastName: passengerUser.lastName,
         nationalId: passengerUser.nationalId,
         email: passengerUser.email,
+        phoneNumber: passengerUser.phoneNumber,
         passwordHash,
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -253,12 +268,14 @@ describe('RidePassengerController', () => {
         password: 'SecondPass123!',
         nationalId: `second-passenger-${Date.now()}`,
         email: `second.passenger.${Date.now()}@test.com`,
+        phoneNumber: `second-passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
       };
       const thirdPassenger = {
         id: crypto.randomUUID() as UUID,
         password: 'ThirdPass123!',
         nationalId: `third-passenger-${Date.now()}`,
         email: `third.passenger.${Date.now()}@test.com`,
+        phoneNumber: `third-passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
       };
 
       await userRepository.save([
@@ -268,6 +285,7 @@ describe('RidePassengerController', () => {
           lastName: 'Passenger',
           nationalId: secondPassenger.nationalId,
           email: secondPassenger.email,
+          phoneNumber: secondPassenger.phoneNumber,
           passwordHash: await bcrypt.hash(secondPassenger.password, 10),
           role: UserRole.BASIC_USER,
           organization: { id: testOrgId },
@@ -278,6 +296,7 @@ describe('RidePassengerController', () => {
           lastName: 'Passenger',
           nationalId: thirdPassenger.nationalId,
           email: thirdPassenger.email,
+          phoneNumber: thirdPassenger.phoneNumber,
           passwordHash: await bcrypt.hash(thirdPassenger.password, 10),
           role: UserRole.BASIC_USER,
           organization: { id: testOrgId },

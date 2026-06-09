@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Server } from 'http';
@@ -39,6 +40,7 @@ describe('RideController', () => {
     lastName: 'User',
     nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `admin.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `admin.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testDriver = {
@@ -47,6 +49,7 @@ describe('RideController', () => {
     lastName: 'Test',
     nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `driver.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `driver.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testPassenger = {
@@ -55,6 +58,7 @@ describe('RideController', () => {
     lastName: 'Test',
     nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `passenger.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const newRideDto = {
@@ -88,6 +92,7 @@ describe('RideController', () => {
       lastName: testDriver.lastName,
       nationalId: testDriver.nationalId,
       email: testDriver.email,
+      phoneNumber: testDriver.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -101,6 +106,7 @@ describe('RideController', () => {
       lastName: testPassenger.lastName,
       nationalId: testPassenger.nationalId,
       email: testPassenger.email,
+      phoneNumber: testPassenger.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -116,6 +122,7 @@ describe('RideController', () => {
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
         email: adminUser.email,
+        phoneNumber: adminUser.phoneNumber,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
@@ -260,6 +267,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -304,6 +312,7 @@ describe('RideController', () => {
         lastName: 'Driver',
         nationalId: `deleted-driver-${crypto.randomUUID()}`,
         email: `deleted-driver-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -687,6 +696,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -771,6 +781,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },

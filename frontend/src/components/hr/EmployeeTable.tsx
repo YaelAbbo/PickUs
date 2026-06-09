@@ -11,6 +11,7 @@ export const TableHeader: React.FC = () => (
     <Text style={[styles.headerCell, { width: 100 }]}>{i18n.general.first_name || 'First Name'}</Text>
     <Text style={[styles.headerCell, { width: 100 }]}>{i18n.general.last_name || 'Last Name'}</Text>
     <Text style={[styles.headerCell, { width: 180 }]}>{i18n.general.email || 'Email'}</Text>
+    <Text style={[styles.headerCell, { width: 180 }]}>{i18n.general.phone_number || 'Phone Number'}</Text>
     <Text style={[styles.headerCell, { width: 120 }]}>{i18n.general.role || 'Role'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.org_id || 'Organization ID'}</Text>
     <Text style={[styles.headerCell, { width: 150 }]}>{i18n.hr_table.created_at || 'Created At'}</Text>
@@ -38,6 +39,9 @@ const UserRow: React.FC<{
     </Text>
     <Text style={[styles.cell, { width: 180, color: colors.textLight }]} numberOfLines={1}>
       {item.email}
+    </Text>
+    <Text style={[styles.cell, { width: 180, color: colors.textLight }]} numberOfLines={1}>
+      {item.phoneNumber}
     </Text>
     <Text style={[styles.cell, { width: 120, color: colors.textLight }]}>
       {i18n.roles[item.role as keyof typeof i18n.roles] || item.role}

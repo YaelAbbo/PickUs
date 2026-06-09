@@ -141,6 +141,7 @@ export class UserService {
       firstName,
       lastName,
       email,
+      phoneNumber,
       role,
       currentLocation,
       profileImageUrl,
@@ -168,6 +169,7 @@ export class UserService {
       if (firstName) user.firstName = firstName;
       if (lastName) user.lastName = lastName;
       if (email) user.email = email;
+      if (phoneNumber) user.phoneNumber = phoneNumber;
       if (role) user.role = role;
       if (currentLocation) user.currentLocation = currentLocation;
 
