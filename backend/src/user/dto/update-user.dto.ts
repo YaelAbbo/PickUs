@@ -22,4 +22,7 @@ export class UpdateUserDto extends UpsertUserDto {
 
   @IsOptional()
   declare password?: string;
+
+  @IsOptional()
+  declare phoneNumber?: string;
 }

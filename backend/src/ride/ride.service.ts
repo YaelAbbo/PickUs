@@ -4,10 +4,15 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
+import { MapGateway } from '@/map/map.gateway';
 import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
+import { NotificationService } from '@/notification/notification.service';
+import { CreateNotificationDto } from '@/notification/dto/create-notification.dto';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -26,6 +31,9 @@ export class RideService {
   constructor(
     @InjectRepository(Ride)
     private ridesRepository: Repository<Ride>,
+    private readonly notificationService: NotificationService,
+    @Inject(forwardRef(() => MapGateway))
+    private readonly mapGateway: MapGateway,
   ) {}
 
   private createRideQueryBuilder(alias = 'ride') {
@@ -224,6 +232,10 @@ export class RideService {
     if (driverId) preloadPayload.driverId = driverId;
     if (rideStops) preloadPayload.rideStops = rideStops;
 
+    const existingRide = await this.getRideById(id);
+    const wasPending = existingRide.rideStatus === RideStatus.PENDING;
+    const isBecomingActive = rest.rideStatus === RideStatus.ACTIVE;
+
     const ride = await this.ridesRepository.preload(preloadPayload);
 
     if (!ride) {
@@ -232,7 +244,13 @@ export class RideService {
 
     try {
       const updatedRide = await this.ridesRepository.save(ride);
-      return await this.getRideById(updatedRide.id);
+      const fullRide = await this.getRideById(updatedRide.id);
+
+      if (wasPending && isBecomingActive) {
+        await this.sendRideStartedNotifications(fullRide);
+      }
+
+      return fullRide;
     } catch (error) {
       this.logger.error(
         `Failed to update ride with ID ${id}, ${(error as Error).message}`,
@@ -240,6 +258,30 @@ export class RideService {
       );
       throw new ConflictException(`Failed to update ride with ID ${id}`);
     }
+  }
+
+  private async sendRideStartedNotifications(ride: Ride): Promise<void> {
+    const content = `הנסיעה עם ${ride.driver.fullName} התחילה!`;
+    // Create DB notification
+    if (ride.passengers && ride.passengers.length > 0) {
+      const notificationDtos: CreateNotificationDto[] = ride.passengers.map(
+        (passenger) => ({
+          creatorId: ride.driver.id,
+          recipientId: passenger.userId,
+          rideId: ride.id,
+          content,
+        }),
+      );
+      await this.notificationService.createBulk(notificationDtos);
+    }
+
+    // Send WS notification to all passengers
+    const passengerIds = ride.passengers.map((p) => p.userId);
+    this.mapGateway.sendRideStartedNotification(passengerIds, {
+      content,
+      driver: ride.driver,
+      rideId: ride.id,
+    });
   }
 
   async deleteRide(id: Ride['id']): Promise<void> {

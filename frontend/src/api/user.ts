@@ -12,6 +12,7 @@ export type User = {
   id: UUID;
   nationalId: string;
   email: string;
+  phoneNumber: string;
   firstName: string;
   lastName: string;
   fullName: string;

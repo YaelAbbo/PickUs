@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Server } from 'http';
@@ -5,6 +6,7 @@ import request from 'supertest';
 import { DataSource, DeepPartial, Repository } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
 import {
+  Notification,
   Organization,
   Ride,
   RidePassenger,
@@ -12,6 +14,7 @@ import {
   User,
   UserRole,
 } from '../database/entities';
+import { MapGateway } from '../map/map.gateway';
 import { createTestApp } from '../test/createTestApp';
 import { RideModule } from './ride.module';
 
@@ -22,6 +25,7 @@ describe('RideController', () => {
   let rideRepository: Repository<Ride>;
   let userRepository: Repository<User>;
   let organizationRepository: Repository<Organization>;
+  let mapGateway: MapGateway;
 
   let testOrgId: string | null = null;
   let testDriverId: string | null = null;
@@ -36,6 +40,7 @@ describe('RideController', () => {
     lastName: 'User',
     nationalId: `admin-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `admin.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `admin.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testDriver = {
@@ -44,6 +49,7 @@ describe('RideController', () => {
     lastName: 'Test',
     nationalId: `driver-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `driver.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `driver.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testPassenger = {
@@ -52,6 +58,7 @@ describe('RideController', () => {
     lastName: 'Test',
     nationalId: `passenger-nid-${crypto.randomUUID().slice(0, 8)}`,
     email: `passenger.ride-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `passenger.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const newRideDto = {
@@ -70,6 +77,7 @@ describe('RideController', () => {
     rideRepository = dataSource.getRepository(Ride);
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
+    mapGateway = app.get(MapGateway);
 
     await cleanup();
 
@@ -84,6 +92,7 @@ describe('RideController', () => {
       lastName: testDriver.lastName,
       nationalId: testDriver.nationalId,
       email: testDriver.email,
+      phoneNumber: testDriver.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -97,6 +106,7 @@ describe('RideController', () => {
       lastName: testPassenger.lastName,
       nationalId: testPassenger.nationalId,
       email: testPassenger.email,
+      phoneNumber: testPassenger.phoneNumber,
       passwordHash: 'dummyhash',
       role: UserRole.BASIC_USER,
       organization: savedOrg,
@@ -112,6 +122,7 @@ describe('RideController', () => {
         lastName: adminUser.lastName,
         nationalId: adminUser.nationalId,
         email: adminUser.email,
+        phoneNumber: adminUser.phoneNumber,
         passwordHash,
         role: UserRole.ADMIN,
         organization: savedOrg,
@@ -133,7 +144,20 @@ describe('RideController', () => {
   });
 
   const cleanup = async () => {
+    const userIds = [adminUser.id, testDriverId, testPassengerId].filter(
+      Boolean,
+    );
+    if (userIds.length > 0) {
+      const userIdsList = userIds.map((id) => `'${id}'`).join(', ');
+      await rideRepository.query(
+        `DELETE FROM "notification" WHERE "created_by_user_id" IN (${userIdsList}) OR "ride_id" IN (SELECT "id" FROM "ride" WHERE "driver_id" IN (${userIdsList}))`,
+      );
+    }
+
     if (createdRideId) {
+      await rideRepository.query(
+        `DELETE FROM "notification" WHERE "ride_id" = '${createdRideId}'`,
+      );
       await rideRepository.delete(createdRideId);
       createdRideId = null;
     }
@@ -243,6 +267,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -287,6 +312,7 @@ describe('RideController', () => {
         lastName: 'Driver',
         nationalId: `deleted-driver-${crypto.randomUUID()}`,
         email: `deleted-driver-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -670,6 +696,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -754,6 +781,7 @@ describe('RideController', () => {
         lastName: 'Passenger',
         nationalId: `deleted-passenger-${crypto.randomUUID()}`,
         email: `deleted-passenger-${crypto.randomUUID()}@ride-test.com`,
+        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
         passwordHash: 'dummyhash',
         role: UserRole.BASIC_USER,
         organization: { id: testOrgId },
@@ -807,6 +835,76 @@ describe('RideController', () => {
       expect(response.status).toEqual(200);
       expect(response.body.maxSeatsAmount).toEqual(updatedSeats);
       expect(response.body.rideStatus).toEqual(RideStatus.ACTIVE);
+    });
+
+    it('PATCH /rides/:id should send notifications and trigger websocket event when ride starts (status transitions to ACTIVE)', async () => {
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+        ],
+      } as DeepPartial<Ride>);
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+      const rideStopId = savedRide.rideStops?.[0]?.id;
+      expect(rideStopId).toBeDefined();
+
+      const activePassenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: rideStopId! },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(activePassenger);
+
+      const sendNotificationSpy = jest
+        .spyOn(mapGateway, 'sendRideStartedNotification')
+        .mockImplementation(() => {});
+
+      const response = await request(httpServer)
+        .patch(`/rides/${savedRide.id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({
+          rideStatus: RideStatus.ACTIVE,
+        });
+
+      expect(response.status).toEqual(200);
+      expect(response.body.rideStatus).toEqual(RideStatus.ACTIVE);
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith(
+        [testPassengerId],
+        expect.objectContaining({
+          content: expect.stringContaining('התחילה!'),
+          rideId: savedRide.id,
+        }),
+      );
+
+      const notificationRepo = dataSource.getRepository(Notification);
+      const notification = await notificationRepo.findOne({
+        where: { ride: { id: savedRide.id } },
+      });
+      expect(notification).not.toBeNull();
+      expect(notification?.content).toContain('התחילה!');
+
+      sendNotificationSpy.mockRestore();
+      await notificationRepo.delete({ ride: { id: savedRide.id } });
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
     });
 
     it('PATCH /rides/:id should fail with 404 for non-existent ride', async () => {

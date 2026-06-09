@@ -3,6 +3,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
 import { UserLocationProvider } from '@/contexts';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
+import { useRideStartedNotifications } from '@/hooks/notifications/useRideStartedNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
@@ -42,6 +43,7 @@ export default function TabLayout() {
   const { isUserLoading, user } = useAuth();
 
   useDriverNearStopNotifications();
+  useRideStartedNotifications();
 
   if (isUserLoading) return <SplashScreen />;
 

@@ -129,6 +129,7 @@ export const useHRLogic = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         role: formData.role,
+        phoneNumber: formData.phoneNumber,
       });
     }
   };

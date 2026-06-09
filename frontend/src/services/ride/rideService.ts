@@ -6,7 +6,14 @@ import type { Point } from '@types';
 import type { UUID } from 'crypto';
 import { z } from 'zod';
 
-export type RideEntityType = 'DRIVER' | 'PASSENGER' | 'STOP';
+export type { Ride };
+export type RideStopInfo = Ride['stops'][number];
+
+export enum RideEntityType {
+  DRIVER = 'DRIVER',
+  PASSENGER = 'PASSENGER',
+  STOP = 'STOP',
+}
 
 export type RideEntityLocationPayload = { id: UUID; location: Point; rideId?: Ride['id'] };
 
@@ -25,6 +32,12 @@ export type DriverNearStopPayload = Pick<RideStop, 'estimatedArrivalAt'> &
     driverDistanceFromStop: number;
     driver: User;
   };
+
+export type RideStartedPayload = {
+  content: string;
+  driver: User;
+  rideId: Ride['id'];
+};
 
 export type RideFilters = {
   search?: string;
@@ -69,6 +82,12 @@ export const rideService = {
     const { data } = await api.get(`/rides/active-ride`);
 
     if (!data) return null;
+
+    return rideEntitySchema.parse(data);
+  },
+
+  updateRide: async (id: string, payload: Partial<Ride>): Promise<Ride> => {
+    const { data } = await api.patch(`/rides/${id}`, payload);
 
     return rideEntitySchema.parse(data);
   },

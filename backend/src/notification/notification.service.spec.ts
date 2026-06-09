@@ -5,6 +5,8 @@ import {
   Notification,
   Organization,
   Ride,
+  RidePassenger,
+  RideStop,
   User,
   UserRole,
 } from '../database/entities';
@@ -20,6 +22,8 @@ describe('NotificationService', () => {
   let userRepository: Repository<User>;
   let rideRepository: Repository<Ride>;
   let organizationRepository: Repository<Organization>;
+  let ridePassengerRepository: Repository<RidePassenger>;
+  let rideStopRepository: Repository<RideStop>;
 
   let testOrgId: Organization['id'] | null = null;
   let creatorUserId: User['id'] | null = null;
@@ -32,6 +36,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `creator-${crypto.randomUUID().slice(0, 8)}`,
     email: `creator-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const recipient1User = {
@@ -39,6 +44,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `recipient1-${crypto.randomUUID().slice(0, 8)}`,
     email: `recipient1-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const recipient2User = {
@@ -46,6 +52,7 @@ describe('NotificationService', () => {
     lastName: 'User',
     nationalId: `recipient2-${crypto.randomUUID().slice(0, 8)}`,
     email: `recipient2-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   beforeAll(async () => {
@@ -56,6 +63,8 @@ describe('NotificationService', () => {
     userRepository = dataSource.getRepository(User);
     rideRepository = dataSource.getRepository(Ride);
     organizationRepository = dataSource.getRepository(Organization);
+    ridePassengerRepository = dataSource.getRepository(RidePassenger);
+    rideStopRepository = dataSource.getRepository(RideStop);
   }, 60000);
 
   beforeEach(async () => {
@@ -120,7 +129,14 @@ describe('NotificationService', () => {
 
   const cleanup = async () => {
     await notificationRepository.createQueryBuilder().delete().execute();
+    await ridePassengerRepository.createQueryBuilder().delete().execute();
+    await rideStopRepository.createQueryBuilder().delete().execute();
     await rideRepository.createQueryBuilder().delete().execute();
+    await organizationRepository
+      .createQueryBuilder()
+      .update()
+      .set({ admin: null })
+      .execute();
     await userRepository.createQueryBuilder().delete().execute();
     await organizationRepository.createQueryBuilder().delete().execute();
 

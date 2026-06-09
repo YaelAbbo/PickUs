@@ -1,7 +1,9 @@
 import Constants from 'expo-constants';
 import { Platform, type Animated } from 'react-native';
 
-export const REQUIRED = 'שדה חובה';
+import { i18n } from '@/i18n';
+
+export const REQUIRED = i18n.general.required_field;
 
 const getBaseUrl = () => {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;

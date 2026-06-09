@@ -48,6 +48,7 @@ describe('RideMatchingCronService', () => {
     lastName: 'Assistant',
     nationalId: `ai-${crypto.randomUUID().slice(0, 8)}`,
     email: `ai-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testDriver = {
@@ -55,6 +56,7 @@ describe('RideMatchingCronService', () => {
     lastName: 'Test',
     nationalId: `driver-${crypto.randomUUID().slice(0, 8)}`,
     email: `driver-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testMatchingUser = {
@@ -62,6 +64,7 @@ describe('RideMatchingCronService', () => {
     lastName: 'User',
     nationalId: `matching-${crypto.randomUUID().slice(0, 8)}`,
     email: `matching-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   const testNonMatchingUser = {
@@ -69,6 +72,7 @@ describe('RideMatchingCronService', () => {
     lastName: 'User',
     nationalId: `nonmatching-${crypto.randomUUID().slice(0, 8)}`,
     email: `nonmatching-${crypto.randomUUID().slice(0, 8)}@test.com`,
+    phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
   };
 
   beforeAll(async () => {
@@ -153,6 +157,11 @@ describe('RideMatchingCronService', () => {
     await ridePassengerRepository.createQueryBuilder().delete().execute();
     await rideStopRepository.createQueryBuilder().delete().execute();
     await rideRepository.createQueryBuilder().delete().execute();
+    await organizationRepository
+      .createQueryBuilder()
+      .update()
+      .set({ admin: null })
+      .execute();
     await userRepository.createQueryBuilder().delete().execute();
     await organizationRepository.createQueryBuilder().delete().execute();
 
@@ -451,6 +460,7 @@ describe('RideMatchingCronService', () => {
           lastName: 'User',
           nationalId: `otherorg-${crypto.randomUUID().slice(0, 8)}`,
           email: `otherorg-${crypto.randomUUID().slice(0, 8)}@test.com`,
+          phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
           passwordHash: 'dummy',
           role: UserRole.BASIC_USER,
           organization: otherOrg,

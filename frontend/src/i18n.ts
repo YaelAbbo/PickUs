@@ -23,6 +23,12 @@ export const i18n = {
     last_name: 'שם משפחה',
     role: 'תפקיד',
     email: 'דוא"ל',
+    phone_number: `מספר טלפון`,
+    phone_number_too_short: 'מספר טלפון קצר מדי',
+    phone_number_too_long: 'מספר טלפון ארוך מדי',
+    phone_number_non_israeli_format: 'מספר טלפון לא בפורמט ישראלי',
+    required_field: 'שדה חובה',
+    app_description_tagline: 'הדרך החכמה\nלנסוע ביחד',
   },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
@@ -53,6 +59,7 @@ export const i18n = {
     validation_national_id_length: 'תעודת זהות חייבת להכיל 9 ספרות',
     validation_name_length: 'שם אינו יכול להכיל יותר מ-20 תווים',
     validation_email: 'כתובת דוא"ל אינה תקינה',
+    validation_phone_number: 'מספר טלפון אינו תקין',
     create_success: 'העובד/ת נוספ/ה בהצלחה',
     update_success: 'העובד/ת עודכנ/ה בהצלחה',
     delete_success: 'העובד/ת נמחק/ה בהצלחה',
@@ -63,6 +70,8 @@ export const i18n = {
     user_already_exists: 'משתמש/ת עם תעודת זהות זו כבר קיים/ת במערכת',
     user_not_found: 'המשתמש/ת לא נמצא/ה',
     failed_to_create_user: 'יצירת המשתמש/ת נכשלה. נסה/י שנית.',
+    validation_national_id_invalid: 'תעודת זהות לא תקינה',
+    validation_national_id_max: 'תעודת זהות בעלת {max} ספרות',
   },
   roles: {
     BASIC_USER: 'משתמש/ת',
@@ -88,6 +97,7 @@ export const i18n = {
     stops_in_the_way: 'תחנות בדרך',
     enter_start_and_end_ride_stops: 'יש להזין נקודת התחלה וסיום',
     must_be_after_the_prev: 'חייבת להיות אחרי הקודמת',
+    origin: 'מוצא',
   },
   change_password: {
     title: 'שינוי סיסמה',
@@ -132,10 +142,21 @@ export const i18n = {
     ride_full: 'הנסיעה מלאה',
     start_ride: 'התחלת נסיעה',
     delete_ride: 'מחיקת נסיעה',
+    watch_ride: 'צפיה בנסיעה',
   },
   notifications: {
     empty_text: 'אין התראות עדיין',
     driver_nearby_alert_title: 'הנהג/ת בקרוב לידך!',
+    ride_started_alert_title: 'הנסיעה התחילה!',
+  },
+  login: {
+    welcome: 'ברוכים הבאים',
+    welcome_back: 'ברוכים הבאים חזרה',
+    sign_in_title: 'כניסה למערכת',
+    password: 'סיסמה',
+    enter: 'כניסה',
+    national_id_placeholder: '9 ספרות',
+    error_invalid_credentials: 'תעודת זהות או סיסמה שגויים',
   },
   location: {
     loading_title: 'מאתחלים GPS',
@@ -145,5 +166,8 @@ export const i18n = {
     location_permission_denied_alert_title: 'הרשאות מיקום נדחתה',
     location_permission_denied_alert_subtitle: 'בבקשה אפשרו הרשאות מיקום בהגדרות המכשיר',
     location_update_error_message: 'קרתה שגיאה בעדכון המיקום',
+    my_location: 'המיקום שלי',
+    finish_ride_title: 'הנסיעה הסתיימה!',
+    finish_ride_subtitle: 'הנסיעה הושלמה בהצלחה',
   },
 };

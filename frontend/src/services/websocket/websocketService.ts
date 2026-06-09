@@ -1,5 +1,6 @@
 import { BASE_URL } from '@constants';
 import { io, type Socket } from 'socket.io-client';
+import { WsEvent } from './events';
 
 function getWsUrl(): string {
   return BASE_URL.replace(/\/api\/?$/, '');
@@ -41,7 +42,7 @@ class WebSocketService {
     this.socket = null;
   }
 
-  emit<T = void>(event: string, data?: unknown): Promise<T> {
+  emit<T = void>(event: WsEvent, data?: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.socket?.connected) {
         reject(new Error('[WS] Socket is not connected'));
@@ -51,12 +52,12 @@ class WebSocketService {
     });
   }
 
-  on<T = unknown>(event: string, handler: (data: T) => void): () => void {
+  on<T = unknown>(event: WsEvent, handler: (data: T) => void): () => void {
     this.socket?.on(event, handler as (...args: unknown[]) => void);
     return () => this.socket?.off(event, handler as (...args: unknown[]) => void);
   }
 
-  off(event: string, handler: (...args: unknown[]) => void): void {
+  off(event: WsEvent, handler: (...args: unknown[]) => void): void {
     this.socket?.off(event, handler);
   }
 

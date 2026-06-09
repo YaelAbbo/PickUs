@@ -4,6 +4,7 @@ import { AppButton, AppTextInput } from '@components';
 import type { FC } from 'react';
 import { Controller } from 'react-hook-form';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { i18n } from '@/i18n';
 
 export type LoginFormCardProps = UseLoginFormContent & {
   isWide?: boolean;
@@ -27,14 +28,14 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
           <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} resizeMode='contain' />
 
           <Text style={styles.appName}>PickUs</Text>
-          <Text style={styles.welcomeText}>ברוכים הבאים</Text>
+          <Text style={styles.welcomeText}>{i18n.login.welcome}</Text>
         </Animated.View>
       )}
 
       {isWide && (
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>כניסה למערכת</Text>
-          <Text style={styles.cardSubtitle}>ברוכים הבאים חזרה</Text>
+          <Text style={styles.cardTitle}>{i18n.login.sign_in_title}</Text>
+          <Text style={styles.cardSubtitle}>{i18n.login.welcome_back}</Text>
         </View>
       )}
 
@@ -43,15 +44,15 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
         name='nationalId'
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <AppTextInput
-            nativeID='תעודת זהות'
-            label='תעודת זהות'
+            nativeID={i18n.hr_popup.national_id}
+            label={i18n.hr_popup.national_id}
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
             rightIconName='person'
             keyboardType='numeric'
             returnKeyType='next'
-            placeholder='9 ספרות'
+            placeholder={i18n.login.national_id_placeholder}
             autoCapitalize='none'
             autoCorrect={false}
             maxLength={9}
@@ -66,8 +67,8 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
           name='password'
           render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
             <AppTextInput
-              nativeID='סיסמה'
-              label='סיסמה'
+              nativeID={i18n.login.password}
+              label={i18n.login.password}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -91,7 +92,7 @@ export const LoginFormCard: FC<LoginFormCardProps> = ({
       </View>
 
       <AppButton
-        label='כניסה'
+        label={i18n.login.enter}
         loading={isSubmitting}
         disabled={!!errors.nationalId || !!errors.password}
         onPress={onSubmit}
