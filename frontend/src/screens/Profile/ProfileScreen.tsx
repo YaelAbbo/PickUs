@@ -1,14 +1,12 @@
-import { PageHead } from '@/components/PageHead';
+import { FlickeringWrapper, PageHead } from '@/components';
 import { AppBackground } from '@/components/ui';
-import { useUserLocationContext } from '@/contexts';
-import { useAvailableRidesLogic } from '@/hooks/rides';
+import { useRideNavigation } from '@/hooks/rides';
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
 import { useAuth } from '@/services/auth/AuthContext';
 import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,8 +29,6 @@ const filterAndSortRides = (
 };
 
 export const ProfileScreen = () => {
-  const router = useRouter();
-  const { activeRide } = useUserLocationContext();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger'>('all');
 
@@ -41,8 +37,7 @@ export const ProfileScreen = () => {
   const { data: passengerRides = [], isLoading: isPassengerLoading } = useRidesByPassengerId(user?.id || '');
 
   const isLoading = isDriverLoading || isPassengerLoading;
-
-  const { handleRidePress } = useAvailableRidesLogic();
+  const { navigateToRideDetail } = useRideNavigation();
 
   if (!user) return <View style={styles.container} />;
 
@@ -55,14 +50,6 @@ export const ProfileScreen = () => {
     const isNotDoneOrCancelled = ride.rideStatus !== 'DONE' && ride.rideStatus !== 'CANCELLED';
     return isFutureOrActive && isNotDoneOrCancelled;
   });
-
-  const handlePassengerPress = (rideId: Ride['id']) => {
-    const isActiveRide = activeRide?.id === rideId;
-
-    if (!isActiveRide) return handleRidePress(rideId);
-
-    router.push({ pathname: '/map' });
-  };
 
   return (
     <AppBackground>
@@ -137,12 +124,10 @@ export const ProfileScreen = () => {
           <FlatList
             data={activeOrFutureRides}
             keyExtractor={(ride) => ride.id}
-            renderItem={({ item: ride }) => (
-              <RideCard
-                item={ride}
-                onPress={() => (ride.driverId === user.id ? handleRidePress : handlePassengerPress)(ride.id)}
-              />
-            )}
+            renderItem={({ item: ride }) => {
+              const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id)} />;
+              return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
+            }}
             contentContainerStyle={styles.listContainer}
           />
         )}

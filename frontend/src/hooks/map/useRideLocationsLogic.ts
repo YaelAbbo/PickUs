@@ -1,6 +1,10 @@
 import type { Ride } from '@/schemas/ride';
 import { useRideLocations } from '@/services/ride/rideQueries';
-import type { RideEntityLocationPayload, RideEntityLocationPayloadWithDetails } from '@/services/ride/rideService';
+import {
+  RideEntityType,
+  type RideEntityLocationPayload,
+  type RideEntityLocationPayloadWithDetails,
+} from '@/services/ride/rideService';
 import { WsEvent, useAuth, websocketService } from '@services';
 import { useFocusEffect } from 'expo-router';
 import { append, filter, pipe } from 'rambda';
@@ -51,7 +55,7 @@ export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
       (updatedLocationPayload: RideEntityLocationPayload) => {
         if (updatedLocationPayload.id === currentUserId) return;
 
-        const isDriver = driverId === currentUserId;
+        const isDriver = updatedLocationPayload.id === driverId;
 
         const passengerFullName = passengers.find(({ userId }) => userId === updatedLocationPayload.id)?.user?.fullName;
 
@@ -64,7 +68,7 @@ export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
         const updatedLocationPayloadWithDetails = {
           ...updatedLocationPayload,
           name,
-          type: isDriver ? 'DRIVER' : 'PASSENGER',
+          type: isDriver ? RideEntityType.DRIVER : RideEntityType.PASSENGER,
         } satisfies RideEntityLocationPayloadWithDetails;
 
         setCurrentRideLocations(upsertRideLocation(updatedLocationPayloadWithDetails));

@@ -5,8 +5,9 @@ import { useAuth } from '@services';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { i18n } from '@/i18n';
 
-const DEFAULT_ERROR = 'תעודת זהות או סיסמה שגויים';
+const DEFAULT_ERROR = i18n.login.error_invalid_credentials;
 
 const schema = userSchema.pick({ nationalId: true }).extend({ password: z.string().nonempty(REQUIRED) });
 

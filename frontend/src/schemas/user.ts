@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { REQUIRED } from '@constants';
 import { isValidIsraeliId } from '@helpers';
 import { z } from 'zod';
@@ -13,8 +14,8 @@ export const userSchema = entityMetadata.extend({
   nationalId: z
     .string()
     .nonempty(REQUIRED)
-    .max(9, { error: ({ maximum }) => `תעודת זהות בעלת ${maximum} ספרות` })
-    .refine(isValidIsraeliId, 'תעודת זהות לא תקינה'),
+    .max(9, i18n.hr_popup.validation_national_id_max.replace('{max}', '9'))
+    .refine(isValidIsraeliId, i18n.hr_popup.validation_national_id_invalid),
   firstName: z.string().nonempty(REQUIRED),
   lastName: z.string().nonempty(REQUIRED),
   role: z.enum(UserRole, 'User role must be of type UserRole'),

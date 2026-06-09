@@ -1,5 +1,5 @@
-import { useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useRideNavigation } from './useRideNavigation';
 
 import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
@@ -31,7 +31,7 @@ function matchesRideFilter(ride: Ride, searchQuery: string, activeFilter: string
 }
 
 export function useAvailableRidesLogic() {
-  const router = useRouter();
+  const { navigateToRideDetail } = useRideNavigation();
   const { user, logout } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,15 +49,6 @@ export function useAvailableRidesLogic() {
     return rides.filter((ride) => matchesRideFilter(ride, trimmedQuery, activeFilter));
   }, [rides, searchQuery, activeFilter]);
 
-  const handleRidePress = (rideId: string) => {
-    const destination: Href = {
-      pathname: '/rideDetailModal',
-      params: { rideId },
-    };
-
-    router.push(destination);
-  };
-
   return {
     user,
     logout,
@@ -69,6 +60,6 @@ export function useAvailableRidesLogic() {
     isLoading,
     isError,
     refetch,
-    handleRidePress,
+    handleRidePress: navigateToRideDetail,
   };
 }

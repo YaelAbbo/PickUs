@@ -8,6 +8,8 @@ import { UserService } from '../user/user.service';
 import { WsEvent } from '../websocket/events';
 import { MapGateway } from './map.gateway';
 import type { LocationUpdatePayload } from './map.types';
+import type { Ride } from '@/database/entities';
+import type { User } from '@/database/entities/user.entity';
 
 const mockUser = { sub: 'user-1', iat: 0, exp: 9999999999 };
 
@@ -226,6 +228,53 @@ describe('MapGateway', () => {
       expect(mockServer.emit).toHaveBeenCalledWith(
         WsEvent.LOCATION_UPDATED,
         expect.objectContaining({ properties: { speed: 40 } }),
+      );
+    });
+  });
+
+  describe('sendRideStartedNotification', () => {
+    it('emits the ride started notification to all passenger user rooms', () => {
+      const { gateway } = buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const passengerIds = [
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ] as unknown as User['id'][];
+      const driver = {
+        id: 'driver-id',
+        firstName: 'John',
+        lastName: 'Doe',
+      } as unknown as User;
+      const rideId = 'ride-123' as unknown as Ride['id'];
+      const payload = {
+        content: 'הנסיעה עם John Doe התחילה!',
+        driver,
+        rideId,
+      };
+
+      gateway.sendRideStartedNotification(passengerIds, payload);
+
+      expect(mockServer.to).toHaveBeenCalledTimes(2);
+      expect(mockServer.to).toHaveBeenNthCalledWith(
+        1,
+        'user:11111111-1111-1111-1111-111111111111',
+      );
+      expect(mockServer.to).toHaveBeenNthCalledWith(
+        2,
+        'user:22222222-2222-2222-2222-222222222222',
+      );
+      expect(mockServer.emit).toHaveBeenCalledTimes(2);
+      expect(mockServer.emit).toHaveBeenNthCalledWith(
+        1,
+        WsEvent.RIDE_STARTED,
+        payload,
+      );
+      expect(mockServer.emit).toHaveBeenNthCalledWith(
+        2,
+        WsEvent.RIDE_STARTED,
+        payload,
       );
     });
   });

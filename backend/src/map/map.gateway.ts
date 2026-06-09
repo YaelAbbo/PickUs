@@ -7,7 +7,7 @@ import { UserService } from '@/user/user.service';
 import { WsCurrentUser } from '@/websocket/decorators';
 import { WsEvent } from '@/websocket/events';
 import { WsJwtGuard } from '@/websocket/ws-jwt.guard';
-import { Logger, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, Logger, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -48,6 +48,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => RideService))
     private readonly rideService: RideService,
     private configService: ConfigService,
     private readonly proximityNotificationService: ProximityNotificationService,
@@ -260,6 +261,21 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (error) {
       this.logger.error(
         `Error while emitting location updated to room of ride ${rideId} from user ${userId}: ${error}`,
+      );
+    }
+  };
+
+  sendRideStartedNotification = (
+    passengerIds: User['id'][],
+    payload: { content: string; driver: User; rideId: Ride['id'] },
+  ) => {
+    for (const passengerId of passengerIds) {
+      this.server
+        .to(this.buildUserRoomId(passengerId))
+        .emit(WsEvent.RIDE_STARTED, payload);
+
+      this.logger.log(
+        `Emitted ${WsEvent.RIDE_STARTED} to user room of passenger ${passengerId}`,
       );
     }
   };

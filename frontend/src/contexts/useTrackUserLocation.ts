@@ -1,8 +1,8 @@
 import { i18n } from '@/i18n';
-import type { Ride } from '@/schemas/ride';
-import { useActiveRideByPassengerId } from '@/services/ride/rideQueries';
+import { RideStatus, type Ride } from '@/schemas/ride';
+import { useActiveRideByPassengerId, useRidesByDriverId } from '@/services/ride/rideQueries';
 import type { LocationUpdatePayload } from '@/services/ride/rideService';
-import { WsEvent, websocketService } from '@services';
+import { WsEvent, useAuth, websocketService } from '@services';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
@@ -25,7 +25,11 @@ export const useTrackUserLocation = () => {
 
   const locationSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
 
-  const { data: activeRide } = useActiveRideByPassengerId();
+  const { user } = useAuth();
+  const { data: activeRideAsPassenger } = useActiveRideByPassengerId();
+  const { data: driverRides } = useRidesByDriverId(user?.id ?? '');
+
+  const activeRide = activeRideAsPassenger || driverRides?.find((r) => r.rideStatus === RideStatus.ACTIVE);
 
   const emitLocationUpdated = useCallback((coords: Location.LocationObjectCoords, rideId: Ride['id']) => {
     if (!websocketService.isConnected) return;
