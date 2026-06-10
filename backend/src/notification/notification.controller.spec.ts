@@ -571,7 +571,7 @@ describe('NotificationController', () => {
         ).toBe(false);
       });
 
-      it('should return empty list for unrelated user', async () => {
+      it('should return empty list for unrelated user with no direct notifications', async () => {
         const response = await request(httpServer)
           .get(`/notifications/user/${testUnrelatedUserId}`)
           .set('Authorization', `Bearer ${adminAccessToken}`);
@@ -579,6 +579,62 @@ describe('NotificationController', () => {
         expect(response.status).toEqual(HttpStatus.OK);
         expect(Array.isArray(response.body)).toEqual(true);
         expect(response.body.length).toEqual(0);
+      });
+
+      it('should return notifications where user is the direct recipient (AI suggestion case)', async () => {
+        const aiUser = userRepository.create({
+          id: crypto.randomUUID(),
+          firstName: 'PickUs',
+          lastName: 'AI',
+          nationalId: `ai-nid-${crypto.randomUUID().slice(0, 8)}`,
+          email: `ai.notification-${crypto.randomUUID().slice(0, 8)}@test.com`,
+          phoneNumber: `ai.+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
+          passwordHash: 'dummyhash',
+          role: UserRole.AI,
+          organization: { id: testOrgId } as Organization,
+        });
+        const savedAiUser = await userRepository.save(aiUser);
+
+        const aiSuggestedRide = rideRepository.create({
+          driver: { id: testDriverId } as User,
+          organization: { id: testOrgId } as Organization,
+          startsAt: new Date(),
+          estimatedEndsAt: new Date(Date.now() + 3600000),
+          maxSeatsAmount: 4,
+          rideStatus: RideStatus.PENDING,
+        });
+        const savedAiSuggestedRide = await rideRepository.save(aiSuggestedRide);
+
+        await request(httpServer)
+          .post('/notifications')
+          .set('Authorization', `Bearer ${adminAccessToken}`)
+          .send({
+            creatorId: savedAiUser.id,
+            recipientId: testUnrelatedUserId,
+            rideId: savedAiSuggestedRide.id,
+            content: 'AI found a matching ride for you!',
+          });
+
+        const response = await request(httpServer)
+          .get(`/notifications/user/${testUnrelatedUserId}`)
+          .set('Authorization', `Bearer ${adminAccessToken}`);
+
+        expect(response.status).toEqual(HttpStatus.OK);
+        expect(Array.isArray(response.body)).toEqual(true);
+        expect(
+          response.body.some(
+            (notification: Notification) =>
+              notification.content === 'AI found a matching ride for you!',
+          ),
+        ).toBe(true);
+
+        await notificationRepository
+          .createQueryBuilder()
+          .delete()
+          .where('ride_id = :id', { id: savedAiSuggestedRide.id })
+          .execute();
+        await rideRepository.delete(savedAiSuggestedRide.id);
+        await userRepository.delete(savedAiUser.id);
       });
 
       it('should handle invalid UUID in param', async () => {
