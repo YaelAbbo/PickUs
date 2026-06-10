@@ -6,8 +6,8 @@ import {
 } from '@/database/entities';
 import { MapGateway } from '@/map/map.gateway';
 import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
-import { NotificationService } from '@/notification/notification.service';
 import { CreateNotificationDto } from '@/notification/dto/create-notification.dto';
+import { NotificationService } from '@/notification/notification.service';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -289,6 +289,52 @@ export class RideService {
     if (result.affected === 0) {
       this.logger.error(`Ride with ID ${id} not found`);
       throw new NotFoundException(`Ride with ID ${id} not found`);
+    }
+  }
+
+  async validateRideRelevance(
+    id: Ride['id'],
+  ): Promise<{ isRelevant: boolean; reason?: string }> {
+    try {
+      const ride = await this.createRideQueryBuilder()
+        .andWhere('ride.id = :id', { id })
+        .getOne();
+
+      if (!ride) {
+        return { isRelevant: false, reason: 'RIDE_NOT_FOUND' };
+      }
+
+      const now = new Date();
+
+      if (ride.rideStatus === RideStatus.ACTIVE) {
+        return { isRelevant: false, reason: 'RIDE_ACTIVE' };
+      } else if (new Date(ride.startsAt) < now) {
+        return { isRelevant: false, reason: 'RIDE_TIME_PASSED' };
+      }
+
+      if (ride.rideStatus === RideStatus.CANCELLED) {
+        return { isRelevant: false, reason: 'RIDE_CANCELLED' };
+      }
+
+      if (ride.rideStatus === RideStatus.DONE) {
+        return { isRelevant: false, reason: 'RIDE_COMPLETED' };
+      }
+
+      const passengerCount =
+        ride.passengers?.filter((passenger) => !passenger.isDeleted).length ||
+        0;
+      const availableSeats = ride.maxSeatsAmount - passengerCount;
+      if (availableSeats <= 0) {
+        return { isRelevant: false, reason: 'RIDE_FULL' };
+      }
+
+      return { isRelevant: true };
+    } catch (error) {
+      this.logger.error(
+        `Error validating ride relevance (rideId=${id})`,
+        error,
+      );
+      return { isRelevant: false, reason: 'VALIDATION_ERROR' };
     }
   }
 

@@ -89,9 +89,9 @@ export class NotificationService {
       )
       .andWhere(
         new Brackets((qb: WhereExpressionBuilder) => {
-          qb.where('ride.driver_id = :userId', { userId }).orWhere(
-            'rp.id IS NOT NULL',
-          );
+          qb.where('ride.driver_id = :userId', { userId })
+            .orWhere('rp.id IS NOT NULL')
+            .orWhere('notification.recipient_user_id = :userId', { userId });
         }),
       )
       .orderBy('notification.createdAt', 'DESC')
