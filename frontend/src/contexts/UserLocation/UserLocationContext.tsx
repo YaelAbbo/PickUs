@@ -1,6 +1,6 @@
 import { useCustomContext } from '@/hooks/useCustomContext';
 import { createContext, type PropsWithChildren } from 'react';
-import { useTrackUserLocation, type UseTrackUserLocationContent } from './useTrackUserLocation';
+import { useTrackUserLocation, type UseTrackUserLocationContent } from '../UserLocation/useTrackUserLocation';
 
 export type UserLocationContextValue = UseTrackUserLocationContent;
 

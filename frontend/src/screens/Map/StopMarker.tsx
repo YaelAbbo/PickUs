@@ -1,22 +1,15 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '@theme';
 import type { Coordinates } from '@types';
 import type { FC } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Marker } from 'react-native-maps';
-import { MaterialIcons } from '@expo/vector-icons';
-import { i18n } from '@/i18n';
-import { colors } from '@theme';
+import { getStopNumber } from './utils';
 
 export type StopMarkerProps = {
   coordinates: Coordinates;
   title: string;
   totalStops?: number;
-};
-
-const getStopNumber = (title?: string): string => {
-  if (!title) return '?';
-  const regex = new RegExp(`${i18n.rideForm.ride_stop} (\\d+)`);
-  const match = title.match(regex);
-  return (match && match[1]) || '?';
 };
 
 export const StopMarker: FC<StopMarkerProps> = ({ coordinates: [longitude, latitude], title, totalStops }) => {
