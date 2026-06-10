@@ -86,6 +86,12 @@ export const rideService = {
     return rideEntitySchema.parse(data);
   },
 
+  validateRideRelevance: async (rideId: string): Promise<{ isRelevant: boolean; reason?: string }> => {
+    const { data } = await api.get<{ isRelevant: boolean; reason?: string }>(`/rides/${rideId}/validate`);
+
+    return data;
+  },
+
   updateRide: async (id: string, payload: Partial<Ride>): Promise<Ride> => {
     const { data } = await api.patch(`/rides/${id}`, payload);
 
