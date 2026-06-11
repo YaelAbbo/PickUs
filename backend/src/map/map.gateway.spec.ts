@@ -1,13 +1,12 @@
 import type { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
 import type { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
-import type { RideService } from '@/ride/ride.service';
-import { expect } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Point } from 'geojson';
-import { describe, it } from 'node:test';
 import type { Server, Socket } from 'socket.io';
+import type { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { WsEvent } from '../websocket/events';
 import { MapGateway } from './map.gateway';
@@ -64,13 +63,13 @@ function buildGateway(
     }),
   } as unknown as UserService;
 
-  const rideService = {
-    getRideById: jest.fn().mockImplementation(() => {
+  const ridesRepository = {
+    findOne: jest.fn().mockImplementation(() => {
       if (updateLocationResult === 'throw')
         return Promise.reject(new Error('db error'));
-      return Promise.resolve();
+      return Promise.resolve(null);
     }),
-  } as unknown as RideService;
+  } as unknown as Repository<Ride>;
 
   const configService = {
     get: jest
@@ -85,6 +84,7 @@ function buildGateway(
   const gateway = new MapGateway(
     jwtService,
     userService,
+    ridesRepository,
     configService,
     proximityNotificationService,
   );
