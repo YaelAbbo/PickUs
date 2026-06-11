@@ -2,7 +2,7 @@ import { AiModule } from '@/ai/ai.module';
 import { Ride } from '@/database/entities';
 import { MapModule } from '@/map/map.module';
 import { NotificationModule } from '@/notification/notification.module';
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RideController } from './ride.controller';
 import { RideService } from './ride.service';
@@ -11,7 +11,7 @@ import { RideService } from './ride.service';
   imports: [
     TypeOrmModule.forFeature([Ride]),
     NotificationModule,
-    forwardRef(() => MapModule),
+    MapModule,
     AiModule,
   ],
   controllers: [RideController],

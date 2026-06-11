@@ -1,15 +1,15 @@
 import { JWTPayload } from '@/auth/types';
-import type { Ride } from '@/database/entities';
+import { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
 import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
-import { RideService } from '@/ride/ride.service';
 import { UserService } from '@/user/user.service';
 import { WsCurrentUser } from '@/websocket/decorators';
 import { WsEvent } from '@/websocket/events';
 import { WsJwtGuard } from '@/websocket/ws-jwt.guard';
-import { forwardRef, Inject, Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConnectedSocket,
   MessageBody,
@@ -20,6 +20,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
+import { Repository } from 'typeorm';
 import {
   LocationUpdatePayload,
   type RideEntityLocationPayload,
@@ -32,6 +33,8 @@ function extractTokenFromSocket(client: Socket): string | null {
 
 const rideRoomIdPrefix = 'ride:';
 
+type CachedRide = Pick<Ride, 'id' | 'driver'>;
+
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_BASE_URL || 'http://localhost',
@@ -40,7 +43,7 @@ const rideRoomIdPrefix = 'ride:';
 })
 export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(MapGateway.name);
-  private readonly rideCache = new Map<Ride['id'], Ride>();
+  private readonly rideCache = new Map<Ride['id'], CachedRide>();
 
   @WebSocketServer()
   server: Server;
@@ -48,8 +51,8 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    @Inject(forwardRef(() => RideService))
-    private readonly rideService: RideService,
+    @InjectRepository(Ride)
+    private readonly ridesRepository: Repository<Ride>,
     private configService: ConfigService,
     private readonly proximityNotificationService: ProximityNotificationService,
   ) {}
@@ -134,9 +137,13 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     if (!this.rideCache.has(rideId)) {
-      const ride = await this.rideService.getRideById(rideId);
+      const ride = (await this.ridesRepository.findOne({
+        where: { id: rideId },
+        relations: ['driver'],
+        select: { id: true, driver: true },
+      })) as CachedRide | null;
 
-      this.rideCache.set(rideId, ride);
+      if (ride) this.rideCache.set(rideId, ride);
     }
 
     return { rideId };
@@ -214,7 +221,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     driverLocation,
   }: {
     driverLocation: NonNullable<User['currentLocation']>;
-    ride: Ride;
+    ride: CachedRide;
   }) => {
     const rideId = ride.id;
 
@@ -256,7 +263,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const ride = this.rideCache.get(rideId);
 
-      if (ride?.driverId === userId)
+      if (ride?.driver.id === userId)
         await this.notifyNearbyPassengers({ driverLocation: location, ride });
     } catch (error) {
       this.logger.error(
