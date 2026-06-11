@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import type { Point } from 'geojson';
 import { Repository } from 'typeorm';
+import { AiProducer } from '../ai/ai.producer';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -26,6 +27,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly mailService: MailService,
+    private readonly embeddingProducer: AiProducer,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -50,6 +52,15 @@ export class UserService {
         error,
       );
     }
+
+    this.embeddingProducer
+      .queueInitialUserEmbedding(savedUser.id)
+      .catch((err: unknown) =>
+        this.logger.error(
+          `Failed to queue initial embedding for user ${savedUser.id}`,
+          err,
+        ),
+      );
 
     return savedUser;
   }

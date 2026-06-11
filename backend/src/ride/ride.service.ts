@@ -20,6 +20,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Point } from 'geojson';
 import { omit } from 'lodash';
+import { AiProducer } from '../ai/ai.producer';
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
@@ -31,6 +32,7 @@ export class RideService {
   constructor(
     @InjectRepository(Ride)
     private ridesRepository: Repository<Ride>,
+    private readonly embeddingProducer: AiProducer,
     private readonly notificationService: NotificationService,
     @Inject(forwardRef(() => MapGateway))
     private readonly mapGateway: MapGateway,
@@ -244,13 +246,26 @@ export class RideService {
 
     try {
       const updatedRide = await this.ridesRepository.save(ride);
-      const fullRide = await this.getRideById(updatedRide.id);
+
+      const finalRide = await this.getRideById(updatedRide.id);
 
       if (wasPending && isBecomingActive) {
-        await this.sendRideStartedNotifications(fullRide);
+        await this.sendRideStartedNotifications(finalRide);
       }
 
-      return fullRide;
+      if (finalRide.rideStatus === RideStatus.DONE) {
+        const passengerIds = finalRide.passengers
+          .filter((p) => p.user)
+          .map((p) => p.userId);
+
+        await this.embeddingProducer.queueRideCompletionTasks(
+          finalRide.id,
+          finalRide.driverId,
+          passengerIds,
+        );
+      }
+
+      return finalRide;
     } catch (error) {
       this.logger.error(
         `Failed to update ride with ID ${id}, ${(error as Error).message}`,

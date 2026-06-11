@@ -43,6 +43,15 @@ services:
     networks:
       - pickus_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: pickus_redis
+    ports:
+      - '6379:6379'
+    restart: always
+    networks:
+      - pickus_network
+
   backend:
     image: ghcr.io/yaelabbo/pickus/backend:latest
     container_name: pickus_backend
@@ -51,6 +60,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - '3000:3000'
     healthcheck:
