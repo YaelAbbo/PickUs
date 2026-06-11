@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - dev
+      - fix/apk # CHANGE TO dev
       - main
 
 defaults:
@@ -55,6 +55,13 @@ jobs:
           echo "branch=$(echo ${{ github.ref_name }} | tr '/' '-')" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
 
+      - name: Debug env vars
+        run: |
+          echo "=== EXPO PUBLIC VARS ==="
+          env | grep EXPO_PUBLIC_ || echo "None found"
+          echo "=== NODE ENV ==="
+          echo "NODE_ENV=$NODE_ENV"
+
       - name: Install dependencies
         run: npm install && npm install lightningcss-linux-x64-gnu --no-save
 
@@ -63,19 +70,19 @@ jobs:
 
       - name: Build APK
         working-directory: ./frontend/android
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: List APK output
         run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
 
       - name: Publish Dev APK
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/fix/apk' # CHANGE TO dev
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: true
-          files: frontend/android/app/build/outputs/apk/release/*.apk
+          files: frontend/android/app/build/outputs/apk/debug/*.apk
 
       - name: Publish Release APK
         if: github.ref == 'refs/heads/main'
@@ -84,4 +91,4 @@ jobs:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: false
-          files: frontend/android/app/build/outputs/apk/release/*.apk
+          files: frontend/android/app/build/outputs/apk/debug/*.apk
