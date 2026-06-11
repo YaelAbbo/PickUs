@@ -80,6 +80,7 @@
     "@types/lodash": "^4.17.24",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
+    "babel-preset-expo": "^56.0.15",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "^5.3.2"
