@@ -74,11 +74,13 @@ function buildGateway(
   const configService = {
     get: jest
       .fn()
-      .mockImplementation((key: string, defaultValue: string) => defaultValue),
+      .mockImplementation(
+        (_key: unknown, defaultValue: unknown) => defaultValue as string,
+      ),
   } as unknown as ConfigService;
 
   const proximityNotificationService = {
-    checkAndNotify: jest.fn().mockResolvedValue(undefined),
+    upsertNotifications: jest.fn().mockResolvedValue([] as never),
   } as unknown as ProximityNotificationService;
 
   const gateway = new MapGateway(
@@ -92,7 +94,7 @@ function buildGateway(
     gateway,
     jwtService,
     userService,
-    rideService,
+    ridesRepository,
     configService,
     proximityNotificationService,
   };
