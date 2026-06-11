@@ -43,6 +43,15 @@ services:
     networks:
       - pickus_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: pickus_redis
+    ports:
+      - '6379:6379'
+    restart: always
+    networks:
+      - pickus_network
+
   backend:
     build:
       context: ./backend
@@ -55,16 +64,16 @@ services:
     container_name: pickus_backend
     restart: unless-stopped
     env_file: .env
-    environment:
-      DB_HOST: db
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - 3000:3000
-      - 9229:9229 # Debugging port
+      - 9229:9229 # Debugging Port
     healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/api/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
