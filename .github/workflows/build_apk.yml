@@ -67,11 +67,11 @@ jobs:
         run: npm install && npm install lightningcss-linux-x64-gnu --no-save
 
       - name: Prebuild (generate android/ folder)
-        run: npx expo prebuild --platform android --clean
+        run: npx expo prebuild --platform android
 
       - name: Build APK
         working-directory: ./frontend/android
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug -PbundleInDebug=true --stacktrace
 
       - name: List APK output
         run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
