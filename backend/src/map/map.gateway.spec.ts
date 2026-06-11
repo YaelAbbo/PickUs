@@ -1,15 +1,17 @@
+import type { Ride } from '@/database/entities';
+import type { User } from '@/database/entities/user.entity';
 import type { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
 import type { RideService } from '@/ride/ride.service';
+import { expect } from '@jest/globals';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Point } from 'geojson';
+import { describe, it } from 'node:test';
 import type { Server, Socket } from 'socket.io';
 import { UserService } from '../user/user.service';
 import { WsEvent } from '../websocket/events';
 import { MapGateway } from './map.gateway';
 import type { LocationUpdatePayload } from './map.types';
-import type { Ride } from '@/database/entities';
-import type { User } from '@/database/entities/user.entity';
 
 const mockUser = { sub: 'user-1', iat: 0, exp: 9999999999 };
 
@@ -83,7 +85,6 @@ function buildGateway(
   const gateway = new MapGateway(
     jwtService,
     userService,
-    rideService,
     configService,
     proximityNotificationService,
   );
