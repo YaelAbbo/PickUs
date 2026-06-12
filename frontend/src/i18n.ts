@@ -30,6 +30,13 @@ export const i18n = {
     required_field: 'שדה חובה',
     app_description_tagline: 'הדרך החכמה\nלנסוע ביחד',
   },
+  screens: {
+    profile: 'פרופיל',
+    home: 'בית',
+    map: 'מפה',
+    notifications: 'התראות',
+    hr: 'HR',
+  },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
     edit_user: 'עריכת עובד/ת',

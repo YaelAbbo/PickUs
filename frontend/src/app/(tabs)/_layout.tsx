@@ -5,6 +5,7 @@ import { UserLocationProvider } from '@/contexts';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
 import { useRideStartedNotifications } from '@/hooks/notifications/useRideStartedNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
@@ -24,12 +25,12 @@ type TabScreenConfig = {
 };
 
 const tabScreensConfigs: TabScreenConfig[] = [
-  { name: 'profile', title: 'Profile', icon: 'user' },
-  { name: 'home', title: 'Home', icon: 'home' },
-  { name: 'create-ride', title: 'Create Ride', icon: 'car' },
-  { name: 'map', title: 'Map', icon: 'compass', hideFromTabBar: true },
-  { name: 'notifications', title: 'Notifications', icon: 'bell' },
-  { name: 'hr', title: 'HR', icon: 'team', role: UserRole.HR_MANAGER },
+  { name: 'profile', title: i18n.screens.profile, icon: 'user' },
+  { name: 'home', title: i18n.screens.home, icon: 'home' },
+  { name: 'create-ride', title: i18n.rideForm.create_ride, icon: 'car' },
+  { name: 'map', title: i18n.screens.map, icon: 'compass', hideFromTabBar: true },
+  { name: 'notifications', title: i18n.screens.notifications, icon: 'bell' },
+  { name: 'hr', title: i18n.screens.hr, icon: 'team', role: UserRole.HR_MANAGER },
 ];
 
 const tabBarBackground = () => (
