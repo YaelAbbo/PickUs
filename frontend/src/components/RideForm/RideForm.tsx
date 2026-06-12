@@ -12,7 +12,6 @@ import { DateInput } from './DateInput';
 import { LocationRow } from './LocationRow';
 import { SeatsCounter } from './SeatsCounter';
 import { SectionCard } from './SectionCard';
-import { TripTypeSegment } from './TripTypeSegment';
 
 type StopError = FieldErrors<RideFormValues['stops'][number]>;
 
@@ -93,11 +92,6 @@ export const RideForm: FC<RideFormProps> = (useRideFormArgs) => {
 
             <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
               <Controller control={control} name='seats' render={({ field }) => <SeatsCounter {...field} />} />
-              <Controller
-                control={control}
-                name='isReturnTrip'
-                render={({ field }) => <TripTypeSegment {...field} />}
-              />
             </View>
           </SectionCard>
 

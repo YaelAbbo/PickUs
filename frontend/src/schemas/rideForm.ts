@@ -30,7 +30,6 @@ export const rideFormSchema = rideDtoSchema.pick({ driverId: true }).extend({
   organizationId: uuidSchema,
   rideDate: dateSchema,
   seats: rideDtoSchema.shape.maxSeatsAmount,
-  isReturnTrip: z.boolean(),
   stops: rideStopsSchema,
 });
 
@@ -62,7 +61,6 @@ export const convertRideToRideFormValues = ({
   driverId,
   startsAt,
 }: Ride): RideFormValues => ({
-  isReturnTrip: false,
   organizationId,
   rideDate: new Date(startsAt),
   seats: maxSeatsAmount,
