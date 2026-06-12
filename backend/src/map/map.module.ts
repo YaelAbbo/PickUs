@@ -1,17 +1,18 @@
+import { Ride } from '@/database/entities';
 import { NotificationModule } from '@/notification/notification.module';
 import { RidePassengerModule } from '@/ride-passenger/ride-passenger.module';
 import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
-import { RideModule } from '@/ride/ride.module';
 import { UserModule } from '@/user/user.module';
 import { WebSocketCoreModule } from '@/websocket/websocket.module';
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MapGateway } from './map.gateway';
 
 @Module({
   imports: [
     WebSocketCoreModule,
     UserModule,
-    forwardRef(() => RideModule),
+    TypeOrmModule.forFeature([Ride]),
     RidePassengerModule,
     NotificationModule,
   ],
