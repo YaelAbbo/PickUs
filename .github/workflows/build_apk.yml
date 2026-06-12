@@ -71,7 +71,7 @@ jobs:
 
       - name: Build APK
         working-directory: ./frontend/android
-        run: ./gradlew assembleDebug -PbundleInDebug=true --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
         env:
           NODE_ENV: development
 
@@ -85,7 +85,7 @@ jobs:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: true
-          files: frontend/android/app/build/outputs/apk/debug/*.apk
+          files: frontend/android/app/build/outputs/apk/release/*.apk
 
       - name: Publish Release APK
         if: github.ref == 'refs/heads/main'
@@ -94,4 +94,4 @@ jobs:
           tag_name: ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.date }}-${{ steps.info.outputs.short }}
           name: '${{ steps.info.outputs.branch }} ${{ steps.info.outputs.date }} (${{ steps.info.outputs.short }})'
           prerelease: false
-          files: frontend/android/app/build/outputs/apk/debug/*.apk
+          files: frontend/android/app/build/outputs/apk/release/*.apk
