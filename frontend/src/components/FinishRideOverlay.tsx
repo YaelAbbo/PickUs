@@ -1,10 +1,10 @@
-import { useUpdateRide } from '@/services/ride/rideQueries';
-import { RideStatus, type Ride } from '@/schemas/ride';
 import { i18n } from '@/i18n';
+import { RideStatus, type Ride } from '@/schemas/ride';
+import { useUpdateRide } from '@/services/ride/rideQueries';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 
 type FinishRideOverlayProps = {
   activeRide: Ride | null;
@@ -37,33 +37,36 @@ export const FinishRideOverlay = forwardRef<FinishRideOverlayRef, FinishRideOver
         Animated.timing(finishFadeAnim, {
           toValue: 1,
           duration: 400,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.spring(finishScaleAnim, {
           toValue: 1,
           friction: 6,
           tension: 40,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
 
-      // After 2.2 seconds, navigate to the profile screen
+      // After 2.2 seconds, start fade out and navigate
       setTimeout(() => {
         Animated.parallel([
           Animated.timing(finishFadeAnim, {
             toValue: 0,
             duration: 300,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(finishScaleAnim, {
             toValue: 0.8,
             duration: 300,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
-        ]).start(() => {
+        ]).start();
+
+        // Navigate after fade out animation duration
+        setTimeout(() => {
           setShowFinishOverlay(false);
           router.replace('/(tabs)/profile');
-        });
+        }, 350);
       }, 2200);
     },
   }));

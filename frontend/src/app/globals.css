@@ -12,7 +12,7 @@ body {
 }
 
 #root {
-  direction: rtl;
+  direction: ltr;
   height: auto !important;
   min-height: 100vh;
   width: 100%;
