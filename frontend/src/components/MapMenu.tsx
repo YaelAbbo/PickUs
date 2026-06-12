@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@theme';
 import { useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 type MapMenuProps = {
   onFinishRide?: () => void;
@@ -17,7 +17,7 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
       toValue,
       friction: 5,
       tension: 40,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
     setMenuOpen(!menuOpen);
   };
@@ -51,7 +51,7 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
 
   return (
     <>
-      <View pointerEvents={menuOpen ? 'auto' : 'none'} style={StyleSheet.absoluteFill}>
+      <View pointerEvents={menuOpen ? 'auto' : 'none'} style={[StyleSheet.absoluteFill, { zIndex: 999 }]}>
         {/* Button 1: Navigation */}
         <Animated.View style={[styles.fabSubButton, { transform: [{ translateY: translateY1 }, { scale: scale1 }] }]}>
           <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     left: 20,
     width: 50,
     height: 50,
-    zIndex: 20,
+    zIndex: 1000,
   },
   fabMainButton: {
     width: '100%',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    zIndex: 15,
+    zIndex: 999,
   },
   subButtonTouchable: {
     width: '100%',

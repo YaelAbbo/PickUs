@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   detailRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: spacing.sm,
   },

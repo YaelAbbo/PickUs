@@ -128,6 +128,7 @@ export const i18n = {
     status_pending: 'ממתין',
     join_ride: 'הצטרפות לנסיעה',
     leave_ride: 'עזיבת נסיעה',
+    leave_ride_message: 'האם לעזוב את הנסיעה?',
     passengers_joining: 'נוסעים יעלו כאן',
     passenger: 'נוסע',
     passengers: 'נוסעים',
