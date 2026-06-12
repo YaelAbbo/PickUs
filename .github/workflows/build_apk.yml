@@ -64,7 +64,7 @@ jobs:
           echo "NODE_ENV=$NODE_ENV"
 
       - name: Install dependencies
-        run: NODE_ENV=development npm install && npm install lightningcss-linux-x64-gnu --no-save
+        run: npm install && npm install lightningcss-linux-x64-gnu --no-save
 
       - name: Prebuild (generate android/ folder)
         run: npx expo prebuild --platform android --clean
@@ -72,8 +72,6 @@ jobs:
       - name: Build APK
         working-directory: ./frontend/android
         run: ./gradlew assembleRelease --stacktrace
-        env:
-          NODE_ENV: development
 
       - name: List APK output
         run: find android/app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK found"
