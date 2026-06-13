@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "private": true,
+  "type": "commonjs",
   "authors": [
     "Natan Sinai",
     "Shira Magrafta",
