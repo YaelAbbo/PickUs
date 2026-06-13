@@ -6,8 +6,8 @@ import {
 } from '@/database/entities';
 import { MapGateway } from '@/map/map.gateway';
 import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
-import { NotificationService } from '@/notification/notification.service';
 import { CreateNotificationDto } from '@/notification/dto/create-notification.dto';
+import { NotificationService } from '@/notification/notification.service';
 import { filterAvailableRides } from '@/utils/rides';
 import {
   ConflictException,
@@ -20,8 +20,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Point } from 'geojson';
 import { omit } from 'lodash';
-import { AiProducer } from '../ai/ai.producer';
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
+import { AiProducer } from '../ai/ai.producer';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 
@@ -130,7 +130,18 @@ export class RideService {
 
     try {
       const createdRide = await this.ridesRepository.save(newRide);
-      return await this.getRideById(createdRide.id);
+      const ride = await this.getRideById(createdRide.id);
+
+      this.embeddingProducer
+        .queueRideEmbedding(ride.id)
+        .catch((err: unknown) =>
+          this.logger.error(
+            `Failed to queue embedding for ride ${ride.id}`,
+            err,
+          ),
+        );
+
+      return ride;
     } catch (error) {
       this.logger.error(
         `Failed to create ride, ${(error as Error).message}`,
@@ -253,6 +264,17 @@ export class RideService {
         await this.sendRideStartedNotifications(finalRide);
       }
 
+      if (rideStops && finalRide.rideStatus === RideStatus.PENDING) {
+        this.embeddingProducer
+          .queueRideEmbedding(finalRide.id)
+          .catch((err: unknown) =>
+            this.logger.error(
+              `Failed to queue embedding for ride ${finalRide.id}`,
+              err,
+            ),
+          );
+      }
+
       if (finalRide.rideStatus === RideStatus.DONE) {
         const passengerIds = finalRide.passengers
           .filter((p) => p.user)
@@ -304,6 +326,52 @@ export class RideService {
     if (result.affected === 0) {
       this.logger.error(`Ride with ID ${id} not found`);
       throw new NotFoundException(`Ride with ID ${id} not found`);
+    }
+  }
+
+  async validateRideRelevance(
+    id: Ride['id'],
+  ): Promise<{ isRelevant: boolean; reason?: string }> {
+    try {
+      const ride = await this.createRideQueryBuilder()
+        .andWhere('ride.id = :id', { id })
+        .getOne();
+
+      if (!ride) {
+        return { isRelevant: false, reason: 'RIDE_NOT_FOUND' };
+      }
+
+      const now = new Date();
+
+      if (ride.rideStatus === RideStatus.ACTIVE) {
+        return { isRelevant: false, reason: 'RIDE_ACTIVE' };
+      } else if (new Date(ride.startsAt) < now) {
+        return { isRelevant: false, reason: 'RIDE_TIME_PASSED' };
+      }
+
+      if (ride.rideStatus === RideStatus.CANCELLED) {
+        return { isRelevant: false, reason: 'RIDE_CANCELLED' };
+      }
+
+      if (ride.rideStatus === RideStatus.DONE) {
+        return { isRelevant: false, reason: 'RIDE_COMPLETED' };
+      }
+
+      const passengerCount =
+        ride.passengers?.filter((passenger) => !passenger.isDeleted).length ||
+        0;
+      const availableSeats = ride.maxSeatsAmount - passengerCount;
+      if (availableSeats <= 0) {
+        return { isRelevant: false, reason: 'RIDE_FULL' };
+      }
+
+      return { isRelevant: true };
+    } catch (error) {
+      this.logger.error(
+        `Error validating ride relevance (rideId=${id})`,
+        error,
+      );
+      return { isRelevant: false, reason: 'VALIDATION_ERROR' };
     }
   }
 

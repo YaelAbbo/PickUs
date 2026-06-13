@@ -380,6 +380,108 @@ describe('NotificationService', () => {
     });
   });
 
+  describe('getUserNotifications', () => {
+    it('should return notifications where user is the direct recipient', async () => {
+      const aiUser = await userRepository.save(
+        userRepository.create({
+          firstName: 'PickUs',
+          lastName: 'AI',
+          nationalId: `ai-${crypto.randomUUID().slice(0, 8)}`,
+          email: `ai-${crypto.randomUUID().slice(0, 8)}@test.com`,
+          phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
+          passwordHash: 'dummy',
+          role: UserRole.AI,
+          organization: { id: testOrgId! },
+        }),
+      );
+
+      const otherRide = await rideRepository.save(
+        rideRepository.create({
+          driver: { id: creatorUserId! },
+          organization: { id: testOrgId! },
+          startsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          estimatedEndsAt: new Date(Date.now() + 25 * 60 * 60 * 1000),
+          maxSeatsAmount: 4,
+        }),
+      );
+
+      await service.create({
+        creatorId: aiUser.id,
+        recipientId: recipient2UserId!,
+        rideId: otherRide.id,
+        content: 'AI found a matching ride for you!',
+      });
+
+      const notifications = await service.getUserNotifications(
+        recipient2UserId!,
+      );
+
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]?.content).toBe(
+        'AI found a matching ride for you!',
+      );
+      expect(notifications[0]?.creator.id).toBe(aiUser.id);
+
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('ride_id = :id', { id: otherRide.id })
+        .execute();
+      await rideRepository.delete(otherRide.id);
+      await userRepository.delete(aiUser.id);
+    });
+
+    it('should combine recipient notifications with driver/passenger notifications', async () => {
+      const aiUser = await userRepository.save(
+        userRepository.create({
+          firstName: 'PickUs',
+          lastName: 'AI',
+          nationalId: `ai3-${crypto.randomUUID().slice(0, 8)}`,
+          email: `ai3-${crypto.randomUUID().slice(0, 8)}@test.com`,
+          phoneNumber: `+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
+          passwordHash: 'dummy',
+          role: UserRole.AI,
+          organization: { id: testOrgId! },
+        }),
+      );
+
+      await service.create({
+        creatorId: recipient2UserId!,
+        recipientId: creatorUserId!,
+        rideId: testRideId!,
+        content: 'Driver notification from passenger',
+      });
+
+      await service.create({
+        creatorId: aiUser.id,
+        recipientId: creatorUserId!,
+        content: 'AI suggestion for you',
+      });
+
+      const notifications = await service.getUserNotifications(creatorUserId!);
+
+      expect(notifications.length).toBeGreaterThanOrEqual(2);
+      expect(
+        notifications.some(
+          (notification) =>
+            notification.content === 'Driver notification from passenger',
+        ),
+      ).toBe(true);
+      expect(
+        notifications.some(
+          (notification) => notification.content === 'AI suggestion for you',
+        ),
+      ).toBe(true);
+
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .where('created_by_user_id = :id', { id: aiUser.id })
+        .execute();
+      await userRepository.delete(aiUser.id);
+    });
+  });
+
   describe('delete', () => {
     it('should soft delete a notification', async () => {
       const notification = await service.create({
