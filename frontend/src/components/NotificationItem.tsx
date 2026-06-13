@@ -1,5 +1,6 @@
 import type { Notification } from '@/api/notification.api';
 import { UserRole } from '@/api/user';
+import { RideIrrelevantReason } from '@/app/(tabs)/notifications';
 import { i18n } from '@/i18n';
 import { rideService } from '@/services/ride/rideService';
 import { colors } from '@/theme';
@@ -14,7 +15,7 @@ const NOTIFICATION_ICON_SIZE = 40;
 
 type NotificationItemProps = {
   item: Notification;
-  onRideIrrelevant?: (reason: string) => void;
+  onRideIrrelevant?: (reason: RideIrrelevantReason) => void;
 };
 
 export const NotificationItem = ({ item, onRideIrrelevant }: NotificationItemProps) => {
@@ -37,11 +38,11 @@ export const NotificationItem = ({ item, onRideIrrelevant }: NotificationItemPro
           pathname: '/rideDetailModal',
           params: { rideId: item.ride.id },
         });
-      } else {
-        onRideIrrelevant?.(result.reason || 'UNKNOWN');
+      } else if (result.reason && Object.values(RideIrrelevantReason).includes(result.reason as RideIrrelevantReason)) {
+        onRideIrrelevant?.(result.reason as RideIrrelevantReason);
       }
     } catch {
-      onRideIrrelevant?.('VALIDATION_ERROR');
+      // Validation errors are handled silently
     } finally {
       setIsValidating(false);
     }
