@@ -1,30 +1,23 @@
-import { RideEntityType } from '@/services/ride/rideService';
-import type { Coordinates } from '@types';
+import { RideEntityType, type RideEntityLocationPayloadWithDetails } from '@/services/ride/rideService';
+import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '@theme';
 import type { FC } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { StopMarker } from './StopMarker';
-import { colors } from '@theme';
-import { View, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 
-export type MapMarkerProps = {
-  type: RideEntityType;
-  coordinates: Coordinates;
-  title: string;
-  totalStops?: number;
-};
+export type MapMarkerProps = RideEntityLocationPayloadWithDetails & { totalStops?: number };
 
-export const MapMarker: FC<MapMarkerProps> = ({ type, coordinates, title, totalStops }) => {
-  if (type === RideEntityType.STOP) {
-    return <StopMarker coordinates={coordinates} title={title} totalStops={totalStops} />;
-  }
+export const MapMarker: FC<MapMarkerProps> = ({ type, location: { coordinates }, name, totalStops }) => {
+  if (type === RideEntityType.STOP)
+    return <StopMarker coordinates={coordinates} title={name} totalStops={totalStops} />;
 
   const [longitude, latitude] = coordinates;
 
   return (
     <Marker
       coordinate={{ latitude, longitude }}
-      title={title}
+      title={name}
       tracksViewChanges={false}
       anchor={{ x: 0.5, y: 1 }}
       zIndex={100}

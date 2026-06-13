@@ -1,41 +1,26 @@
 import { i18n } from '@/i18n';
-import { RideStatus, type Ride } from '@/schemas/ride';
-import { useActiveRideByPassengerId, useRidesByDriverId } from '@/services/ride/rideQueries';
-import type { LocationUpdatePayload } from '@/services/ride/rideService';
-import { WsEvent, useAuth, websocketService } from '@services';
+import type { Ride } from '@/schemas/ride';
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
-import { useBoolean } from 'usehooks-ts';
-
-const buildLocationPayload = ({
-  coords,
-  rideId,
-}: Pick<LocationUpdatePayload, 'rideId'> & { coords: Location.LocationObjectCoords }): LocationUpdatePayload => ({
-  location: { type: 'Point', coordinates: [coords.longitude, coords.latitude] },
-  rideId,
-});
+import { useRideTrackingData } from './useRideTrackingData';
 
 export type UseTrackUserLocationContent = ReturnType<typeof useTrackUserLocation>;
 
 export const useTrackUserLocation = () => {
-  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  const [userLocationErrorMessage, setUserLocationErrorMessage] = useState<string | null>(null);
-  const { value: isUserLocationLoading, setTrue: startLoading, setFalse: stopLoading } = useBoolean();
-
   const locationSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
 
-  const { user } = useAuth();
-  const { data: activeRideAsPassenger } = useActiveRideByPassengerId();
-  const { data: driverRides } = useRidesByDriverId(user?.id ?? '');
-
-  const activeRide = activeRideAsPassenger || driverRides?.find((r) => r.rideStatus === RideStatus.ACTIVE);
-
-  const emitLocationUpdated = useCallback((coords: Location.LocationObjectCoords, rideId: Ride['id']) => {
-    if (!websocketService.isConnected) return;
-
-    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
-  }, []);
+  const {
+    userLocation,
+    setUserLocation,
+    userLocationErrorMessage,
+    setUserLocationErrorMessage,
+    isUserLocationLoading,
+    startLoading,
+    stopLoading,
+    activeRide,
+    emitLocationUpdated,
+  } = useRideTrackingData();
 
   const startTracking = useCallback(
     async (rideId: Ride['id']) => {
@@ -81,7 +66,7 @@ export const useTrackUserLocation = () => {
         stopLoading();
       }
     },
-    [emitLocationUpdated, startLoading, stopLoading],
+    [emitLocationUpdated, startLoading, stopLoading, setUserLocation, setUserLocationErrorMessage],
   );
 
   useEffect(() => {

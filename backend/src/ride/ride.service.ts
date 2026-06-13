@@ -21,6 +21,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type { Point } from 'geojson';
 import { omit } from 'lodash';
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
+import { AiProducer } from '../ai/ai.producer';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 
@@ -31,6 +32,7 @@ export class RideService {
   constructor(
     @InjectRepository(Ride)
     private ridesRepository: Repository<Ride>,
+    private readonly embeddingProducer: AiProducer,
     private readonly notificationService: NotificationService,
     @Inject(forwardRef(() => MapGateway))
     private readonly mapGateway: MapGateway,
@@ -128,7 +130,18 @@ export class RideService {
 
     try {
       const createdRide = await this.ridesRepository.save(newRide);
-      return await this.getRideById(createdRide.id);
+      const ride = await this.getRideById(createdRide.id);
+
+      this.embeddingProducer
+        .queueRideEmbedding(ride.id)
+        .catch((err: unknown) =>
+          this.logger.error(
+            `Failed to queue embedding for ride ${ride.id}`,
+            err,
+          ),
+        );
+
+      return ride;
     } catch (error) {
       this.logger.error(
         `Failed to create ride, ${(error as Error).message}`,
@@ -244,13 +257,37 @@ export class RideService {
 
     try {
       const updatedRide = await this.ridesRepository.save(ride);
-      const fullRide = await this.getRideById(updatedRide.id);
+
+      const finalRide = await this.getRideById(updatedRide.id);
 
       if (wasPending && isBecomingActive) {
-        await this.sendRideStartedNotifications(fullRide);
+        await this.sendRideStartedNotifications(finalRide);
       }
 
-      return fullRide;
+      if (rideStops && finalRide.rideStatus === RideStatus.PENDING) {
+        this.embeddingProducer
+          .queueRideEmbedding(finalRide.id)
+          .catch((err: unknown) =>
+            this.logger.error(
+              `Failed to queue embedding for ride ${finalRide.id}`,
+              err,
+            ),
+          );
+      }
+
+      if (finalRide.rideStatus === RideStatus.DONE) {
+        const passengerIds = finalRide.passengers
+          .filter((p) => p.user)
+          .map((p) => p.userId);
+
+        await this.embeddingProducer.queueRideCompletionTasks(
+          finalRide.id,
+          finalRide.driverId,
+          passengerIds,
+        );
+      }
+
+      return finalRide;
     } catch (error) {
       this.logger.error(
         `Failed to update ride with ID ${id}, ${(error as Error).message}`,

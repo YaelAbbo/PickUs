@@ -33,16 +33,23 @@ async function bootstrap() {
   );
 
   const {
-    FRONTEND_BASE_URL = 'http://localhost',
+    // FRONTEND_BASE_URL = 'http://localhost',
+    // FRONTEND_URL = `${FRONTEND_BASE_URL}:8081`,
     BACKEND_PORT = 3000,
     BASE_URL,
   } = process.env;
 
-  app.enableCors({ origin: [FRONTEND_BASE_URL], credentials: true });
+  // const corsOrigins = [FRONTEND_BASE_URL, FRONTEND_URL];
+
+  // TODO: Revert when we'll know how to access from an Android device
+  // app.enableCors({ origin: corsOrigins, credentials: true });
+  app.enableCors({ origin: true, credentials: true });
 
   await app.listen(BACKEND_PORT);
 
   logger.log(`Backend running on ${BASE_URL}/api`);
+  // logger.log(`Accepting requests from origins: ${corsOrigins.join(', ')}`);
+  logger.log('Accepting requests from all origins');
 }
 
 void bootstrap();

@@ -1,10 +1,16 @@
 import { IS_MOBILE } from '@constants';
 import { colors } from '@theme';
 import type { FC, PropsWithChildren } from 'react';
-import { StyleSheet, View, type DimensionValue } from 'react-native';
+import { StyleSheet, View, useWindowDimensions, type DimensionValue } from 'react-native';
+
+const DESKTOP_BREAKPOINT = 1024;
 
 export const WebAppCard: FC<PropsWithChildren> = ({ children }) => {
-  if (IS_MOBILE) return <>{children}</>;
+  const { width } = useWindowDimensions();
+
+  const isDesktopWeb = !IS_MOBILE && width >= DESKTOP_BREAKPOINT;
+
+  if (!isDesktopWeb) return <>{children}</>;
 
   return (
     <View style={styles.bg}>

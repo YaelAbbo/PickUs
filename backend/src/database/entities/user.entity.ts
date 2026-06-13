@@ -92,4 +92,31 @@ export class User extends BaseEntity {
     name: 'avg_ride_embedding',
   })
   avgRideEmbedding: number[] | null;
+
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+    name: 'avg_start_location',
+  })
+  avgStartLocation: Point | null;
+
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+    name: 'avg_end_location',
+  })
+  avgEndLocation: Point | null;
+
+  @Column({ type: 'time', nullable: true, name: 'avg_start_time' })
+  avgStartTime: string | null;
+
+  @Column({ type: 'time', nullable: true, name: 'avg_end_time' })
+  avgEndTime: string | null;
+
+  @Column({ type: 'int', default: 0, name: 'completed_rides_count' })
+  completedRidesCount: number;
 }
