@@ -81,11 +81,12 @@ describe('AI Module Integration', () => {
     it('should add ride embedding job to queue', async () => {
       const rideId = crypto.randomUUID();
 
-      await producer.queueRideCompletionTasks(rideId, rideId, []);
+      await producer.queueRideEmbedding(rideId);
 
       const jobs = await queue.getJobs(['waiting', 'active', 'delayed']);
       const rideJob = jobs.find(
-        (j) => j.name === AI_JOBS.UPDATE_RIDE_EMBEDDING,
+        (j) =>
+          j.name === AI_JOBS.UPDATE_RIDE_EMBEDDING && j.data.rideId === rideId,
       );
 
       expect(rideJob).toBeDefined();
@@ -120,7 +121,9 @@ describe('AI Module Integration', () => {
 
       const jobs = await queue.getJobs(['waiting', 'active', 'delayed']);
       const initialJob = jobs.find(
-        (j) => j.name === AI_JOBS.GENERATE_INITIAL_USER_EMBEDDING,
+        (j) =>
+          j.name === AI_JOBS.GENERATE_INITIAL_USER_EMBEDDING &&
+          j.data.userId === userId,
       );
 
       expect(initialJob).toBeDefined();
@@ -130,11 +133,15 @@ describe('AI Module Integration', () => {
     it('should configure exponential backoff for retries', async () => {
       const rideId = crypto.randomUUID();
 
-      await producer.queueRideCompletionTasks(rideId, rideId, []);
+      await producer.queueRideEmbedding(rideId);
 
-      const jobs = await queue.getJobs(['waiting']);
-      const job = jobs[0];
+      const jobs = await queue.getJobs(['waiting', 'active', 'delayed']);
+      const job = jobs.find(
+        (j) =>
+          j.name === AI_JOBS.UPDATE_RIDE_EMBEDDING && j.data.rideId === rideId,
+      );
 
+      expect(job).toBeDefined();
       expect(job?.opts?.attempts).toBe(5);
       expect(job?.opts?.backoff).toEqual({
         type: 'exponential',
@@ -165,21 +172,28 @@ describe('AiProducer (Unit)', () => {
     producer = module.get<AiProducer>(AiProducer);
   });
 
-  it('should queue all tasks for ride completion', async () => {
+  it('should queue ride embedding separately', async () => {
+    const rideId = uuidv4() as UUID;
+
+    await producer.queueRideEmbedding(rideId);
+
+    expect(mockQueue.add).toHaveBeenCalledTimes(1);
+    expect(mockQueue.add).toHaveBeenCalledWith(
+      AI_JOBS.UPDATE_RIDE_EMBEDDING,
+      { rideId },
+      expect.any(Object),
+    );
+  });
+
+  it('should queue user stats tasks for ride completion', async () => {
     const rideId = uuidv4() as UUID;
     const driverId = uuidv4() as UUID;
     const passengerIds = [uuidv4() as UUID, uuidv4() as UUID];
 
     await producer.queueRideCompletionTasks(rideId, driverId, passengerIds);
 
-    // 1 ride + 1 driver + 2 passengers = 4 jobs
-    expect(mockQueue.add).toHaveBeenCalledTimes(4);
-
-    expect(mockQueue.add).toHaveBeenCalledWith(
-      AI_JOBS.UPDATE_RIDE_EMBEDDING,
-      { rideId },
-      expect.any(Object),
-    );
+    // 1 driver + 2 passengers = 3 jobs (ride embedding is now separate)
+    expect(mockQueue.add).toHaveBeenCalledTimes(3);
 
     expect(mockQueue.add).toHaveBeenCalledWith(
       AI_JOBS.UPDATE_USER_STATS_AND_EMBEDDING,

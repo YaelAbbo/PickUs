@@ -42,7 +42,7 @@ export class RideMatchingCronService {
     );
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async handleRideMatching(): Promise<void> {
     this.logger.log('Starting ride matching cron job');
 
