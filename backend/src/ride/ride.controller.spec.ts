@@ -1035,6 +1035,159 @@ describe('RideController', () => {
         'orgId query parameter is required',
       );
     });
+
+    it('GET /rides/:id/validate should return isRelevant: true for a valid pending ride with available seats', async () => {
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+      } as DeepPartial<Ride>);
+      const savedRide = await rideRepository.save(ride);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({ isRelevant: true });
+
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/:id/validate should return RIDE_CANCELLED for cancelled ride', async () => {
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.CANCELLED,
+      } as DeepPartial<Ride>);
+      const savedRide = await rideRepository.save(ride);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        isRelevant: false,
+        reason: 'RIDE_CANCELLED',
+      });
+
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/:id/validate should return RIDE_COMPLETED for done ride', async () => {
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.DONE,
+      } as DeepPartial<Ride>);
+      const savedRide = await rideRepository.save(ride);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        isRelevant: false,
+        reason: 'RIDE_COMPLETED',
+      });
+
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/:id/validate should return RIDE_TIME_PASSED for past ride', async () => {
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 60),
+        maxSeatsAmount: 4,
+        rideStatus: RideStatus.PENDING,
+      } as DeepPartial<Ride>);
+      const savedRide = await rideRepository.save(ride);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        isRelevant: false,
+        reason: 'RIDE_TIME_PASSED',
+      });
+
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/:id/validate should return RIDE_FULL when no available seats', async () => {
+      const passengerRepo = dataSource.getRepository(RidePassenger);
+
+      const ride = rideRepository.create({
+        organization: { id: testOrgId },
+        driver: { id: testDriverId },
+        startsAt: new Date(Date.now() + 1000 * 60 * 120),
+        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
+        maxSeatsAmount: 1, // Only 1 seat
+        rideStatus: RideStatus.PENDING,
+        rideStops: [
+          {
+            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
+            locationName: 'Start',
+            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
+            orderIndex: 1,
+          },
+        ],
+      } as DeepPartial<Ride>);
+      const savedRide = (await rideRepository.save(ride)) as Ride;
+      const rideStopId = savedRide.rideStops?.[0]?.id;
+
+      // Fill the ride with a passenger
+      const passenger = passengerRepo.create({
+        ride: { id: savedRide.id },
+        user: { id: testPassengerId },
+        rideStop: { id: rideStopId! },
+      } as DeepPartial<RidePassenger>);
+      await passengerRepo.save(passenger);
+
+      const response = await request(httpServer)
+        .get(`/rides/${savedRide.id}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({ isRelevant: false, reason: 'RIDE_FULL' });
+
+      await passengerRepo.query(
+        `DELETE FROM "ride_passenger" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.query(
+        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
+      );
+      await rideRepository.delete(savedRide.id);
+    });
+
+    it('GET /rides/:id/validate should return RIDE_NOT_FOUND for non-existent ride', async () => {
+      const fakeId = '11111111-1111-4111-8111-111111111111';
+
+      const response = await request(httpServer)
+        .get(`/rides/${fakeId}/validate`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        isRelevant: false,
+        reason: 'RIDE_NOT_FOUND',
+      });
+    });
   });
 
   describe('Authorization', () => {
@@ -1054,6 +1207,7 @@ describe('RideController', () => {
       const res7 = await request(httpServer).get(`/rides/passenger/${fakeId}`);
       const res8 = await request(httpServer).patch(`/rides/${fakeId}`).send({});
       const res9 = await request(httpServer).delete(`/rides/${fakeId}`);
+      const res10 = await request(httpServer).get(`/rides/${fakeId}/validate`);
 
       expect(res1.status).toEqual(401);
       expect(res2.status).toEqual(401);
@@ -1064,6 +1218,7 @@ describe('RideController', () => {
       expect(res7.status).toEqual(401);
       expect(res8.status).toEqual(401);
       expect(res9.status).toEqual(401);
+      expect(res10.status).toEqual(401);
     });
   });
 });

@@ -65,6 +65,5 @@ module.exports = {
       typedRoutes: true,
       reactCompiler: true,
     },
-    owner: 'natan-sinai',
   },
 };
