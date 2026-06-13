@@ -18,7 +18,6 @@ const getBaseUrl = () => {
 };
 
 export const BASE_URL = getBaseUrl();
-console.log({ BASE_URL, GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY });
 
 export const IS_WEB = Platform.OS === 'web';
 export const IS_MOBILE = !IS_WEB;
