@@ -1,6 +1,6 @@
 import type { Notification } from '@/api/notification.api';
+import { RideIrrelevantReason } from '@/api/notification.types';
 import { UserRole } from '@/api/user';
-import { RideIrrelevantReason } from '@/app/(tabs)/notifications';
 import { i18n } from '@/i18n';
 import { rideService } from '@/services/ride/rideService';
 import { colors } from '@/theme';
