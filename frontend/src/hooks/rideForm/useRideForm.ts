@@ -70,7 +70,6 @@ export const useRideForm = ({ defaultValues }: UseRideFormArgs) => {
     defaultValues: {
       rideDate: getTomorrowAt8AM(),
       seats: 3,
-      isReturnTrip: false,
       organizationId: user?.orgId,
       driverId: user?.id,
       stops: [createInitialStop(getTomorrowAt8AM()), createInitialStop(getTomorrowAt(9))],
