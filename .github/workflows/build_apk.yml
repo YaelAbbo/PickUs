@@ -17,6 +17,8 @@ jobs:
       contents: write
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +56,13 @@ jobs:
           echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
           echo "branch=$(echo ${{ github.ref_name }} | tr '/' '-')" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+      - name: Debug env vars
+        run: |
+          echo "=== EXPO PUBLIC VARS ==="
+          env | grep EXPO_PUBLIC_ || echo "None found"
+          echo "=== NODE ENV ==="
+          echo "NODE_ENV=$NODE_ENV"
 
       - name: Install dependencies
         run: npm install && npm install lightningcss-linux-x64-gnu --no-save
