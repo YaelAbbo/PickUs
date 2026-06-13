@@ -10,6 +10,15 @@ export enum RideStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum RideIrrelevantReason {
+  RIDE_CANCELLED = 'RIDE_CANCELLED',
+  RIDE_COMPLETED = 'RIDE_COMPLETED',
+  RIDE_TIME_PASSED = 'RIDE_TIME_PASSED',
+  RIDE_FULL = 'RIDE_FULL',
+  RIDE_NOT_FOUND = 'RIDE_NOT_FOUND',
+  RIDE_ACTIVE = 'RIDE_ACTIVE',
+}
+
 export const rideStopSchema = entityMetadata.extend({
   location: pointSchema,
   locationName: z.string().nonempty(REQUIRED),

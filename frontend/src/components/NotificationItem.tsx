@@ -1,7 +1,7 @@
 import type { Notification } from '@/api/notification.api';
 import { UserRole } from '@/api/user';
-import { RideIrrelevantReason } from '@/app/(tabs)/notifications';
 import { i18n } from '@/i18n';
+import { RideIrrelevantReason } from '@/schemas/ride';
 import { rideService } from '@/services/ride/rideService';
 import { colors } from '@/theme';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
