@@ -10,19 +10,28 @@ import { AntDesign } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-const getRideIrrelevantMessage = (reason: string): string => {
+export enum RideIrrelevantReason {
+  RIDE_CANCELLED = 'RIDE_CANCELLED',
+  RIDE_COMPLETED = 'RIDE_COMPLETED',
+  RIDE_TIME_PASSED = 'RIDE_TIME_PASSED',
+  RIDE_FULL = 'RIDE_FULL',
+  RIDE_NOT_FOUND = 'RIDE_NOT_FOUND',
+  RIDE_ACTIVE = 'RIDE_ACTIVE',
+}
+
+const getRideIrrelevantMessage = (reason: RideIrrelevantReason): string => {
   switch (reason) {
-    case 'RIDE_CANCELLED':
+    case RideIrrelevantReason.RIDE_CANCELLED:
       return i18n.notifications.ride_cancelled;
-    case 'RIDE_COMPLETED':
+    case RideIrrelevantReason.RIDE_COMPLETED:
       return i18n.notifications.ride_completed;
-    case 'RIDE_TIME_PASSED':
+    case RideIrrelevantReason.RIDE_TIME_PASSED:
       return i18n.notifications.ride_time_passed;
-    case 'RIDE_FULL':
+    case RideIrrelevantReason.RIDE_FULL:
       return i18n.notifications.ride_full;
-    case 'RIDE_NOT_FOUND':
+    case RideIrrelevantReason.RIDE_NOT_FOUND:
       return i18n.notifications.ride_not_found;
-    case 'RIDE_ACTIVE':
+    case RideIrrelevantReason.RIDE_ACTIVE:
       return i18n.notifications.ride_active;
     default:
       return i18n.notifications.ride_unavailable;
@@ -41,7 +50,7 @@ export default function NotificationsScreen() {
   };
 
   const handleRideIrrelevant = useCallback(
-    (reason: string) => {
+    (reason: RideIrrelevantReason) => {
       const message = getRideIrrelevantMessage(reason);
       showToast(message, 'error');
     },
