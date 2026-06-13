@@ -210,13 +210,12 @@ const styles = StyleSheet.create({
     borderColor: colors.inputBorder,
     backgroundColor: colors.inputBg,
     paddingHorizontal: 16,
-    paddingVertical: 6,
-    height: 28,
+    paddingVertical: 3,
+    height: 32,
   },
   filterChipActive: {
     backgroundColor: colors.yellow,
     borderColor: colors.yellow,
-    height: 32,
   },
   filterChipText: {
     color: colors.textMuted,
