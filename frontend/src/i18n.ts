@@ -31,6 +31,13 @@ export const i18n = {
     app_description_tagline: 'הדרך החכמה\nלנסוע ביחד',
     close: 'סגירה',
   },
+  screens: {
+    profile: 'פרופיל',
+    home: 'בית',
+    map: 'מפה',
+    notifications: 'התראות',
+    hr: 'HR',
+  },
   hr_actions: {
     create_user: 'הוספת עובד/ת',
     edit_user: 'עריכת עובד/ת',
@@ -183,5 +190,8 @@ export const i18n = {
     my_location: 'המיקום שלי',
     finish_ride_title: 'הנסיעה הסתיימה!',
     finish_ride_subtitle: 'הנסיעה הושלמה בהצלחה',
+  },
+  profile_screen: {
+    no_rides: 'עדיין אין לך נסיעות',
   },
 };

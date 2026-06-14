@@ -92,7 +92,7 @@ export const ProfileScreen = () => {
           </View>
         ) : activeOrFutureRides.length === 0 ? (
           <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>No rides found.</Text>
+            <Text style={styles.emptyText}>{i18n.profile_screen.no_rides}</Text>
           </View>
         ) : (
           <FlatList
@@ -180,13 +180,12 @@ const styles = StyleSheet.create({
     borderColor: colors.inputBorder,
     backgroundColor: colors.inputBg,
     paddingHorizontal: 16,
-    paddingVertical: 6,
-    height: 28,
+    paddingVertical: 3,
+    height: 32,
   },
   filterChipActive: {
     backgroundColor: colors.yellow,
     borderColor: colors.yellow,
-    height: 32,
   },
   filterChipText: {
     color: colors.textMuted,
