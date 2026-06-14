@@ -3,21 +3,13 @@ import Toast from '@/components/common/Toast';
 import { AppBackground } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
 import { i18n } from '@/i18n';
+import { RideIrrelevantReason } from '@/schemas/ride';
 import { useAuth } from '@/services';
 import { useNotifications } from '@/services/notification';
 import { colors } from '@/theme';
 import { AntDesign } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-
-export enum RideIrrelevantReason {
-  RIDE_CANCELLED = 'RIDE_CANCELLED',
-  RIDE_COMPLETED = 'RIDE_COMPLETED',
-  RIDE_TIME_PASSED = 'RIDE_TIME_PASSED',
-  RIDE_FULL = 'RIDE_FULL',
-  RIDE_NOT_FOUND = 'RIDE_NOT_FOUND',
-  RIDE_ACTIVE = 'RIDE_ACTIVE',
-}
 
 const getRideIrrelevantMessage = (reason: RideIrrelevantReason): string => {
   switch (reason) {

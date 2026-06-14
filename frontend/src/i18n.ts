@@ -29,6 +29,7 @@ export const i18n = {
     phone_number_non_israeli_format: 'מספר טלפון לא בפורמט ישראלי',
     required_field: 'שדה חובה',
     app_description_tagline: 'הדרך החכמה\nלנסוע ביחד',
+    close: 'סגירה',
   },
   screens: {
     profile: 'פרופיל',
@@ -135,6 +136,7 @@ export const i18n = {
     status_pending: 'ממתין',
     join_ride: 'הצטרפות לנסיעה',
     leave_ride: 'עזיבת נסיעה',
+    leave_ride_message: 'האם לעזוב את הנסיעה?',
     passengers_joining: 'נוסעים יעלו כאן',
     passenger: 'נוסע',
     passengers: 'נוסעים',
@@ -150,6 +152,10 @@ export const i18n = {
     start_ride: 'התחלת נסיעה',
     delete_ride: 'מחיקת נסיעה',
     watch_ride: 'צפיה בנסיעה',
+    passengers_list: 'רשימת נוסעים',
+    delay_5_min: 'מתעכב/ת ב-5 דקות',
+    leaving_soon: 'יוצא/ת בקרוב',
+    select_message: 'בחירת הודעה מהירה',
   },
   notifications: {
     empty_text: 'אין התראות עדיין',
