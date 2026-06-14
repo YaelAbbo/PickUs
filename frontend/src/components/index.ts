@@ -12,3 +12,6 @@ export * from './NotificationItem';
 export * from './FlickeringWrapper';
 export * from './FinishRideOverlay';
 export * from './MapMenu';
+export * from './PassengersPopup';
+export * from './ProfileCard';
+export * from './MessagePassengerPopup';
