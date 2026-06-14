@@ -13,7 +13,7 @@ import { APP_NAME } from '@constants';
 import { AntDesign } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
 type TabScreenConfig = {
@@ -32,12 +32,6 @@ const tabScreensConfigs: TabScreenConfig[] = [
   { name: 'notifications', title: i18n.screens.notifications, icon: 'bell' },
   { name: 'hr', title: i18n.screens.hr, icon: 'team', role: UserRole.HR_MANAGER },
 ];
-
-const tabBarBackground = () => (
-  <View style={styles.tabBarBackground}>
-    <View style={styles.divider} />
-  </View>
-);
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -63,10 +57,10 @@ export default function TabLayout() {
             headerShown: false,
             tabBarButton: HapticTab,
             animation: 'shift',
-            tabBarBackground,
+            tabBarItemStyle: styles.tabBarItem,
           }}
         >
-          {tabScreensConfigs.map(({ icon, name, title, role, hideFromTabBar = role && user?.role !== role }) => (
+          {tabScreensConfigs.map(({ icon, name, title, role, hideFromTabBar = role && user.role !== role }) => (
             <Tabs.Screen
               key={name}
               name={name}
@@ -84,14 +78,10 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBarBackground: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  divider: {
-    width: StyleSheet.hairlineWidth,
-    height: '60%',
-    backgroundColor: '#ccc',
+  tabBarItem: {
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: '#ccc',
+    height: '90%',
+    alignSelf: 'center',
   },
 });

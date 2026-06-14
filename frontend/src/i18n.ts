@@ -185,4 +185,7 @@ export const i18n = {
     finish_ride_title: 'הנסיעה הסתיימה!',
     finish_ride_subtitle: 'הנסיעה הושלמה בהצלחה',
   },
+  profile_screen: {
+    no_rides: 'עדיין אין לך נסיעות',
+  },
 };

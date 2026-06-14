@@ -122,7 +122,7 @@ export const ProfileScreen = () => {
           </View>
         ) : activeOrFutureRides.length === 0 ? (
           <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>No rides found.</Text>
+            <Text style={styles.emptyText}>{i18n.profile_screen.no_rides}</Text>
           </View>
         ) : (
           <FlatList
