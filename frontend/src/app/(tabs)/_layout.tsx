@@ -9,7 +9,7 @@ import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
-import { APP_NAME } from '@constants';
+import { APP_NAME, IS_WEB } from '@constants';
 import { AntDesign } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   tabBarItem: {
     borderRightWidth: StyleSheet.hairlineWidth,
     borderRightColor: '#ccc',
-    height: '90%',
+    height: IS_WEB ? '100%' : '90%',
     alignSelf: 'center',
   },
 });
