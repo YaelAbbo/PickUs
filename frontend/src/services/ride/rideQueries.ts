@@ -68,10 +68,11 @@ export const useRidesByPassengerId = (passengerId: string) => {
   });
 };
 
-export const useActiveRideByPassengerId = () => {
+export const useActiveRideByPassengerId = (enabled = true) => {
   return useQuery({
     queryKey: RIDES_QUERY_KEYS.activeRideByPassenger(),
     queryFn: () => rideService.getActiveRideByPassengerId(),
+    enabled,
   });
 };
 

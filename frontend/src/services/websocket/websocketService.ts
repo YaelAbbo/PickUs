@@ -10,9 +10,15 @@ const WS_PATH = '/api/socket.io';
 
 class WebSocketService {
   private socket: Socket | null = null;
+  private activeRooms = new Set<string>();
+  private listeners = new Map<WsEvent, Set<(...args: unknown[]) => void>>();
 
   connect(accessToken: string): void {
     if (this.socket?.connected) return;
+
+    if (this.socket) {
+      this.socket.disconnect();
+    }
 
     this.socket = io(getWsUrl(), {
       path: WS_PATH,
@@ -24,8 +30,19 @@ class WebSocketService {
       reconnectionDelayMax: 10000,
     });
 
+    // Re-register all listeners on the new socket instance
+    this.listeners.forEach((handlers, event) => {
+      handlers.forEach((handler) => {
+        this.socket?.on(event, handler);
+      });
+    });
+
     this.socket.on('connect', () => {
       console.log('[WS] Connected:', this.socket?.id);
+      // Rejoin any active rooms upon connect/reconnect
+      this.activeRooms.forEach((rideId) => {
+        this.socket?.emit(WsEvent.ROOM_JOIN, rideId);
+      });
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -40,12 +57,27 @@ class WebSocketService {
   disconnect(): void {
     this.socket?.disconnect();
     this.socket = null;
+    this.activeRooms.clear();
+  }
+
+  joinRoom(rideId: string): void {
+    this.activeRooms.add(rideId);
+    if (this.socket?.connected) {
+      this.socket.emit(WsEvent.ROOM_JOIN, rideId);
+    }
+  }
+
+  leaveRoom(rideId: string): void {
+    this.activeRooms.delete(rideId);
+    if (this.socket?.connected) {
+      this.socket.emit(WsEvent.ROOM_LEAVE, rideId);
+    }
   }
 
   emit<T = void>(event: WsEvent, data?: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
-      if (!this.socket?.connected) {
-        reject(new Error('[WS] Socket is not connected'));
+      if (!this.socket) {
+        reject(new Error('[WS] Socket is not initialized'));
         return;
       }
       this.socket.emit(event, data, (response: T) => resolve(response));
@@ -53,11 +85,32 @@ class WebSocketService {
   }
 
   on<T = unknown>(event: WsEvent, handler: (data: T) => void): () => void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    const handlers = this.listeners.get(event)!;
+    handlers.add(handler as (...args: unknown[]) => void);
+
+    // Register handler to current socket if initialized
     this.socket?.on(event, handler as (...args: unknown[]) => void);
-    return () => this.socket?.off(event, handler as (...args: unknown[]) => void);
+
+    return () => {
+      handlers.delete(handler as (...args: unknown[]) => void);
+      if (handlers.size === 0) {
+        this.listeners.delete(event);
+      }
+      this.socket?.off(event, handler as (...args: unknown[]) => void);
+    };
   }
 
   off(event: WsEvent, handler: (...args: unknown[]) => void): void {
+    const handlers = this.listeners.get(event);
+    if (handlers) {
+      handlers.delete(handler);
+      if (handlers.size === 0) {
+        this.listeners.delete(event);
+      }
+    }
     this.socket?.off(event, handler);
   }
 

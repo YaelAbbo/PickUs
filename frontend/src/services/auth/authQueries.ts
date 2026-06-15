@@ -13,6 +13,7 @@ export const clearUserCache = async (queryClient: ReturnType<typeof useQueryClie
 
   queryClient.setQueryData<User | null>(authKeys.me(), null);
   queryClient.setQueryData<string | null>(authKeys.token(), null);
+  queryClient.clear();
 };
 
 /**

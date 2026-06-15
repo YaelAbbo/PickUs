@@ -13,17 +13,20 @@ import { RideCard } from '../AvailableRides/RideCard';
 
 const filterAndSortRides = (
   activeTab: 'all' | 'driver' | 'passenger',
-  driverRides: Ride[],
-  passengerRides: Ride[],
+  driverRides: Ride[] | null | undefined,
+  passengerRides: Ride[] | null | undefined,
 ): Ride[] => {
+  const safeDriverRides = (driverRides || []).filter(Boolean);
+  const safePassengerRides = (passengerRides || []).filter(Boolean);
+
   if (activeTab === 'driver') {
-    return driverRides;
+    return safeDriverRides;
   }
   if (activeTab === 'passenger') {
-    return passengerRides;
+    return safePassengerRides;
   }
-  return [...driverRides, ...passengerRides]
-    .filter((ride, index, self) => index === self.findIndex((t) => t.id === ride.id))
+  return [...safeDriverRides, ...safePassengerRides]
+    .filter((ride, index, self) => ride && index === self.findIndex((t) => t && t.id === ride.id))
     .sort((rideA, rideB) => new Date(rideA.startsAt).getTime() - new Date(rideB.startsAt).getTime());
 };
 

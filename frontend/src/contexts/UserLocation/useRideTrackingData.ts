@@ -14,7 +14,7 @@ export const useRideTrackingData = () => {
   const [userLocationErrorMessage, setUserLocationErrorMessage] = useState<string | null>(null);
   const { value: isUserLocationLoading, setTrue: startLoading, setFalse: stopLoading } = useBoolean();
 
-  const { data: activeRideAsPassenger } = useActiveRideByPassengerId();
+  const { data: activeRideAsPassenger } = useActiveRideByPassengerId(!!user);
   const { data: driverRides } = useRidesByDriverId(user?.id ?? '');
 
   const activeRide = activeRideAsPassenger || driverRides?.find((r) => r.rideStatus === RideStatus.ACTIVE);
@@ -22,7 +22,9 @@ export const useRideTrackingData = () => {
   const emitLocationUpdated = (coords: Location.LocationObjectCoords | GeolocationCoordinates, rideId: Ride['id']) => {
     if (!websocketService.isConnected) return;
 
-    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
+    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId })).catch((err) => {
+      console.warn('[WS] Failed to emit location update:', err.message);
+    });
   };
 
   return {
