@@ -22,7 +22,7 @@ export const useDriverNearStopNotifications = () => {
 
       queryClient.setQueryData<Notification[]>(notificationKeys.user(user.id), (prevNotifications = []) => [
         {
-          id: crypto.randomUUID(),
+          id: `00000000-0000-0000-0000-${Date.now().toString().padStart(12, '0')}` as Notification['id'],
           content: payload.content,
           createdAt: new Date().toISOString(),
           isDeleted: false,

@@ -25,8 +25,10 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
 
   const { data: driverRides } = useRidesByDriverId(user?.id ?? '');
 
-  const isUserRideCreator = user?.id === ride.driver?.id;
-  const isPassenger = ride.passengers?.some((p) => p.userId === user?.id);
+  const isUserRideCreator = Boolean(user?.id && ride?.driver?.id && user.id === ride.driver.id);
+  const isPassenger = Boolean(
+    user?.id && ride?.passengers?.some((p) => p?.userId === user.id || p?.user?.id === user.id),
+  );
 
   const onDeleteRide = async () => {
     await deleteRide(ride.id);

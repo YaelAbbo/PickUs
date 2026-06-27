@@ -36,8 +36,9 @@ const rideRoomIdPrefix = 'ride:';
 type CachedRide = Pick<Ride, 'id' | 'driver'>;
 
 @WebSocketGateway({
+  path: '/api/socket.io',
   cors: {
-    origin: process.env.FRONTEND_BASE_URL || 'http://localhost',
+    origin: true,
     credentials: true,
   },
 })
@@ -261,7 +262,18 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
         properties,
       });
 
-      const ride = this.rideCache.get(rideId);
+      let ride = this.rideCache.get(rideId);
+
+      if (!ride) {
+        ride =
+          ((await this.ridesRepository.findOne({
+            where: { id: rideId },
+            relations: ['driver'],
+            select: { id: true, driver: true },
+          })) as CachedRide | null) ?? undefined;
+
+        if (ride) this.rideCache.set(rideId, ride);
+      }
 
       if (ride?.driver.id === userId)
         await this.notifyNearbyPassengers({ driverLocation: location, ride });
