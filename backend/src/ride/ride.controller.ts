@@ -81,6 +81,14 @@ export class RideController {
   }
 
   @UseAccessAuth()
+  @Get(':id/validate')
+  async validateRideRelevance(
+    @Param('id') id: Ride['id'],
+  ): Promise<{ isRelevant: boolean; reason?: string }> {
+    return await this.rideService.validateRideRelevance(id);
+  }
+
+  @UseAccessAuth()
   @Get('passenger/:passengerId')
   async getRidesByPassengerId(
     @Param('passengerId') passengerId: User['id'],

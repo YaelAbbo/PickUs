@@ -114,7 +114,7 @@ export const MapScreen = () => {
         </Text>
       </View>
 
-      <MapMenu onFinishRide={() => finishRideRef.current?.trigger()} />
+      {activeRide?.driverId === user?.id && <MapMenu onFinishRide={() => finishRideRef.current?.trigger()} />}
 
       <FinishRideOverlay ref={finishRideRef} activeRide={activeRide ?? null} />
     </View>

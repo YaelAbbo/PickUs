@@ -64,6 +64,10 @@ services:
     container_name: pickus_backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      # The value in local .env should be REDIS_HOST: localhost for tests to work, 
+      # but here it should point to the redis service.
+      REDIS_HOST: redis 
     depends_on:
       db:
         condition: service_healthy

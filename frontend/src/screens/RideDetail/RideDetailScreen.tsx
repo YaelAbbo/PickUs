@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { AppBackground, AppButton } from '@/components/ui';
 import { useAuth } from '@/services/auth';
@@ -12,6 +12,7 @@ import type { UUID } from 'crypto';
 
 import { i18n } from '@/i18n';
 import type { Ride } from '@/schemas/ride';
+import { LeaveRideConfirmationModal } from './LeaveRideConfirmationModal';
 import { RideActionButtons } from './RideActionButtons';
 import { RideDriverSection } from './RideDriverSection';
 import { RideInfoBoxes } from './RideInfoBoxes';
@@ -25,6 +26,7 @@ export const RideDetailScreen: FC = () => {
 
   const [stopPickerVisible, setStopPickerVisible] = useState(false);
   const [stopPickerMode, setStopPickerMode] = useState<'join' | 'edit'>('join');
+  const [leaveModalVisible, setLeaveModalVisible] = useState(false);
 
   const { data: ride, isLoading, isError } = useRide(rideId as UUID);
   const { mutate: joinRide, isPending: isJoining } = useJoinRide(rideId as UUID);
@@ -138,19 +140,7 @@ export const RideDetailScreen: FC = () => {
             />
             <AppButton
               label={i18n.ride_detail.leave_ride}
-              onPress={() =>
-                Alert.alert(i18n.ride_detail.leave_ride, '', [
-                  { text: i18n.general.cancel, style: 'cancel' },
-                  {
-                    text: i18n.general.accept,
-                    style: 'destructive',
-                    onPress: () =>
-                      leaveRide(user!.id, {
-                        onError: () => Alert.alert(i18n.ride_detail.leave_error),
-                      }),
-                  },
-                ])
-              }
+              onPress={() => setLeaveModalVisible(true)}
               style={styles.footerLeaveBtn}
               loading={isLeaving}
             />
@@ -177,13 +167,19 @@ export const RideDetailScreen: FC = () => {
         onSelectStop={(stopId) => {
           setStopPickerVisible(false);
           if (stopPickerMode === 'join') {
-            joinRide(stopId, { onError: () => Alert.alert(i18n.ride_detail.join_error) });
+            joinRide(stopId, { onError: () => {} });
           } else {
-            updateRideStop(
-              { userId: user!.id, rideStopId: stopId },
-              { onError: () => Alert.alert(i18n.ride_detail.update_stop_error) },
-            );
+            updateRideStop({ userId: user!.id, rideStopId: stopId }, { onError: () => {} });
           }
+        }}
+      />
+
+      <LeaveRideConfirmationModal
+        visible={leaveModalVisible}
+        onClose={() => setLeaveModalVisible(false)}
+        onLeave={() => {
+          setLeaveModalVisible(false);
+          leaveRide(user!.id, { onError: () => {} });
         }}
       />
     </AppBackground>

@@ -26,6 +26,7 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
   const { data: driverRides } = useRidesByDriverId(user?.id ?? '');
 
   const isUserRideCreator = user?.id === ride.driver?.id;
+  const isPassenger = ride.passengers?.some((p) => p.userId === user?.id);
 
   const onDeleteRide = async () => {
     await deleteRide(ride.id);
@@ -36,9 +37,24 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
     router.back();
   };
 
-  if (!isUserRideCreator) return null;
+  if (!isUserRideCreator && !isPassenger) return null;
+
   const isRidePending = ride.rideStatus === RideStatus.PENDING;
   const isRideActive = ride.rideStatus === RideStatus.ACTIVE;
+
+  if (isPassenger && !isUserRideCreator) {
+    if (!isRideActive) return null;
+    return (
+      <View style={{ gap: spacing.sm, width: '100%' }}>
+        <AppButton
+          iconName='play-outline'
+          label={i18n.ride_detail.watch_ride}
+          onPress={() => navigateToMap(ride.id)}
+          style={{ alignSelf: 'center' }}
+        />
+      </View>
+    );
+  }
 
   const hasActiveRide = driverRides?.some((r) => r.rideStatus === RideStatus.ACTIVE);
   const isStartDisabled = isRidePending && hasActiveRide;

@@ -1,7 +1,10 @@
+import { useUserLocationContext } from '@/contexts';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@theme';
 import { useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { MessagePassengerPopup } from './MessagePassengerPopup';
+import { PassengersPopup } from './PassengersPopup';
 
 type MapMenuProps = {
   onFinishRide?: () => void;
@@ -9,7 +12,10 @@ type MapMenuProps = {
 
 export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [passengerModalVisible, setPassengerModalVisible] = useState(false);
+  const [messagePassengerModalVisible, setMessagePassengerModalVisible] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
+  const { activeRide } = useUserLocationContext();
 
   const toggleMenu = () => {
     const toValue = menuOpen ? 0 : 1;
@@ -17,7 +23,7 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
       toValue,
       friction: 5,
       tension: 40,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
     setMenuOpen(!menuOpen);
   };
@@ -49,25 +55,35 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
   });
   const scale3 = animation;
 
+  const passengers = activeRide?.passengers || [];
+
   return (
     <>
-      <View pointerEvents={menuOpen ? 'auto' : 'none'} style={StyleSheet.absoluteFill}>
+      <View pointerEvents={menuOpen ? 'auto' : 'none'} style={[StyleSheet.absoluteFill, { zIndex: 999 }]}>
         {/* Button 1: Navigation */}
         <Animated.View style={[styles.fabSubButton, { transform: [{ translateY: translateY1 }, { scale: scale1 }] }]}>
-          <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
-            <MaterialIcons name='navigation' size={20} color={colors.purple} />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.subButtonTouchable}
+            onPress={() => setPassengerModalVisible(true)}
+          >
+            <MaterialIcons name='phone' size={20} color={colors.purple} />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Button 2: Info */}
+        {/* Button 2: Message Passenger Quick Options */}
         <Animated.View
           style={[
             styles.fabSubButton,
             { transform: [{ translateX: translateX2 }, { translateY: translateY2 }, { scale: scale2 }] },
           ]}
         >
-          <TouchableOpacity activeOpacity={0.7} style={styles.subButtonTouchable}>
-            <MaterialIcons name='info' size={20} color={colors.purple} />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.subButtonTouchable}
+            onPress={() => setMessagePassengerModalVisible(true)}
+          >
+            <MaterialIcons name='message' size={20} color={colors.purple} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -84,6 +100,20 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
           <MaterialIcons name='add' size={28} color='#fff' />
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Passengers List Modal Popup */}
+      <PassengersPopup
+        visible={passengerModalVisible}
+        passengers={passengers}
+        onClose={() => setPassengerModalVisible(false)}
+      />
+
+      {/* Message Passengers Modal Popup */}
+      <MessagePassengerPopup
+        visible={messagePassengerModalVisible}
+        passengers={passengers}
+        onClose={() => setMessagePassengerModalVisible(false)}
+      />
     </>
   );
 };
@@ -95,7 +125,7 @@ const styles = StyleSheet.create({
     left: 20,
     width: 50,
     height: 50,
-    zIndex: 20,
+    zIndex: 1000,
   },
   fabMainButton: {
     width: '100%',
@@ -123,7 +153,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    zIndex: 15,
+    zIndex: 999,
   },
   subButtonTouchable: {
     width: '100%',

@@ -28,6 +28,15 @@ export class AiProducer {
     @InjectQueue(EMBEDDING_QUEUE) private readonly embeddingQueue: Queue,
   ) {}
 
+  async queueRideEmbedding(rideId: UUID): Promise<void> {
+    this.logger.log(`Queueing embedding for ride ${rideId}`);
+    await this.embeddingQueue.add(
+      AI_JOBS.UPDATE_RIDE_EMBEDDING,
+      { rideId } satisfies RideEmbeddingJobData,
+      DEFAULT_JOB_OPTIONS,
+    );
+  }
+
   async queueRideCompletionTasks(
     rideId: UUID,
     driverId: UUID,
@@ -36,12 +45,6 @@ export class AiProducer {
     this.logger.log(
       `Queueing completion tasks for ride ${rideId} ` +
         `(driver: ${driverId}, ${passengerIds.length} passenger(s))`,
-    );
-
-    await this.embeddingQueue.add(
-      AI_JOBS.UPDATE_RIDE_EMBEDDING,
-      { rideId } satisfies RideEmbeddingJobData,
-      DEFAULT_JOB_OPTIONS,
     );
 
     await this.embeddingQueue.add(

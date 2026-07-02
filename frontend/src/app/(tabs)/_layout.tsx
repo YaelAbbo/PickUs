@@ -5,14 +5,15 @@ import { UserLocationProvider } from '@/contexts';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
 import { useRideStartedNotifications } from '@/hooks/notifications/useRideStartedNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { i18n } from '@/i18n';
 import { useAuth } from '@/services/auth/AuthContext';
 import { ThemeColors } from '@/theme/theme';
 import { SplashScreen } from '@components';
-import { APP_NAME } from '@constants';
+import { APP_NAME, IS_WEB } from '@constants';
 import { AntDesign } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 type AntDesignIconName = ComponentProps<typeof AntDesign>['name'];
 type TabScreenConfig = {
@@ -24,19 +25,13 @@ type TabScreenConfig = {
 };
 
 const tabScreensConfigs: TabScreenConfig[] = [
-  { name: 'profile', title: 'Profile', icon: 'user' },
-  { name: 'home', title: 'Home', icon: 'home' },
-  { name: 'create-ride', title: 'Create Ride', icon: 'car' },
-  { name: 'map', title: 'Map', icon: 'compass', hideFromTabBar: true },
-  { name: 'notifications', title: 'Notifications', icon: 'bell' },
-  { name: 'hr', title: 'HR', icon: 'team', role: UserRole.HR_MANAGER },
+  { name: 'profile', title: i18n.screens.profile, icon: 'user' },
+  { name: 'home', title: i18n.screens.home, icon: 'home' },
+  { name: 'create-ride', title: i18n.rideForm.create_ride, icon: 'car' },
+  { name: 'map', title: i18n.screens.map, icon: 'compass', hideFromTabBar: true },
+  { name: 'notifications', title: i18n.screens.notifications, icon: 'bell' },
+  { name: 'hr', title: i18n.screens.hr, icon: 'team', role: UserRole.HR_MANAGER },
 ];
-
-const tabBarBackground = () => (
-  <View style={styles.tabBarBackground}>
-    <View style={styles.divider} />
-  </View>
-);
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -62,10 +57,10 @@ export default function TabLayout() {
             headerShown: false,
             tabBarButton: HapticTab,
             animation: 'shift',
-            tabBarBackground,
+            tabBarItemStyle: styles.tabBarItem,
           }}
         >
-          {tabScreensConfigs.map(({ icon, name, title, role, hideFromTabBar = role && user?.role !== role }) => (
+          {tabScreensConfigs.map(({ icon, name, title, role, hideFromTabBar = role && user.role !== role }) => (
             <Tabs.Screen
               key={name}
               name={name}
@@ -83,14 +78,10 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBarBackground: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  divider: {
-    width: StyleSheet.hairlineWidth,
-    height: '60%',
-    backgroundColor: '#ccc',
+  tabBarItem: {
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: '#ccc',
+    height: IS_WEB ? '100%' : '90%',
+    alignSelf: 'center',
   },
 });

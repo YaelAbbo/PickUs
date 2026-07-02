@@ -10,6 +10,15 @@ export enum RideStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum RideIrrelevantReason {
+  RIDE_CANCELLED = 'RIDE_CANCELLED',
+  RIDE_COMPLETED = 'RIDE_COMPLETED',
+  RIDE_TIME_PASSED = 'RIDE_TIME_PASSED',
+  RIDE_FULL = 'RIDE_FULL',
+  RIDE_NOT_FOUND = 'RIDE_NOT_FOUND',
+  RIDE_ACTIVE = 'RIDE_ACTIVE',
+}
+
 export const rideStopSchema = entityMetadata.extend({
   location: pointSchema,
   locationName: z.string().nonempty(REQUIRED),
@@ -22,6 +31,7 @@ const userBasicDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   fullName: z.string(),
+  phoneNumber: z.string().optional(),
   avgRideEmbedding: z.array(z.number()).nullable(),
   profileImageUrl: z.string().nullable().optional(),
   currentLocation: pointSchema.nullable().optional(),
@@ -93,6 +103,7 @@ export const rideEntitySchema = rideDtoSchema.transform((data) => {
           lastName: p.user.lastName,
           fullName: p.user.fullName,
           profileImageUrl: p.user.profileImageUrl,
+          phoneNumber: p.user.phoneNumber,
         }
       : undefined,
   }));

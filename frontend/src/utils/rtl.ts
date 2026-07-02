@@ -14,7 +14,7 @@ import { I18nManager } from 'react-native';
  * - English device: isRTL becomes false, no auto-mirroring, our 'row-reverse' = RTL ✓
  * - Hebrew device: isRTL becomes false (was true), no auto-mirroring, our 'row-reverse' = RTL ✓
  *
- * On web, `I18nManager` has no effect – RTL is handled via `direction: rtl` in `globals.css`.
+ * On web, `I18nManager` has no effect – layout is handled via `direction: ltr` in `globals.css`.
  */
 
 // DISABLE auto-mirroring to prevent double-flip on RTL devices

@@ -1,18 +1,58 @@
 import type { Notification } from '@/api/notification.api';
 import { UserRole } from '@/api/user';
+import { i18n } from '@/i18n';
+import { RideIrrelevantReason } from '@/schemas/ride';
+import { rideService } from '@/services/ride/rideService';
 import { colors } from '@/theme';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const NOTIFICATION_ICON_SIZE = 40;
 
-export const NotificationItem = ({ item }: { item: Notification }) => {
+type NotificationItemProps = {
+  item: Notification;
+  onRideIrrelevant?: (reason: RideIrrelevantReason) => void;
+};
+
+export const NotificationItem = ({ item, onRideIrrelevant }: NotificationItemProps) => {
+  const router = useRouter();
+  const [isValidating, setIsValidating] = useState(false);
+
   const isAI = item.creator.role === UserRole.AI;
+  const hasRide = !!item.ride?.id;
+  const isClickable = isAI && hasRide;
+
+  const handlePress = async () => {
+    if (!isClickable || !item.ride?.id) return;
+
+    setIsValidating(true);
+    try {
+      const result = await rideService.validateRideRelevance(item.ride.id);
+
+      if (result.isRelevant) {
+        router.push({
+          pathname: '/rideDetailModal',
+          params: { rideId: item.ride.id },
+        });
+      } else if (result.reason && Object.values(RideIrrelevantReason).includes(result.reason as RideIrrelevantReason)) {
+        onRideIrrelevant?.(result.reason as RideIrrelevantReason);
+      }
+    } catch {
+      // Validation errors are handled silently
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const CardWrapper = isClickable ? TouchableOpacity : View;
+  const cardWrapperProps = isClickable ? { onPress: handlePress, activeOpacity: 0.7, disabled: isValidating } : {};
 
   return (
-    <View style={styles.notificationCard}>
+    <CardWrapper style={[styles.notificationCard, isClickable && styles.clickableCard]} {...cardWrapperProps}>
       <View style={styles.avatarContainer}>
         {item.creator.profileImageUrl ? (
           <Image source={{ uri: item.creator.profileImageUrl }} style={styles.avatar} />
@@ -35,8 +75,21 @@ export const NotificationItem = ({ item }: { item: Notification }) => {
           <Text style={styles.dateText}>{format(new Date(item.createdAt), 'MMM d, HH:mm')}</Text>
         </View>
         <Text style={styles.contentText}>{item.content}</Text>
+
+        {isClickable && (
+          <View style={styles.actionRow}>
+            {isValidating ? (
+              <ActivityIndicator size='small' color={colors.yellow} />
+            ) : (
+              <>
+                <Text style={styles.viewRideText}>{i18n.notifications.view_ride}</Text>
+                <AntDesign name='arrow-left' size={14} color={colors.yellow} />
+              </>
+            )}
+          </View>
+        )}
       </View>
-    </View>
+    </CardWrapper>
   );
 };
 
@@ -52,6 +105,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+  },
+  clickableCard: {
+    borderWidth: 1,
+    borderColor: 'rgba(245, 200, 66, 0.2)',
   },
   avatarContainer: {
     position: 'relative',
@@ -98,5 +155,16 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     lineHeight: 20,
     textAlign: 'right',
+  },
+  actionRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+  },
+  viewRideText: {
+    fontSize: 13,
+    color: colors.yellow,
+    fontWeight: '600',
   },
 });

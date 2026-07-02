@@ -9,9 +9,11 @@ import { AppModule } from './app.module';
 configDotenv({ path: join(__dirname, '../../.env') });
 
 async function bootstrap() {
-  const logger = new Logger();
+  const logger = new Logger('Bootstrap');
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
 
   app.setGlobalPrefix('api');
   app.set('trust proxy', 1);
