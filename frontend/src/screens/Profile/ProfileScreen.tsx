@@ -31,11 +31,29 @@ export const ProfileScreen = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger'>('all');
 
-  const { data: driverRides = [], isLoading: isDriverLoading } = useRidesByDriverId(user?.id || '');
+  const {
+    data: driverRides = [],
+    isLoading: isDriverLoading,
+    isError: isDriverRidesError,
+    refetch: refetchDriverRides,
+  } = useRidesByDriverId(user?.id || '');
 
-  const { data: passengerRides = [], isLoading: isPassengerLoading } = useRidesByPassengerId(user?.id || '');
+  const {
+    data: passengerRides = [],
+    isLoading: isPassengerLoading,
+    isError: isPassengerRidesError,
+    refetch: refetchPassengerRides,
+  } = useRidesByPassengerId(user?.id || '');
 
   const isLoading = isDriverLoading || isPassengerLoading;
+  const isError = isDriverRidesError || isPassengerRidesError;
+
+  const refetch = () => {
+    refetchDriverRides();
+
+    refetchPassengerRides();
+  };
+
   const { navigateToRideDetail } = useRideNavigation();
 
   if (!user) return <View style={styles.container} />;
@@ -86,25 +104,33 @@ export const ProfileScreen = () => {
           </View>
         </View>
 
-        {isLoading ? (
-          <View style={styles.centerContainer}>
-            <ActivityIndicator size='large' color={colors.yellow} />
-          </View>
-        ) : activeOrFutureRides.length === 0 ? (
-          <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>{i18n.profile_screen.no_rides}</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={activeOrFutureRides}
-            keyExtractor={(ride) => ride.id}
-            renderItem={({ item: ride }) => {
-              const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id)} />;
-              return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
-            }}
-            contentContainerStyle={styles.listContainer}
-          />
-        )}
+        <FlatList
+          data={activeOrFutureRides}
+          keyExtractor={(ride) => ride.id}
+          renderItem={({ item: ride }) => {
+            const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id)} />;
+
+            return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
+          }}
+          contentContainerStyle={styles.listContainer}
+          refreshing={isLoading}
+          onRefresh={refetch}
+          ListEmptyComponent={
+            isLoading ? (
+              <View style={styles.centerContainer}>
+                <ActivityIndicator size='large' color={colors.yellow} />
+              </View>
+            ) : isError ? (
+              <View style={styles.centerContainer}>
+                <Text style={styles.emptyText}>{i18n.profile_screen.rides_error}</Text>
+              </View>
+            ) : activeOrFutureRides.length === 0 ? (
+              <View style={styles.centerContainer}>
+                <Text style={styles.emptyText}>{i18n.profile_screen.no_rides}</Text>
+              </View>
+            ) : null
+          }
+        />
       </SafeAreaView>
     </AppBackground>
   );

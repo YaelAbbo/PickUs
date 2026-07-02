@@ -193,5 +193,6 @@ export const i18n = {
   },
   profile_screen: {
     no_rides: 'עדיין אין לך נסיעות',
+    rides_error: 'קרתה שגיאה בקבלת הנסיעות שלך',
   },
 };
