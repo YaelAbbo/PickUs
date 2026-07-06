@@ -86,7 +86,7 @@ export const RideDetailScreen: FC = () => {
             </Text>
           </View>
 
-          <RideStopTimeline stops={ride.stops || []} />
+          <RideStopTimeline stops={(ride.stops ?? []).filter(Boolean)} />
 
           <View style={styles.divider} />
 
@@ -160,30 +160,34 @@ export const RideDetailScreen: FC = () => {
         )}
       </View>
 
-      <RideStopPickerModal
-        visible={stopPickerVisible}
-        mode={stopPickerMode}
-        stops={ride.stops.slice(0, -1)}
-        currentStopId={currentPassenger?.rideStopId}
-        onClose={() => setStopPickerVisible(false)}
-        onSelectStop={(stopId) => {
-          setStopPickerVisible(false);
-          if (stopPickerMode === 'join') {
-            joinRide(stopId, { onError: () => {} });
-          } else {
-            updateRideStop({ userId: user!.id, rideStopId: stopId }, { onError: () => {} });
-          }
-        }}
-      />
+      {!readOnly && (
+        <RideStopPickerModal
+          visible={stopPickerVisible}
+          mode={stopPickerMode}
+          stops={(ride.stops ?? []).filter(Boolean).slice(0, -1)}
+          currentStopId={currentPassenger?.rideStopId}
+          onClose={() => setStopPickerVisible(false)}
+          onSelectStop={(stopId) => {
+            setStopPickerVisible(false);
+            if (stopPickerMode === 'join') {
+              joinRide(stopId, { onError: () => {} });
+            } else {
+              updateRideStop({ userId: user!.id, rideStopId: stopId }, { onError: () => {} });
+            }
+          }}
+        />
+      )}
 
-      <LeaveRideConfirmationModal
-        visible={leaveModalVisible}
-        onClose={() => setLeaveModalVisible(false)}
-        onLeave={() => {
-          setLeaveModalVisible(false);
-          leaveRide(user!.id, { onError: () => {} });
-        }}
-      />
+      {!readOnly && (
+        <LeaveRideConfirmationModal
+          visible={leaveModalVisible}
+          onClose={() => setLeaveModalVisible(false)}
+          onLeave={() => {
+            setLeaveModalVisible(false);
+            leaveRide(user!.id, { onError: () => {} });
+          }}
+        />
+      )}
     </AppBackground>
   );
 };
