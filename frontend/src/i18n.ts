@@ -19,6 +19,7 @@ export const i18n = {
     all: 'הכל',
     driver: 'נהג/ת',
     passenger: 'נוסע/ת',
+    history: 'היסטוריה',
     first_name: 'שם פרטי',
     last_name: 'שם משפחה',
     role: 'תפקיד',
@@ -193,5 +194,6 @@ export const i18n = {
   },
   profile_screen: {
     no_rides: 'עדיין אין לך נסיעות',
+    no_history_rides: 'אין נסיעות בהיסטוריה',
   },
 };

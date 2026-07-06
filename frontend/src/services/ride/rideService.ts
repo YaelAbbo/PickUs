@@ -78,6 +78,18 @@ export const rideService = {
     return z.array(rideEntitySchema).parse(data);
   },
 
+  getRideHistoryByDriverId: async (driverId: string): Promise<Ride[]> => {
+    const { data } = await api.get(`/rides/driver/${driverId}/history`);
+
+    return z.array(rideEntitySchema).parse(data);
+  },
+
+  getRideHistoryByPassengerId: async (passengerId: string): Promise<Ride[]> => {
+    const { data } = await api.get(`/rides/passenger/${passengerId}/history`);
+
+    return z.array(rideEntitySchema).parse(data);
+  },
+
   getActiveRideByPassengerId: async (): Promise<Ride | null> => {
     const { data } = await api.get(`/rides/active-ride`);
 

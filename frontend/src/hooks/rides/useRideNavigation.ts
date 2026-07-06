@@ -8,8 +8,11 @@ export function useRideNavigation() {
     router.push(destination);
   };
 
-  const navigateToRideDetail = (rideId: string) => {
-    const destination: Href = { pathname: '/rideDetailModal', params: { rideId } };
+  const navigateToRideDetail = (rideId: string, readOnly?: boolean) => {
+    const destination: Href = {
+      pathname: '/rideDetailModal',
+      params: { rideId, readOnly: readOnly ? 'true' : undefined },
+    };
     router.push(destination);
   };
 

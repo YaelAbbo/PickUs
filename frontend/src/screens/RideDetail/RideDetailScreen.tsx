@@ -21,7 +21,8 @@ import { RideStopTimeline } from './RideStopTimeline';
 
 export const RideDetailScreen: FC = () => {
   const router = useRouter();
-  const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
+  const { rideId, readOnly: readOnlyParam } = useLocalSearchParams<{ rideId: Ride['id']; readOnly?: string }>();
+  const readOnly = !!readOnlyParam;
   const { user } = useAuth();
 
   const [stopPickerVisible, setStopPickerVisible] = useState(false);
@@ -125,9 +126,9 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <RideActionButtons ride={ride} />
+        <RideActionButtons ride={ride} readOnly={readOnly} />
 
-        {isPassenger ? (
+        {!readOnly && isPassenger && (
           <View style={styles.footerRow}>
             <AppButton
               label={i18n.ride_detail.edit_stop}
@@ -145,7 +146,8 @@ export const RideDetailScreen: FC = () => {
               loading={isLeaving}
             />
           </View>
-        ) : isDriver ? null : (
+        )}
+        {!readOnly && !isPassenger && !isDriver && (
           <AppButton
             label={isFull ? i18n.ride_detail.ride_full : i18n.ride_detail.join_ride}
             disabled={isFull}

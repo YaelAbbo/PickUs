@@ -1,7 +1,7 @@
 import { useRideNavigation } from '@/hooks/rides';
 import { i18n } from '@/i18n';
 import { RideStatus, type Ride } from '@/schemas/ride';
-import { useDeleteRide, useUpdateRide, useRidesByDriverId } from '@/services/ride/rideQueries';
+import { useDeleteRide, useRidesByDriverId, useUpdateRide } from '@/services/ride/rideQueries';
 import { AppButton } from '@components';
 import { useAuth } from '@services';
 import { spacing } from '@theme';
@@ -12,9 +12,9 @@ import { useBoolean } from 'usehooks-ts';
 import { DeleteRideConfirmationModal } from './DeleteRideConfirmationModal';
 import { RideActionButton } from './RideActionButton';
 
-export type RideActionButtonsProps = { ride: Ride };
+export type RideActionButtonsProps = { ride: Ride; readOnly?: boolean };
 
-export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
+export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride, readOnly }) => {
   const router = useRouter();
   const { user } = useAuth();
   const { navigateToMap, navigateToEditRide } = useRideNavigation();
@@ -38,6 +38,8 @@ export const RideActionButtons: FC<RideActionButtonsProps> = ({ ride }) => {
   };
 
   if (!isUserRideCreator && !isPassenger) return null;
+
+  if (readOnly) return null;
 
   const isRidePending = ride.rideStatus === RideStatus.PENDING;
   const isRideActive = ride.rideStatus === RideStatus.ACTIVE;
