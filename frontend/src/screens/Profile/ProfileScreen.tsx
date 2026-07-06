@@ -122,7 +122,7 @@ export const ProfileScreen = () => {
               </View>
             ) : isError ? (
               <View style={styles.centerContainer}>
-                <Text style={styles.emptyText}>{i18n.profile_screen.rides_error}</Text>
+                <Text style={styles.emptyText}>{i18n.profile_screen.error_loading_rides}</Text>
               </View>
             ) : activeOrFutureRides.length === 0 ? (
               <View style={styles.centerContainer}>

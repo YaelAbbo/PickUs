@@ -72,7 +72,7 @@ export const AvailableRidesScreen: FC = () => {
           onRefresh={refetch}
           ListEmptyComponent={
             isLoading ? (
-              <ActivityIndicator size='large' color={colors.yellow} />
+              <ActivityIndicator size='large' color={colors.yellow} style={{ marginTop: 50 }} />
             ) : isError ? (
               <Text style={styles.centerText}>{i18n.available_rides_screen.error_loading_rides}</Text>
             ) : rides?.length === 0 ? (
