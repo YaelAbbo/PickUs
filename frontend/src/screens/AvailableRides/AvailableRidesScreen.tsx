@@ -62,23 +62,24 @@ export const AvailableRidesScreen: FC = () => {
           </View>
         </View>
 
-        {isLoading ? (
-          <ActivityIndicator size='large' color={colors.yellow} style={{ marginTop: 50 }} />
-        ) : isError ? (
-          <Text style={styles.centerText}>{i18n.available_rides_screen.error_loading_rides}</Text>
-        ) : rides?.length === 0 ? (
-          <Text style={styles.centerText}>{i18n.available_rides_screen.no_rides_found_for_search}</Text>
-        ) : (
-          <FlatList
-            data={rides}
-            renderItem={({ item }) => <RideCard item={item} onPress={() => handleRidePress(item.id)} />}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingBottom: spacing.xxl }}
-            showsVerticalScrollIndicator={false}
-            refreshing={isLoading}
-            onRefresh={refetch}
-          />
-        )}
+        <FlatList
+          data={rides}
+          renderItem={({ item }) => <RideCard item={item} onPress={() => handleRidePress(item.id)} />}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: spacing.xxl }}
+          showsVerticalScrollIndicator={false}
+          refreshing={isLoading}
+          onRefresh={refetch}
+          ListEmptyComponent={
+            isLoading ? (
+              <ActivityIndicator size='large' color={colors.yellow} style={{ marginTop: 50 }} />
+            ) : isError ? (
+              <Text style={styles.centerText}>{i18n.available_rides_screen.error_loading_rides}</Text>
+            ) : rides?.length === 0 ? (
+              <Text style={styles.centerText}>{i18n.available_rides_screen.no_rides_found_for_search}</Text>
+            ) : null
+          }
+        />
       </View>
     </AppBackground>
   );

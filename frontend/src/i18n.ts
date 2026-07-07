@@ -195,5 +195,6 @@ export const i18n = {
   profile_screen: {
     no_rides: 'עדיין אין לך נסיעות',
     no_history_rides: 'אין נסיעות בהיסטוריה',
+    error_loading_rides: 'קרתה שגיאה בקבלת הנסיעות שלך',
   },
 };

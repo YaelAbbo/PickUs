@@ -20,9 +20,19 @@ export const ProfileScreen = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger' | 'history'>('all');
 
-  const { data: driverRides = [], isLoading: isDriverLoading } = useRidesByDriverId(user?.id || '');
+  const {
+    data: driverRides = [],
+    isLoading: isDriverLoading,
+    isError: isDriverRidesError,
+    refetch: refetchDriverRides,
+  } = useRidesByDriverId(user?.id || '');
 
-  const { data: passengerRides = [], isLoading: isPassengerLoading } = useRidesByPassengerId(user?.id || '');
+  const {
+    data: passengerRides = [],
+    isLoading: isPassengerLoading,
+    isError: isPassengerRidesError,
+    refetch: refetchPassengerRides,
+  } = useRidesByPassengerId(user?.id || '');
 
   const { data: driverHistoryRides = [], isLoading: isDriverHistoryLoading } = useRideHistoryByDriverId(user?.id || '');
 
@@ -31,6 +41,13 @@ export const ProfileScreen = () => {
   );
 
   const isLoading = isDriverLoading || isPassengerLoading || isDriverHistoryLoading || isPassengerHistoryLoading;
+  const isError = isDriverRidesError || isPassengerRidesError;
+
+  const refetch = () => {
+    refetchDriverRides();
+    refetchPassengerRides();
+  };
+
   const { navigateToRideDetail } = useRideNavigation();
 
   if (!user) return <View style={styles.container} />;
@@ -96,6 +113,10 @@ export const ProfileScreen = () => {
           <View style={styles.centerContainer}>
             <ActivityIndicator size='large' color={colors.yellow} />
           </View>
+        ) : isError ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>{i18n.profile_screen.error_loading_rides}</Text>
+          </View>
         ) : displayedRides.length === 0 ? (
           <View style={styles.centerContainer}>
             <Text style={styles.emptyText}>
@@ -112,6 +133,8 @@ export const ProfileScreen = () => {
               return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
             }}
             contentContainerStyle={styles.listContainer}
+            refreshing={isLoading}
+            onRefresh={refetch}
           />
         )}
       </SafeAreaView>
