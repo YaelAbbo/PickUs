@@ -169,6 +169,8 @@ jobs:
             FRONTEND_BASE_URL=${{ vars.FRONTEND_BASE_URL }}
             FRONTEND_URL=${{ vars.FRONTEND_URL }}
             REFRESH_TOKEN_COOKIE_KEY=${{ vars.REFRESH_TOKEN_COOKIE_KEY }}
+            REDIS_HOST=${{ vars.REDIS_HOST }}
+            REDIS_PORT=${{ vars.REDIS_PORT }}
             SMTP_HOST=${{ vars.SMTP_HOST }}
             SMTP_PORT=${{ vars.SMTP_PORT }}
             SMTP_SECURE=${{ vars.SMTP_SECURE }}
