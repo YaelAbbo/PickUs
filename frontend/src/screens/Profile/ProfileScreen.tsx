@@ -52,18 +52,13 @@ export const ProfileScreen = () => {
 
   if (!user) return <View style={styles.container} />;
 
-  const rides = filterAndSortRides(activeTab, driverRides, passengerRides, driverHistoryRides, passengerHistoryRides);
-
-  const now = new Date();
-  const displayedRides =
-    activeTab === 'history'
-      ? rides
-      : rides.filter((ride) => {
-          const endsAt = new Date(ride.estimatedEndsAt);
-          const isFutureOrActive = endsAt >= now || ride.rideStatus === 'ACTIVE';
-          const isNotDoneOrCancelled = ride.rideStatus !== 'DONE' && ride.rideStatus !== 'CANCELLED';
-          return isFutureOrActive && isNotDoneOrCancelled;
-        });
+  const displayedRides = filterAndSortRides(
+    activeTab,
+    driverRides,
+    passengerRides,
+    driverHistoryRides,
+    passengerHistoryRides,
+  );
 
   return (
     <AppBackground>
