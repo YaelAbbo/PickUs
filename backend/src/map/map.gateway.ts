@@ -1,6 +1,7 @@
 import { JWTPayload } from '@/auth/types';
 import { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
+import { NotificationService } from '@/notification/notification.service';
 import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
 import { UserService } from '@/user/user.service';
 import { WsCurrentUser } from '@/websocket/decorators';
@@ -56,6 +57,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly ridesRepository: Repository<Ride>,
     private configService: ConfigService,
     private readonly proximityNotificationService: ProximityNotificationService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -298,4 +300,45 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
     }
   };
+
+  @SubscribeMessage(WsEvent.DRIVER_MESSAGE)
+  @UseGuards(WsJwtGuard)
+  async handleDriverMessage(
+    @MessageBody()
+    payload: { passengerId: User['id']; rideId?: Ride['id']; content: string },
+    @WsCurrentUser() jwtPayload: JWTPayload,
+  ): Promise<{ status: string }> {
+    const driverId = jwtPayload.sub as User['id'];
+    const { passengerId, rideId, content } = payload;
+
+    try {
+      await this.notificationService.create({
+        creatorId: driverId,
+        recipientId: passengerId,
+        rideId,
+        content,
+      });
+
+      const driver = await this.userService.getUserById(driverId);
+
+      this.server
+        .to(this.buildUserRoomId(passengerId))
+        .emit(WsEvent.DRIVER_MESSAGE, {
+          content,
+          driver,
+          rideId,
+        });
+
+      this.logger.log(
+        `Driver ${driverId} sent message notification to passenger ${passengerId}`,
+      );
+      return { status: 'ok' };
+    } catch (error) {
+      this.logger.error(
+        `Failed to send driver message from ${driverId} to ${passengerId}`,
+        error,
+      );
+      return { status: 'error' };
+    }
+  }
 }

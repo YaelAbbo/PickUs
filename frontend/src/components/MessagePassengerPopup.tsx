@@ -1,4 +1,5 @@
 import { i18n } from '@/i18n';
+import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, popupStyles } from '@theme';
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 interface Passenger {
   id: string;
   user?: {
+    id?: string;
     fullName?: string;
     firstName?: string;
     lastName?: string;
@@ -18,12 +20,30 @@ interface MessagePassengerPopupProps {
   visible: boolean;
   onClose: () => void;
   passengers: Passenger[];
+  rideId?: string;
 }
 
-export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessagePassengerPopupProps) => {
+export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: MessagePassengerPopupProps) => {
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(null);
 
   const handleClose = () => {
+    setSelectedPassenger(null);
+    onClose();
+  };
+
+  const handleSendMessage = (content: string) => {
+    if (!selectedPassenger) return;
+
+    const passengerId = selectedPassenger.user?.id || selectedPassenger.id;
+
+    websocketService
+      .emit(WsEvent.DRIVER_MESSAGE, {
+        passengerId,
+        rideId,
+        content,
+      })
+      .catch(() => {});
+
     setSelectedPassenger(null);
     onClose();
   };
@@ -99,10 +119,7 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessageP
               <TouchableOpacity
                 style={styles.optionButton}
                 activeOpacity={0.7}
-                onPress={() => {
-                  console.log('Clicked: Delay 5 minutes for', selectedPassenger?.user?.fullName);
-                  setSelectedPassenger(null);
-                }}
+                onPress={() => handleSendMessage(i18n.ride_detail.delay_5_min)}
               >
                 <Text style={styles.optionText}>{i18n.ride_detail.delay_5_min}</Text>
               </TouchableOpacity>
@@ -110,10 +127,7 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessageP
               <TouchableOpacity
                 style={styles.optionButton}
                 activeOpacity={0.7}
-                onPress={() => {
-                  console.log('Clicked: Leaving soon for', selectedPassenger?.user?.fullName);
-                  setSelectedPassenger(null);
-                }}
+                onPress={() => handleSendMessage(i18n.ride_detail.leaving_soon)}
               >
                 <Text style={styles.optionText}>{i18n.ride_detail.leaving_soon}</Text>
               </TouchableOpacity>

@@ -2,6 +2,7 @@ import { UserRole } from '@/api/user';
 import { HapticTab } from '@/components/haptic-tab';
 import { WebAppCard } from '@/components/WebAppCard';
 import { UserLocationProvider } from '@/contexts';
+import { useDriverMessageNotifications } from '@/hooks/notifications/useDriverMessageNotifications';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
 import { useRideStartedNotifications } from '@/hooks/notifications/useRideStartedNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -39,6 +40,7 @@ export default function TabLayout() {
 
   useDriverNearStopNotifications();
   useRideStartedNotifications();
+  useDriverMessageNotifications();
 
   if (isUserLoading) return <SplashScreen />;
 

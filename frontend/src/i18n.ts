@@ -161,6 +161,7 @@ export const i18n = {
     empty_text: 'אין התראות עדיין',
     driver_nearby_alert_title: 'הנהג/ת בקרוב לידך!',
     ride_started_alert_title: 'הנסיעה התחילה!',
+    driver_message_alert_title: 'הודעה מהנהג/ת',
     view_ride: 'צפייה בנסיעה',
     ride_cancelled: 'הנסיעה בוטלה',
     ride_completed: 'הנסיעה כבר הסתיימה',
