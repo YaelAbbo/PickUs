@@ -12,6 +12,7 @@ class WebSocketService {
   private socket: Socket | null = null;
   private joinedRideRooms = new Set<string>();
   private connectionChangeListeners = new Set<(connected: boolean) => void>();
+  private eventListeners = new Map<WsEvent, Set<(...args: any[]) => void>>();
 
   connect(accessToken: string): void {
     if (this.socket?.connected) return;
@@ -24,6 +25,13 @@ class WebSocketService {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 10000,
+    });
+
+    // Re-register all persistent event listeners on the new socket
+    this.eventListeners.forEach((handlers, event) => {
+      handlers.forEach((handler) => {
+        this.socket?.on(event, handler);
+      });
     });
 
     this.socket.on('connect', () => {
@@ -78,12 +86,24 @@ class WebSocketService {
   }
 
   on<T = unknown>(event: WsEvent, handler: (data: T) => void): () => void {
-    this.socket?.on(event, handler as (...args: unknown[]) => void);
-    return () => this.socket?.off(event, handler as (...args: unknown[]) => void);
+    const castedHandler = handler as (...args: any[]) => void;
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, new Set());
+    }
+    this.eventListeners.get(event)!.add(castedHandler);
+
+    this.socket?.on(event, castedHandler);
+
+    return () => {
+      this.eventListeners.get(event)?.delete(castedHandler);
+      this.socket?.off(event, castedHandler);
+    };
   }
 
   off(event: WsEvent, handler: (...args: unknown[]) => void): void {
-    this.socket?.off(event, handler);
+    const castedHandler = handler as (...args: any[]) => void;
+    this.eventListeners.get(event)?.delete(castedHandler);
+    this.socket?.off(event, castedHandler);
   }
 
   onConnectionChange(listener: (connected: boolean) => void): () => void {

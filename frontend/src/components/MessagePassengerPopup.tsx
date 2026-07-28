@@ -36,13 +36,20 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: 
 
     const passengerId = selectedPassenger.user?.id || selectedPassenger.id;
 
+    console.log('[WS] Sending driver message:', { passengerId, rideId, content });
+
     websocketService
       .emit(WsEvent.DRIVER_MESSAGE, {
         passengerId,
         rideId,
         content,
       })
-      .catch(() => {});
+      .then((response) => {
+        console.log('[WS] Driver message sent successfully. Response:', response);
+      })
+      .catch((error) => {
+        console.error('[WS] Failed to send driver message:', error);
+      });
 
     setSelectedPassenger(null);
     onClose();

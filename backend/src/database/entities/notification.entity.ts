@@ -5,7 +5,7 @@ import { User } from './user.entity';
 
 @Entity('notification')
 @Index('notification_recipient_ride_idx', ['recipient', 'ride'], {
-  unique: true,
+  unique: false,
   where: '"ride_id" IS NOT NULL AND "is_deleted" = false',
 })
 export class Notification extends BaseEntity {
