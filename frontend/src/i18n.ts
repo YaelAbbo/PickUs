@@ -156,6 +156,7 @@ export const i18n = {
     delay_5_min: 'מתעכב/ת ב-5 דקות',
     leaving_soon: 'יוצא/ת בקרוב',
     select_message: 'בחירת הודעה מהירה',
+    message_sent: 'ההודעה נשלחה בהצלחה!',
   },
   notifications: {
     empty_text: 'אין התראות עדיין',

@@ -2,8 +2,8 @@ import { i18n } from '@/i18n';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, popupStyles } from '@theme';
-import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Passenger {
   id: string;
@@ -25,6 +25,9 @@ interface MessagePassengerPopupProps {
 
 export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: MessagePassengerPopupProps) => {
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successFadeAnim = useRef(new Animated.Value(0)).current;
+  const successScaleAnim = useRef(new Animated.Value(0.3)).current;
 
   const handleClose = () => {
     setSelectedPassenger(null);
@@ -46,13 +49,56 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: 
       })
       .then((response) => {
         console.log('[WS] Driver message sent successfully. Response:', response);
+        if (response && response.status === 'ok') {
+          // Close options sub-modal
+          setSelectedPassenger(null);
+
+          // Trigger success animation overlay
+          setShowSuccess(true);
+          Animated.parallel([
+            Animated.timing(successFadeAnim, {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: Platform.OS !== 'web',
+            }),
+            Animated.spring(successScaleAnim, {
+              toValue: 1,
+              friction: 6,
+              tension: 40,
+              useNativeDriver: Platform.OS !== 'web',
+            }),
+          ]).start();
+
+          // After 1.5 seconds, start fade out and close
+          setTimeout(() => {
+            Animated.parallel([
+              Animated.timing(successFadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: Platform.OS !== 'web',
+              }),
+              Animated.timing(successScaleAnim, {
+                toValue: 0.8,
+                duration: 300,
+                useNativeDriver: Platform.OS !== 'web',
+              }),
+            ]).start();
+
+            setTimeout(() => {
+              setShowSuccess(false);
+              onClose();
+            }, 350);
+          }, 1500);
+        } else {
+          setSelectedPassenger(null);
+          onClose();
+        }
       })
       .catch((error) => {
         console.error('[WS] Failed to send driver message:', error);
+        setSelectedPassenger(null);
+        onClose();
       });
-
-    setSelectedPassenger(null);
-    onClose();
   };
 
   return (
@@ -151,6 +197,18 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: 
           </View>
         </View>
       </Modal>
+
+      {/* Success Animation Modal */}
+      <Modal visible={showSuccess} transparent animationType='fade'>
+        <Animated.View style={[styles.successOverlay, { opacity: successFadeAnim }]}>
+          <Animated.View style={[styles.successCard, { transform: [{ scale: successScaleAnim }] }]}>
+            <View style={styles.successIconContainer}>
+              <MaterialIcons name='check' size={48} color='#FFFFFF' />
+            </View>
+            <Text style={styles.successTitle}>{i18n.ride_detail.message_sent}</Text>
+          </Animated.View>
+        </Animated.View>
+      </Modal>
     </>
   );
 };
@@ -202,6 +260,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textPrimary,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  successOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44, 36, 112, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  successCard: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 35,
+    paddingHorizontal: 40,
+    borderRadius: 24,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2C2470',
     textAlign: 'center',
   },
 });
