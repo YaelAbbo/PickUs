@@ -1,4 +1,3 @@
-import { LiveUpdatesService } from '@/websocket/live-updates.service';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -8,6 +7,7 @@ import { AiProducer } from '../ai/ai.producer';
 import { Ride, RideStatus } from '../database/entities';
 import { MapGateway } from '../map/map.gateway';
 import { NotificationService } from '../notification/notification.service';
+import { LiveUpdatesService } from '../websocket/live-updates.service';
 import { RideService } from './ride.service';
 
 describe('RideService - Embedding Triggers', () => {
@@ -83,7 +83,13 @@ describe('RideService - Embedding Triggers', () => {
         { provide: AiProducer, useValue: mockAiProducer },
         { provide: NotificationService, useValue: {} },
         { provide: MapGateway, useValue: {} },
-        { provide: LiveUpdatesService, useValue: {} },
+        {
+          provide: LiveUpdatesService,
+          useValue: {
+            broadcastRideChange: jest.fn(),
+            broadcastRideStartedNotification: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
