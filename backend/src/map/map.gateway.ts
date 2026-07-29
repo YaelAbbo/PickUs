@@ -80,11 +80,10 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       await client.join(this.buildUserRoomId(userId));
 
-      if (connectedUser.organization?.id) {
+      if (connectedUser.organization?.id)
         await client.join(
           this.buildOrganizationRoomId(connectedUser.organization.id),
         );
-      }
 
       this.logger.log(`Connected: socket=${client.id}, user=${userId}`);
     } catch (error) {

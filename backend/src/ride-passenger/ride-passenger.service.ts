@@ -11,7 +11,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, type EntityManager } from 'typeorm';
 import { JoinRideDto } from './dto/join-ride.dto';
 import { UpdateRidePassengerDto } from './dto/update-ride-passenger.dto';
 
@@ -24,6 +24,12 @@ export class RidePassengerService {
     private ridePassengerRepository: Repository<RidePassenger>,
     private readonly liveUpdatesService: LiveUpdatesService,
   ) {}
+
+  private getRideById = (manager: EntityManager, rideId: Ride['id']) =>
+    manager.getRepository(Ride).findOne({
+      where: { id: rideId, isDeleted: false },
+      relations: ['organization'],
+    });
 
   async joinRide(
     rideId: Ride['id'],
@@ -72,10 +78,7 @@ export class RidePassengerService {
           await manager.save(RidePassenger, passenger);
         }
 
-        const ride = await manager.findOne(Ride, {
-          where: { id: rideId, isDeleted: false },
-          relations: ['organization'],
-        });
+        const ride = await this.getRideById(manager, rideId);
 
         if (ride?.organization?.id)
           this.liveUpdatesService.broadcastPassengerChange({
@@ -137,10 +140,7 @@ export class RidePassengerService {
       try {
         await manager.save(RidePassenger, passenger);
 
-        const ride = await manager.findOne(Ride, {
-          where: { id: rideId, isDeleted: false },
-          relations: ['organization'],
-        });
+        const ride = await this.getRideById(manager, rideId);
 
         if (ride?.organization?.id)
           this.liveUpdatesService.broadcastPassengerChange({
@@ -170,9 +170,10 @@ export class RidePassengerService {
         'You can only remove your own ride passenger record',
       );
 
-    const ride = await this.ridePassengerRepository.manager
-      .getRepository(Ride)
-      .findOne({ where: { id: rideId, isDeleted: false } });
+    const ride = await this.getRideById(
+      this.ridePassengerRepository.manager,
+      rideId,
+    );
 
     if (!ride) throw new NotFoundException(`Ride with ID ${rideId} not found`);
     if (ride.rideStatus !== RideStatus.PENDING)
