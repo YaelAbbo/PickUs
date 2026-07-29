@@ -76,8 +76,15 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       client.data.user = user;
       const userId = user.sub as User['id'];
+      const connectedUser = await this.userService.getUserById(userId);
 
       await client.join(this.buildUserRoomId(userId));
+
+      if (connectedUser.organization?.id) {
+        await client.join(
+          this.buildOrganizationRoomId(connectedUser.organization.id),
+        );
+      }
 
       this.logger.log(`Connected: socket=${client.id}, user=${userId}`);
     } catch (error) {
@@ -108,6 +115,10 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   buildUserRoomId(userId: User['id']): string {
     return `user:${userId}`;
+  }
+
+  buildOrganizationRoomId(organizationId: string): string {
+    return `org:${organizationId}`;
   }
 
   private getRoomSize = (roomId: string) => {
@@ -206,9 +217,11 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
         properties,
       } satisfies RideEntityLocationPayload;
 
-      this.server
-        .to(this.buildRideRoomId(rideId))
-        .emit(WsEvent.LOCATION_UPDATED, rideLocationPayload);
+      this.emitEventToRoom({
+        roomId: this.buildRideRoomId(rideId),
+        event: WsEvent.LOCATION_UPDATED,
+        payload: rideLocationPayload,
+      });
     } catch (error) {
       this.logger.error(
         `Error while emitting location updated to room of ride ${rideId} from user ${userId}: ${error}`,
@@ -233,15 +246,12 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
           rideId,
         });
 
-      for (const { passengerId, payload } of notifications) {
-        this.server
-          .to(this.buildUserRoomId(passengerId))
-          .emit(WsEvent.DRIVER_NEAR_STOP, payload);
-
-        this.logger.log(
-          `Emitted ${WsEvent.DRIVER_NEAR_STOP} to user room of passenger ${passengerId}`,
-        );
-      }
+      for (const { passengerId, payload } of notifications)
+        this.emitEventToRoom({
+          roomId: this.buildUserRoomId(passengerId),
+          event: WsEvent.DRIVER_NEAR_STOP,
+          payload,
+        });
     } catch (error) {
       this.logger.error(`Proximity check failed for ride ${rideId}`, error);
     }
@@ -272,18 +282,30 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   };
 
+  emitEventToRoom = ({
+    roomId,
+    event,
+    payload,
+  }: {
+    roomId: string;
+    event: WsEvent;
+    payload: unknown;
+  }) => {
+    this.server.to(roomId).emit(event, payload);
+
+    this.logger.log(`Emitted ${event} to room ${roomId}`);
+  };
+
   sendRideStartedNotification = (
     passengerIds: User['id'][],
     payload: { content: string; driver: User; rideId: Ride['id'] },
   ) => {
     for (const passengerId of passengerIds) {
-      this.server
-        .to(this.buildUserRoomId(passengerId))
-        .emit(WsEvent.RIDE_STARTED, payload);
-
-      this.logger.log(
-        `Emitted ${WsEvent.RIDE_STARTED} to user room of passenger ${passengerId}`,
-      );
+      this.emitEventToRoom({
+        roomId: this.buildUserRoomId(passengerId),
+        event: WsEvent.RIDE_STARTED,
+        payload,
+      });
     }
   };
 }

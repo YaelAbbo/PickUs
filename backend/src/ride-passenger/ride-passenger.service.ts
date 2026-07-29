@@ -1,5 +1,7 @@
 import { Ride, RidePassenger, RideStop, type User } from '@/database/entities';
 import { RideStatus } from '@/database/entities/ride.entity';
+import { WsEvent } from '@/websocket/events';
+import { LiveUpdatesService } from '@/websocket/live-updates.service';
 import {
   BadRequestException,
   ConflictException,
@@ -20,6 +22,7 @@ export class RidePassengerService {
   constructor(
     @InjectRepository(RidePassenger)
     private ridePassengerRepository: Repository<RidePassenger>,
+    private readonly liveUpdatesService: LiveUpdatesService,
   ) {}
 
   async joinRide(
@@ -68,6 +71,19 @@ export class RidePassengerService {
           });
           await manager.save(RidePassenger, passenger);
         }
+
+        const ride = await manager.findOne(Ride, {
+          where: { id: rideId, isDeleted: false },
+          relations: ['organization'],
+        });
+
+        if (ride?.organization?.id)
+          this.liveUpdatesService.broadcastPassengerChange({
+            event: WsEvent.RIDE_PASSENGER_JOINED,
+            rideId,
+            organizationId: ride.organization.id,
+            passenger: { id: userId } as User,
+          });
       } catch (error) {
         this.logger.error(
           `Error occurred while user ${userId} attempted to join ride ${rideId}, ${error}`,
@@ -120,6 +136,19 @@ export class RidePassengerService {
 
       try {
         await manager.save(RidePassenger, passenger);
+
+        const ride = await manager.findOne(Ride, {
+          where: { id: rideId, isDeleted: false },
+          relations: ['organization'],
+        });
+
+        if (ride?.organization?.id)
+          this.liveUpdatesService.broadcastPassengerChange({
+            event: WsEvent.RIDE_PASSENGER_UPDATED,
+            rideId,
+            organizationId: ride.organization.id,
+            passenger: { id: userId } as User,
+          });
       } catch (error) {
         this.logger.error(
           `Error occurred while user ${currentUserId} attempted to update ride stop for ride ${rideId}, ${error}`,
@@ -162,6 +191,15 @@ export class RidePassengerService {
       await this.ridePassengerRepository.update(passenger.id, {
         isDeleted: true,
       });
+
+      if (ride.organization?.id) {
+        this.liveUpdatesService.broadcastPassengerChange({
+          event: WsEvent.RIDE_PASSENGER_LEFT,
+          rideId,
+          organizationId: ride.organization.id,
+          passenger: { id: userId } as User,
+        });
+      }
     } catch (error) {
       this.logger.error(
         `Error occurred while user ${currentUserId} attempted to leave ride ${rideId}, ${error}`,

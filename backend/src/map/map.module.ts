@@ -3,20 +3,21 @@ import { NotificationModule } from '@/notification/notification.module';
 import { RidePassengerModule } from '@/ride-passenger/ride-passenger.module';
 import { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
 import { UserModule } from '@/user/user.module';
+import { LiveUpdatesService } from '@/websocket/live-updates.service';
 import { WebSocketCoreModule } from '@/websocket/websocket.module';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MapGateway } from './map.gateway';
 
 @Module({
   imports: [
     WebSocketCoreModule,
-    UserModule,
+    forwardRef(() => UserModule),
     TypeOrmModule.forFeature([Ride]),
-    RidePassengerModule,
+    forwardRef(() => RidePassengerModule),
     NotificationModule,
   ],
-  providers: [MapGateway, ProximityNotificationService],
-  exports: [MapGateway],
+  providers: [MapGateway, ProximityNotificationService, LiveUpdatesService],
+  exports: [MapGateway, LiveUpdatesService],
 })
 export class MapModule {}
