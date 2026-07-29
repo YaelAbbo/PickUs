@@ -114,6 +114,7 @@ describe('AI Module Integration', () => {
       const jobs = await queue.getJobs(['waiting', 'active', 'delayed']);
       const userJobs = jobs.filter(
         (j) =>
+          j != null &&
           j.name === AI_JOBS.UPDATE_USER_STATS_AND_EMBEDDING &&
           j.data.rideId === rideId,
       );
