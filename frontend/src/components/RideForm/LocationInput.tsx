@@ -90,8 +90,8 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
 
   const showDropdown = open && (isSearching || hasNoResults || !!fetchError || results.length > 0);
 
-  const dropdownTop = anchorRect ? anchorRect.y + anchorRect.height + (error ? spacing.sm : spacing.xl) : 0;
-  const dropdownEnd = anchorRect?.x ?? 0;
+  const dropdownTop = anchorRect ? anchorRect.y + anchorRect.height + (error ? spacing.xl : spacing.md) : 0;
+  const dropdownLeft = anchorRect?.x ?? 0;
   const dropdownWidth = anchorRect?.width ?? 0;
 
   return (
@@ -117,7 +117,7 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
           <TouchableWithoutFeedback onPress={handleClose}>
             <View style={styles.backdrop}>
               <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={[styles.dropdown, { top: dropdownTop, end: dropdownEnd, width: dropdownWidth }]}>
+                <View style={[styles.dropdown, { top: dropdownTop, left: dropdownLeft, width: dropdownWidth }]}>
                   {isSearching && (
                     <View style={styles.stateContainer}>
                       <SkeletonRow />
