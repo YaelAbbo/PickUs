@@ -127,6 +127,27 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!this.getRideRoomSize(rideId)) this.rideCache.delete(rideId);
   };
 
+  private getRideFromCacheOrDb = async (
+    rideId: Ride['id'],
+  ): Promise<CachedRide | undefined> => {
+    let ride = this.rideCache.get(rideId);
+
+    if (!ride) {
+      const dbRide = await this.ridesRepository.findOne({
+        where: { id: rideId },
+        relations: ['driver'],
+        select: { id: true, driver: true },
+      });
+
+      if (dbRide) {
+        ride = dbRide as CachedRide;
+        this.rideCache.set(rideId, ride);
+      }
+    }
+
+    return ride;
+  };
+
   @SubscribeMessage(WsEvent.ROOM_JOIN)
   @UseGuards(WsJwtGuard)
   async handleRoomJoin(
@@ -139,15 +160,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `User ${user.sub} joined room ${this.buildRideRoomId(rideId)}`,
     );
 
-    if (!this.rideCache.has(rideId)) {
-      const ride = (await this.ridesRepository.findOne({
-        where: { id: rideId },
-        relations: ['driver'],
-        select: { id: true, driver: true },
-      })) as CachedRide | null;
-
-      if (ride) this.rideCache.set(rideId, ride);
-    }
+    await this.getRideFromCacheOrDb(rideId);
 
     return { rideId };
   }
@@ -264,18 +277,7 @@ export class MapGateway implements OnGatewayConnection, OnGatewayDisconnect {
         properties,
       });
 
-      let ride = this.rideCache.get(rideId);
-
-      if (!ride) {
-        ride =
-          ((await this.ridesRepository.findOne({
-            where: { id: rideId },
-            relations: ['driver'],
-            select: { id: true, driver: true },
-          })) as CachedRide | null) ?? undefined;
-
-        if (ride) this.rideCache.set(rideId, ride);
-      }
+      const ride = await this.getRideFromCacheOrDb(rideId);
 
       if (ride?.driver.id === userId)
         await this.notifyNearbyPassengers({ driverLocation: location, ride });

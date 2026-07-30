@@ -22,7 +22,7 @@ export const useRideTrackingData = () => {
   const emitLocationUpdated = (coords: Location.LocationObjectCoords | GeolocationCoordinates, rideId: Ride['id']) => {
     if (!websocketService.isConnected) return;
 
-    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId })).catch(() => {});
+    websocketService.emit(WsEvent.LOCATION_UPDATE, buildLocationPayload({ coords, rideId }));
   };
 
   return {

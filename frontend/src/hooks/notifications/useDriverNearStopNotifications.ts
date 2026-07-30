@@ -1,8 +1,8 @@
 import type { Notification } from '@/api/notification.api';
 import { i18n } from '@/i18n';
 import type { DriverNearStopPayload } from '@/services/ride/rideService';
-import { WsEvent, notificationKeys, useAuth, websocketService } from '@services';
 import { IS_WEB } from '@constants';
+import { WsEvent, notificationKeys, useAuth, websocketService } from '@services';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Alert } from 'react-native';
@@ -29,7 +29,7 @@ export const useDriverNearStopNotifications = () => {
 
       queryClient.setQueryData<Notification[]>(notificationKeys.user(user.id), (prevNotifications = []) => [
         {
-          id: `00000000-0000-0000-0000-${Date.now().toString().padStart(12, '0')}` as Notification['id'],
+          id: crypto.randomUUID(),
           content: payload.content,
           createdAt: new Date().toISOString(),
           isDeleted: false,

@@ -1,9 +1,10 @@
 import { i18n } from '@/i18n';
+import { useSuccessOverlayAnimation } from '@hooks';
 import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, popupStyles } from '@theme';
-import { useRef, useState } from 'react';
-import { Animated, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Passenger {
   id: string;
@@ -25,80 +26,44 @@ interface MessagePassengerPopupProps {
 
 export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: MessagePassengerPopupProps) => {
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const successFadeAnim = useRef(new Animated.Value(0)).current;
-  const successScaleAnim = useRef(new Animated.Value(0.3)).current;
+
+  const { showSuccess, successFadeAnim, successScaleAnim, runSuccessAnimation } = useSuccessOverlayAnimation(
+    onClose,
+    1500,
+  );
 
   const handleClose = () => {
     setSelectedPassenger(null);
     onClose();
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!selectedPassenger) return;
 
     const passengerId = selectedPassenger.user?.id || selectedPassenger.id;
 
     console.log('[WS] Sending driver message:', { passengerId, rideId, content });
 
-    websocketService
-      .emit(WsEvent.DRIVER_MESSAGE, {
+    try {
+      const response = await websocketService.emit<{ status: string }>(WsEvent.DRIVER_MESSAGE, {
         passengerId,
         rideId,
         content,
-      })
-      .then((response) => {
-        console.log('[WS] Driver message sent successfully. Response:', response);
-        if (response && response.status === 'ok') {
-          // Close options sub-modal
-          setSelectedPassenger(null);
+      });
 
-          // Trigger success animation overlay
-          setShowSuccess(true);
-          Animated.parallel([
-            Animated.timing(successFadeAnim, {
-              toValue: 1,
-              duration: 400,
-              useNativeDriver: Platform.OS !== 'web',
-            }),
-            Animated.spring(successScaleAnim, {
-              toValue: 1,
-              friction: 6,
-              tension: 40,
-              useNativeDriver: Platform.OS !== 'web',
-            }),
-          ]).start();
-
-          // After 1.5 seconds, start fade out and close
-          setTimeout(() => {
-            Animated.parallel([
-              Animated.timing(successFadeAnim, {
-                toValue: 0,
-                duration: 300,
-                useNativeDriver: Platform.OS !== 'web',
-              }),
-              Animated.timing(successScaleAnim, {
-                toValue: 0.8,
-                duration: 300,
-                useNativeDriver: Platform.OS !== 'web',
-              }),
-            ]).start();
-
-            setTimeout(() => {
-              setShowSuccess(false);
-              onClose();
-            }, 350);
-          }, 1500);
-        } else {
-          setSelectedPassenger(null);
-          onClose();
-        }
-      })
-      .catch((error) => {
-        console.error('[WS] Failed to send driver message:', error);
+      console.log('[WS] Driver message sent successfully. Response:', response);
+      if (response?.status === 'ok') {
+        setSelectedPassenger(null);
+        runSuccessAnimation();
+      } else {
         setSelectedPassenger(null);
         onClose();
-      });
+      }
+    } catch (error) {
+      console.error('[WS] Failed to send driver message:', error);
+      setSelectedPassenger(null);
+      onClose();
+    }
   };
 
   return (
