@@ -1,5 +1,6 @@
 import type { Ride } from '@/database/entities';
 import type { User } from '@/database/entities/user.entity';
+import type { NotificationService } from '@/notification/notification.service';
 import type { ProximityNotificationService } from '@/ride-proximity-notification/ride-proximity-notification.service';
 import { describe, expect, it, jest } from '@jest/globals';
 import { ConfigService } from '@nestjs/config';
@@ -87,12 +88,18 @@ function buildGateway(
     upsertNotifications: jest.fn().mockResolvedValue([] as never),
   } as unknown as ProximityNotificationService;
 
+  const notificationService = {
+    create: jest.fn().mockResolvedValue({} as never),
+    createBulk: jest.fn().mockResolvedValue(undefined as never),
+  } as unknown as NotificationService;
+
   const gateway = new MapGateway(
     jwtService,
     userService,
     ridesRepository,
     configService,
     proximityNotificationService,
+    notificationService,
   );
   return {
     gateway,
@@ -101,6 +108,7 @@ function buildGateway(
     ridesRepository,
     configService,
     proximityNotificationService,
+    notificationService,
   };
 }
 
@@ -283,6 +291,63 @@ describe('MapGateway', () => {
         WsEvent.RIDE_STARTED,
         payload,
       );
+    });
+  });
+
+  describe('handleDriverMessage', () => {
+    const passengerId = '11111111-1111-1111-1111-111111111111' as const;
+    const rideId = '22222222-2222-2222-2222-222222222222' as const;
+    const driverId = '33333333-3333-3333-3333-333333333333' as const;
+
+    it('successfully sends message and returns status ok', async () => {
+      const { gateway, notificationService, userService } =
+        buildGateway('valid');
+      const mockServer = buildMockServer();
+      gateway.server = mockServer as unknown as Server;
+
+      const mockDriver = {
+        id: driverId,
+        fullName: 'Driver Name',
+      } as unknown as User;
+      jest.spyOn(userService, 'getUserById').mockResolvedValue(mockDriver);
+
+      const payload = {
+        passengerId,
+        rideId,
+        content: 'Leaving soon',
+      };
+
+      const result = await gateway.handleDriverMessage(payload, mockUser);
+
+      expect(notificationService.create).toHaveBeenCalledWith({
+        creatorId: mockUser.sub,
+        recipientId: passengerId,
+        rideId,
+        content: 'Leaving soon',
+      });
+      expect(mockServer.to).toHaveBeenCalledWith(`user:${passengerId}`);
+      expect(mockServer.emit).toHaveBeenCalledWith(WsEvent.DRIVER_MESSAGE, {
+        content: 'Leaving soon',
+        driver: mockDriver,
+        rideId,
+      });
+      expect(result).toEqual({ status: 'ok' });
+    });
+
+    it('returns status error when notification service throws', async () => {
+      const { gateway, notificationService } = buildGateway('valid');
+      jest
+        .spyOn(notificationService, 'create')
+        .mockRejectedValue(new Error('db error'));
+
+      const payload = {
+        passengerId,
+        content: 'Leaving soon',
+      };
+
+      const result = await gateway.handleDriverMessage(payload, mockUser);
+
+      expect(result).toEqual({ status: 'error' });
     });
   });
 });

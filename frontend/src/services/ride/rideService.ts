@@ -39,6 +39,12 @@ export type RideStartedPayload = {
   rideId: Ride['id'];
 };
 
+export type DriverMessagePayload = {
+  content: string;
+  driver: User;
+  rideId?: Ride['id'];
+};
+
 export type RideFilters = {
   search?: string;
   category?: string;

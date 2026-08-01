@@ -10,6 +10,7 @@ export enum WsEvent {
 
   // Driver
   DRIVER_NEAR_STOP = 'driver:near_stop',
+  DRIVER_MESSAGE = 'driver:message',
 
   // Ride
   RIDE_STARTED = 'ride:started',
