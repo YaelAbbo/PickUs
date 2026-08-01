@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { REQUIRED } from '@constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema } from '@schemas';
@@ -5,7 +6,6 @@ import { useAuth } from '@services';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { i18n } from '@/i18n';
 
 const DEFAULT_ERROR = i18n.login.error_invalid_credentials;
 
@@ -51,7 +51,7 @@ export const useLoginForm = ({ startShake }: UseLoginFormArgs) => {
 
           startShake();
         },
-      }).catch(() => {}),
+      }),
     startShake,
   );
 

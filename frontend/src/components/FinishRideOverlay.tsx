@@ -1,10 +1,11 @@
 import { i18n } from '@/i18n';
+import { useSuccessOverlayAnimation } from '@hooks';
 import { RideStatus, type Ride } from '@/schemas/ride';
 import { useUpdateRide } from '@/services/ride/rideQueries';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { forwardRef, useImperativeHandle } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 type FinishRideOverlayProps = {
   activeRide: Ride | null;
@@ -18,9 +19,12 @@ export const FinishRideOverlay = forwardRef<FinishRideOverlayRef, FinishRideOver
   const router = useRouter();
   const { mutateAsync: updateRide } = useUpdateRide((activeRide?.id ?? '') as Ride['id']);
 
-  const [showFinishOverlay, setShowFinishOverlay] = useState(false);
-  const finishFadeAnim = useRef(new Animated.Value(0)).current;
-  const finishScaleAnim = useRef(new Animated.Value(0.3)).current;
+  const {
+    showSuccess: showFinishOverlay,
+    successFadeAnim: finishFadeAnim,
+    successScaleAnim: finishScaleAnim,
+    runSuccessAnimation: runFinishAnimation,
+  } = useSuccessOverlayAnimation(() => router.replace('/(tabs)/profile'), 2200);
 
   useImperativeHandle(ref, () => ({
     trigger: async () => {
@@ -32,42 +36,7 @@ export const FinishRideOverlay = forwardRef<FinishRideOverlayRef, FinishRideOver
         }
       }
 
-      setShowFinishOverlay(true);
-      Animated.parallel([
-        Animated.timing(finishFadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.spring(finishScaleAnim, {
-          toValue: 1,
-          friction: 6,
-          tension: 40,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ]).start();
-
-      // After 2.2 seconds, start fade out and navigate
-      setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(finishFadeAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: Platform.OS !== 'web',
-          }),
-          Animated.timing(finishScaleAnim, {
-            toValue: 0.8,
-            duration: 300,
-            useNativeDriver: Platform.OS !== 'web',
-          }),
-        ]).start();
-
-        // Navigate after fade out animation duration
-        setTimeout(() => {
-          setShowFinishOverlay(false);
-          router.replace('/(tabs)/profile');
-        }, 350);
-      }, 2200);
+      runFinishAnimation();
     },
   }));
 

@@ -1,12 +1,15 @@
 import { i18n } from '@/i18n';
+import { useSuccessOverlayAnimation } from '@hooks';
+import { WsEvent, websocketService } from '@/services/websocket';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, popupStyles } from '@theme';
 import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Passenger {
   id: string;
   user?: {
+    id?: string;
     fullName?: string;
     firstName?: string;
     lastName?: string;
@@ -18,14 +21,49 @@ interface MessagePassengerPopupProps {
   visible: boolean;
   onClose: () => void;
   passengers: Passenger[];
+  rideId?: string;
 }
 
-export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessagePassengerPopupProps) => {
+export const MessagePassengerPopup = ({ visible, onClose, passengers, rideId }: MessagePassengerPopupProps) => {
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(null);
+
+  const { showSuccess, successFadeAnim, successScaleAnim, runSuccessAnimation } = useSuccessOverlayAnimation(
+    onClose,
+    1500,
+  );
 
   const handleClose = () => {
     setSelectedPassenger(null);
     onClose();
+  };
+
+  const handleSendMessage = async (content: string) => {
+    if (!selectedPassenger) return;
+
+    const passengerId = selectedPassenger.user?.id || selectedPassenger.id;
+
+    console.log('[WS] Sending driver message:', { passengerId, rideId, content });
+
+    try {
+      const response = await websocketService.emit<{ status: string }>(WsEvent.DRIVER_MESSAGE, {
+        passengerId,
+        rideId,
+        content,
+      });
+
+      console.log('[WS] Driver message sent successfully. Response:', response);
+      if (response?.status === 'ok') {
+        setSelectedPassenger(null);
+        runSuccessAnimation();
+      } else {
+        setSelectedPassenger(null);
+        onClose();
+      }
+    } catch (error) {
+      console.error('[WS] Failed to send driver message:', error);
+      setSelectedPassenger(null);
+      onClose();
+    }
   };
 
   return (
@@ -99,10 +137,7 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessageP
               <TouchableOpacity
                 style={styles.optionButton}
                 activeOpacity={0.7}
-                onPress={() => {
-                  console.log('Clicked: Delay 5 minutes for', selectedPassenger?.user?.fullName);
-                  setSelectedPassenger(null);
-                }}
+                onPress={() => handleSendMessage(i18n.ride_detail.delay_5_min)}
               >
                 <Text style={styles.optionText}>{i18n.ride_detail.delay_5_min}</Text>
               </TouchableOpacity>
@@ -110,10 +145,7 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessageP
               <TouchableOpacity
                 style={styles.optionButton}
                 activeOpacity={0.7}
-                onPress={() => {
-                  console.log('Clicked: Leaving soon for', selectedPassenger?.user?.fullName);
-                  setSelectedPassenger(null);
-                }}
+                onPress={() => handleSendMessage(i18n.ride_detail.leaving_soon)}
               >
                 <Text style={styles.optionText}>{i18n.ride_detail.leaving_soon}</Text>
               </TouchableOpacity>
@@ -129,6 +161,18 @@ export const MessagePassengerPopup = ({ visible, onClose, passengers }: MessageP
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Success Animation Modal */}
+      <Modal visible={showSuccess} transparent animationType='fade'>
+        <Animated.View style={[styles.successOverlay, { opacity: successFadeAnim }]}>
+          <Animated.View style={[styles.successCard, { transform: [{ scale: successScaleAnim }] }]}>
+            <View style={styles.successIconContainer}>
+              <MaterialIcons name='check' size={48} color='#FFFFFF' />
+            </View>
+            <Text style={styles.successTitle}>{i18n.ride_detail.message_sent}</Text>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </>
   );
@@ -181,6 +225,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textPrimary,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  successOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44, 36, 112, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  successCard: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 35,
+    paddingHorizontal: 40,
+    borderRadius: 24,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2C2470',
     textAlign: 'center',
   },
 });
