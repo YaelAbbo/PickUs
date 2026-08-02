@@ -231,6 +231,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    width: '100%',
   },
   skeletonIcon: {
     width: 14,
