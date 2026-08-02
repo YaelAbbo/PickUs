@@ -112,6 +112,7 @@ export const MapMenu = ({ onFinishRide }: MapMenuProps) => {
       <MessagePassengerPopup
         visible={messagePassengerModalVisible}
         passengers={passengers}
+        rideId={activeRide?.id}
         onClose={() => setMessagePassengerModalVisible(false)}
       />
     </>

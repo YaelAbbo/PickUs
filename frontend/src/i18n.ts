@@ -157,11 +157,13 @@ export const i18n = {
     delay_5_min: 'מתעכב/ת ב-5 דקות',
     leaving_soon: 'יוצא/ת בקרוב',
     select_message: 'בחירת הודעה מהירה',
+    message_sent: 'ההודעה נשלחה בהצלחה!',
   },
   notifications: {
     empty_text: 'אין התראות עדיין',
     driver_nearby_alert_title: 'הנהג/ת בקרוב לידך!',
     ride_started_alert_title: 'הנסיעה התחילה!',
+    driver_message_alert_title: 'הודעה מהנהג/ת',
     view_ride: 'צפייה בנסיעה',
     ride_cancelled: 'הנסיעה בוטלה',
     ride_completed: 'הנסיעה כבר הסתיימה',

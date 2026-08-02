@@ -44,9 +44,15 @@ export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
   }, [currentUserId, initialRideLocationsPayloads, isSuccess]);
 
   useFocusEffect(() => {
-    if (!ride) return;
+    if (!ride || !rideId) return;
 
     websocketService.emit(WsEvent.ROOM_JOIN, rideId);
+
+    const unsubscribeConnection = websocketService.onConnectionChange((connected) => {
+      if (connected) {
+        websocketService.emit(WsEvent.ROOM_JOIN, rideId);
+      }
+    });
 
     const { passengers, stops, driver, driverId } = ride;
 
@@ -77,7 +83,7 @@ export const useRideLocationsLogic = ({ ride }: UseRideLocationsLogicArgs) => {
 
     return () => {
       websocketService.emit(WsEvent.ROOM_LEAVE, rideId);
-
+      unsubscribeConnection();
       unsubscribeFromLocationUpdated();
     };
   });

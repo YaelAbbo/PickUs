@@ -35,7 +35,7 @@ export const RideDetailScreen: FC = () => {
   const { mutate: updateRideStop, isPending: isUpdating } = useUpdateRideStop(rideId as UUID);
 
   const currentPassenger = ride?.passengers?.find(
-    (passenger) => passenger.userId === user?.id || passenger.user?.id === user?.id,
+    (passenger) => passenger?.userId === user?.id || passenger?.user?.id === user?.id,
   );
   const isPassenger = !!currentPassenger;
   const isDriver = ride?.driverId === user?.id;
@@ -62,6 +62,8 @@ export const RideDetailScreen: FC = () => {
   const driverInitials = ride.driver
     ? `${ride.driver.firstName[0]}${ride.driver.lastName[0]}`
     : i18n.ride_detail.unknown_driver_initial;
+
+  const validPassengers = ride.passengers?.filter(Boolean) || [];
 
   return (
     <AppBackground>
@@ -101,18 +103,18 @@ export const RideDetailScreen: FC = () => {
             )
           </Text>
 
-          {ride.passengers && ride.passengers.length > 0 ? (
-            ride.passengers.map((passenger, index) => {
-              const passengerName = passenger.user
+          {validPassengers.length > 0 ? (
+            validPassengers.map((passenger, index) => {
+              const passengerName = passenger?.user
                 ? `${passenger.user.firstName} ${passenger.user.lastName}`
                 : `${i18n.ride_detail.passenger} ${index + 1}`;
-              const passengerInitials = passenger.user
+              const passengerInitials = passenger?.user
                 ? `${passenger.user.firstName[0]}${passenger.user.lastName[0]}`
                 : i18n.ride_detail.unknown_driver_initial;
 
               return (
                 <RideDriverSection
-                  key={passenger.id || index}
+                  key={passenger?.id || index}
                   name={passengerName}
                   initials={passengerInitials}
                   isDriver={false}
@@ -169,10 +171,12 @@ export const RideDetailScreen: FC = () => {
           onClose={() => setStopPickerVisible(false)}
           onSelectStop={(stopId) => {
             setStopPickerVisible(false);
-            if (stopPickerMode === 'join') {
-              joinRide(stopId, { onError: () => {} });
-            } else {
-              updateRideStop({ userId: user!.id, rideStopId: stopId }, { onError: () => {} });
+            if (user?.id) {
+              if (stopPickerMode === 'join') {
+                joinRide(stopId, { onError: () => {} });
+              } else {
+                updateRideStop({ userId: user.id, rideStopId: stopId }, { onError: () => {} });
+              }
             }
           }}
         />
@@ -184,7 +188,9 @@ export const RideDetailScreen: FC = () => {
           onClose={() => setLeaveModalVisible(false)}
           onLeave={() => {
             setLeaveModalVisible(false);
-            leaveRide(user!.id, { onError: () => {} });
+            if (user?.id) {
+              leaveRide(user.id, { onError: () => {} });
+            }
           }}
         />
       )}

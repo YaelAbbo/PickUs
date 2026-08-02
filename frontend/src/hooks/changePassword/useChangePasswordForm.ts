@@ -65,7 +65,7 @@ export const useChangePasswordForm = ({ onSuccess, startShake }: UseChangePasswo
           startShake();
         },
       },
-    ).catch(() => {});
+    );
   }, startShake);
 
   return { control, onSubmit, isSubmitting, errors };
