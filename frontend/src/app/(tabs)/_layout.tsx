@@ -4,6 +4,8 @@ import { WebAppCard } from '@/components/WebAppCard';
 import { UserLocationProvider } from '@/contexts';
 import { useDriverMessageNotifications } from '@/hooks/notifications/useDriverMessageNotifications';
 import { useDriverNearStopNotifications } from '@/hooks/notifications/useDriverNearStopNotifications';
+import { useLiveRideUpdates } from '@/hooks/liveUpdates/useLiveRideUpdates';
+import { useLiveUserUpdates } from '@/hooks/liveUpdates/useLiveUserUpdates';
 import { useRideStartedNotifications } from '@/hooks/notifications/useRideStartedNotifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { i18n } from '@/i18n';
@@ -41,6 +43,8 @@ export default function TabLayout() {
   useDriverNearStopNotifications();
   useRideStartedNotifications();
   useDriverMessageNotifications();
+  useLiveRideUpdates();
+  useLiveUserUpdates();
 
   if (isUserLoading) return <SplashScreen />;
 

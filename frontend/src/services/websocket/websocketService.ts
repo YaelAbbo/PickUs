@@ -12,7 +12,7 @@ class WebSocketService {
   private socket: Socket | null = null;
   private joinedRideRooms = new Set<string>();
   private connectionChangeListeners = new Set<(connected: boolean) => void>();
-  private eventListeners = new Map<WsEvent, Set<(...args: any[]) => void>>();
+  private eventListeners = new Map<WsEvent, Set<(...args: unknown[]) => void>>();
 
   connect(accessToken: string): void {
     if (this.socket?.connected) return;
@@ -86,7 +86,7 @@ class WebSocketService {
   }
 
   on<T = unknown>(event: WsEvent, handler: (data: T) => void): () => void {
-    const castedHandler = handler as (...args: any[]) => void;
+    const castedHandler = handler as (...args: unknown[]) => void;
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, new Set());
     }
@@ -101,7 +101,7 @@ class WebSocketService {
   }
 
   off(event: WsEvent, handler: (...args: unknown[]) => void): void {
-    const castedHandler = handler as (...args: any[]) => void;
+    const castedHandler = handler as (...args: unknown[]) => void;
     this.eventListeners.get(event)?.delete(castedHandler);
     this.socket?.off(event, castedHandler);
   }

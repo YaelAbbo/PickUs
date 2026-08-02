@@ -62,7 +62,10 @@ function buildGateway(
         return Promise.reject(new Error('db error'));
       return Promise.resolve();
     }),
-    getUserById: jest.fn().mockResolvedValue({} as never),
+    getUserById: jest.fn().mockResolvedValue({
+      id: mockUser.sub,
+      organization: undefined,
+    } as never),
   } as unknown as UserService;
 
   const ridesRepository = {

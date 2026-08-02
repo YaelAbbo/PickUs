@@ -14,8 +14,8 @@ import {
   User,
   UserRole,
 } from '../database/entities';
-import { MapGateway } from '../map/map.gateway';
 import { createTestApp } from '../test/createTestApp';
+import { LiveUpdatesService } from '../websocket/live-updates.service';
 import { RideModule } from './ride.module';
 
 describe('RideController', () => {
@@ -25,7 +25,7 @@ describe('RideController', () => {
   let rideRepository: Repository<Ride>;
   let userRepository: Repository<User>;
   let organizationRepository: Repository<Organization>;
-  let mapGateway: MapGateway;
+  let liveUpdatesService: LiveUpdatesService;
 
   let testOrgId: string | null = null;
   let testDriverId: string | null = null;
@@ -77,7 +77,7 @@ describe('RideController', () => {
     rideRepository = dataSource.getRepository(Ride);
     userRepository = dataSource.getRepository(User);
     organizationRepository = dataSource.getRepository(Organization);
-    mapGateway = app.get(MapGateway);
+    liveUpdatesService = app.get(LiveUpdatesService);
 
     await cleanup();
 
@@ -868,7 +868,7 @@ describe('RideController', () => {
       await passengerRepo.save(activePassenger);
 
       const sendNotificationSpy = jest
-        .spyOn(mapGateway, 'sendRideStartedNotification')
+        .spyOn(liveUpdatesService, 'broadcastRideStartedNotification')
         .mockImplementation(() => {});
 
       const response = await request(httpServer)
@@ -881,13 +881,13 @@ describe('RideController', () => {
       expect(response.status).toEqual(200);
       expect(response.body.rideStatus).toEqual(RideStatus.ACTIVE);
 
-      expect(sendNotificationSpy).toHaveBeenCalledWith(
-        [testPassengerId],
-        expect.objectContaining({
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        passengerIds: [testPassengerId],
+        payload: expect.objectContaining({
           content: expect.stringContaining('התחילה!'),
           rideId: savedRide.id,
         }),
-      );
+      });
 
       const notificationRepo = dataSource.getRepository(Notification);
       const notification = await notificationRepo.findOne({

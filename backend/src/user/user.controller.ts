@@ -1,4 +1,5 @@
 import { UseAccessAuth } from '@/auth/decorators';
+import { LiveUpdatesService } from '@/websocket/live-updates.service';
 import {
   Body,
   Controller,
@@ -16,7 +17,10 @@ import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly liveUpdatesService: LiveUpdatesService,
+  ) {}
 
   @UseAccessAuth()
   @Post()
@@ -52,7 +56,12 @@ export class UserController {
     @Param('id') id: User['id'],
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return await this.userService.update(id, updateUserDto);
+    const updatedUser = await this.userService.update(id, updateUserDto);
+    const freshUser = await this.userService.getUserById(updatedUser.id);
+
+    this.liveUpdatesService.broadcastUserUpdate({ user: freshUser });
+
+    return freshUser;
   }
 
   @UseAccessAuth()

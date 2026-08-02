@@ -1,7 +1,7 @@
 import type { Notification, Ride } from '@/database/entities';
 import { NotificationService } from '@/notification/notification.service';
 import { RidePassengerService } from '@/ride-passenger/ride-passenger.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import type { Point } from 'geojson';
 import type {
   DriverNearStopNotificationPayload,
@@ -10,9 +10,9 @@ import type {
   PassengerStopKey,
 } from './ride-proximity-notification.types';
 import {
-  DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS,
   createDriverNearStopMessage,
   createPassengerStopKey,
+  DRIVER_PROXIMITY_TO_STOP_THRESHOLD_METERS,
   getDriverDistanceFromStop,
 } from './ride-proximity-notification.utils';
 
@@ -26,6 +26,7 @@ export class ProximityNotificationService {
   >();
 
   constructor(
+    @Inject(forwardRef(() => RidePassengerService))
     private readonly ridePassengerService: RidePassengerService,
     private readonly notificationService: NotificationService,
   ) {}

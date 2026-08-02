@@ -1,3 +1,12 @@
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import { getQueueToken } from '@nestjs/bull';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -13,11 +22,13 @@ import { AI_JOBS, EMBEDDING_QUEUE } from './types';
 jest.mock('@google/genai', () => ({
   GoogleGenAI: jest.fn().mockImplementation(() => ({
     models: {
-      embedContent: jest.fn().mockResolvedValue({
-        embeddings: [
-          { values: Array.from({ length: 768 }, () => Math.random()) },
-        ],
-      }),
+      embedContent: jest
+        .fn<() => Promise<{ embeddings: { values: number[] }[] }>>()
+        .mockResolvedValue({
+          embeddings: [
+            { values: Array.from({ length: 768 }, () => Math.random()) },
+          ],
+        }),
     },
   })),
 }));
@@ -103,6 +114,7 @@ describe('AI Module Integration', () => {
       const jobs = await queue.getJobs(['waiting', 'active', 'delayed']);
       const userJobs = jobs.filter(
         (j) =>
+          j != null &&
           j.name === AI_JOBS.UPDATE_USER_STATS_AND_EMBEDDING &&
           j.data.rideId === rideId,
       );
@@ -160,7 +172,7 @@ describe('AiProducer (Unit)', () => {
   let mockQueue: { add: jest.Mock };
 
   beforeEach(async () => {
-    mockQueue = { add: jest.fn().mockResolvedValue({}) };
+    mockQueue = { add: jest.fn().mockResolvedValue({} as never) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

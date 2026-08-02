@@ -4,15 +4,14 @@ import {
   type Organization,
   type User,
 } from '@/database/entities';
-import { MapGateway } from '@/map/map.gateway';
 import type { RideEntityLocationPayloadWithFullDetails } from '@/map/map.types';
 import { CreateNotificationDto } from '@/notification/dto/create-notification.dto';
 import { NotificationService } from '@/notification/notification.service';
 import { filterAvailableRides } from '@/utils/rides';
+import { WsEvent } from '@/websocket/events';
+import { LiveUpdatesService } from '@/websocket/live-updates.service';
 import {
   ConflictException,
-  forwardRef,
-  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -34,8 +33,7 @@ export class RideService {
     private ridesRepository: Repository<Ride>,
     private readonly embeddingProducer: AiProducer,
     private readonly notificationService: NotificationService,
-    @Inject(forwardRef(() => MapGateway))
-    private readonly mapGateway: MapGateway,
+    private readonly liveUpdatesService: LiveUpdatesService,
   ) {}
 
   private createRideQueryBuilder(alias = 'ride') {
@@ -131,6 +129,12 @@ export class RideService {
     try {
       const createdRide = await this.ridesRepository.save(newRide);
       const ride = await this.getRideById(createdRide.id);
+
+      this.liveUpdatesService.broadcastRideChange({
+        event: WsEvent.RIDE_CREATED,
+        ride,
+        organizationId: ride.orgId,
+      });
 
       this.embeddingProducer
         .queueRideEmbedding(ride.id)
@@ -275,6 +279,12 @@ export class RideService {
           );
       }
 
+      this.liveUpdatesService.broadcastRideChange({
+        event: WsEvent.RIDE_UPDATED,
+        ride: finalRide,
+        organizationId: finalRide.orgId,
+      });
+
       if (finalRide.rideStatus === RideStatus.DONE) {
         const passengerIds = finalRide.passengers
           .filter((p) => p.user)
@@ -314,19 +324,30 @@ export class RideService {
 
     // Send WS notification to all passengers
     const passengerIds = ride.passengers.map((p) => p.userId);
-    this.mapGateway.sendRideStartedNotification(passengerIds, {
-      content,
-      driver: ride.driver,
-      rideId: ride.id,
+
+    this.liveUpdatesService.broadcastRideStartedNotification({
+      passengerIds,
+      payload: {
+        content,
+        driver: ride.driver,
+        rideId: ride.id,
+      },
     });
   }
 
   async deleteRide(id: Ride['id']): Promise<void> {
+    const ride = await this.getRideById(id);
     const result = await this.ridesRepository.update(id, { isDeleted: true });
     if (result.affected === 0) {
       this.logger.error(`Ride with ID ${id} not found`);
       throw new NotFoundException(`Ride with ID ${id} not found`);
     }
+
+    this.liveUpdatesService.broadcastRideChange({
+      event: WsEvent.RIDE_DELETED,
+      ride,
+      organizationId: ride.orgId,
+    });
   }
 
   async validateRideRelevance(

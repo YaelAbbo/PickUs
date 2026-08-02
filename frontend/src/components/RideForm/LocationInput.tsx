@@ -27,11 +27,12 @@ export type LocationInputProps = {
 
 const SkeletonRow: FC = () => (
   <View style={styles.skeletonRow}>
-    <View style={styles.skeletonIcon} />
     <View style={styles.skeletonLines}>
       <View style={[styles.skeletonLine, styles.skeletonMain]} />
       <View style={[styles.skeletonLine, styles.skeletonSub]} />
     </View>
+
+    <View style={styles.skeletonIcon} />
   </View>
 );
 
@@ -119,7 +120,7 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
               <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={[styles.dropdown, { top: dropdownTop, left: dropdownLeft, width: dropdownWidth }]}>
                   {isSearching && (
-                    <View style={styles.stateContainer}>
+                    <View style={{ ...styles.stateContainer, flexDirection: 'column' }}>
                       <SkeletonRow />
                       <View style={styles.separator} />
                       <SkeletonRow />
@@ -130,17 +131,19 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
 
                   {!isSearching && hasNoResults && (
                     <View style={styles.stateContainer}>
-                      <Ionicons name='search-outline' size={20} color={colors.textMuted} />
                       <Text style={styles.stateText}>{i18n.general.no_results_found}</Text>
+
+                      <Ionicons name='search-outline' size={20} color={colors.textMuted} />
                     </View>
                   )}
 
                   {!isSearching && !!fetchError && (
                     <View style={styles.stateContainer}>
-                      <Ionicons name='alert-circle-outline' size={20} color={colors.error} />
                       <Text style={[styles.stateText, styles.stateTextError]}>
                         {i18n.general.search_error_please_try_again}
                       </Text>
+
+                      <Ionicons name='alert-circle-outline' size={20} color={colors.error} />
                     </View>
                   )}
 
@@ -158,7 +161,6 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
 
                         return (
                           <Pressable style={styles.resultRow} onPress={() => handleSelect(item)}>
-                            <Ionicons name='location-outline' size={14} color={colors.textMuted} />
                             <View style={styles.resultText}>
                               <Text style={styles.resultMain} numberOfLines={1}>
                                 {main}
@@ -169,6 +171,8 @@ export const LocationInput: FC<LocationInputProps> = ({ label, value, onChange, 
                                 </Text>
                               )}
                             </View>
+
+                            <Ionicons name='location-outline' size={14} color={colors.textMuted} />
                           </Pressable>
                         );
                       }}
@@ -202,6 +206,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    textAlign: 'right',
   },
   stateContainer: {
     flexDirection: 'row',
@@ -226,6 +231,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    width: '100%',
   },
   skeletonIcon: {
     width: 14,
@@ -236,7 +242,7 @@ const styles = StyleSheet.create({
   },
   skeletonLines: {
     flex: 1,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
     gap: 6,
   },
   skeletonLine: {
@@ -268,16 +274,19 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
     textAlign: 'right',
+    width: '100%',
   },
   resultSub: {
     fontFamily: typography.fonts.regular,
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
     textAlign: 'right',
+    width: '100%',
   },
   separator: {
     height: 1,
     backgroundColor: colors.inputBorder,
     marginHorizontal: spacing.md,
+    width: '100%',
   },
 });
