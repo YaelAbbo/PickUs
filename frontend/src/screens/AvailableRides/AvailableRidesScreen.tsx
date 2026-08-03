@@ -31,7 +31,7 @@ export const AvailableRidesScreen: FC = () => {
           <Text style={styles.greeting}>
             {i18n.available_rides_screen.greeting} {user?.firstName || i18n.available_rides_screen.default_guest_name}
           </Text>
-          <TouchableOpacity onPress={() => logout()} style={styles.logoutBtn}>
+          <TouchableOpacity onPress={() => logout().catch(() => {})} style={styles.logoutBtn}>
             <MaterialCommunityIcons name='logout' size={22} color={colors.error} />
           </TouchableOpacity>
         </View>

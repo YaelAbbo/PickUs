@@ -1,6 +1,7 @@
 import type { User } from '@/api/user';
 import { useAuth } from '@/services/auth/AuthContext';
-import { WsEvent, authKeys, websocketService } from '@services';
+import { authKeys } from '@/services/auth/authKeys';
+import { WsEvent, websocketService } from '@services';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
