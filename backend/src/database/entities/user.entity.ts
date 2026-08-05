@@ -21,6 +21,18 @@ export enum UserRole {
 
 @Entity('user')
 @Index('user_current_location_index', ['currentLocation'], { spatial: true })
+@Index('uq_user_national_id', ['nationalId'], {
+  unique: true,
+  where: '"is_deleted" IS FALSE',
+})
+@Index('uq_user_email', ['email'], {
+  unique: true,
+  where: '"is_deleted" IS FALSE',
+})
+@Index('uq_user_phone_number', ['phoneNumber'], {
+  unique: true,
+  where: '"is_deleted" IS FALSE',
+})
 export class User extends BaseEntity {
   @Column({ name: 'first_name', type: 'varchar' })
   firstName: string;
@@ -35,13 +47,13 @@ export class User extends BaseEntity {
     this.fullName = `${this.firstName} ${this.lastName}`;
   }
 
-  @Column({ name: 'national_id', type: 'varchar', unique: true })
+  @Column({ name: 'national_id', type: 'varchar' })
   nationalId: string;
 
-  @Column({ name: 'email', type: 'varchar', unique: true })
+  @Column({ name: 'email', type: 'varchar' })
   email: string;
 
-  @Column({ name: 'phone_number', type: 'varchar', unique: true })
+  @Column({ name: 'phone_number', type: 'varchar' })
   phoneNumber: string;
 
   @Column({ select: false, name: 'password_hash', type: 'varchar' })
