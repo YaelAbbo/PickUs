@@ -31,8 +31,9 @@ export const AddStopButton: FC<AddStopButtonProps> = ({ onPress }) => (
       fontFamily: typography.fonts.medium,
       fontSize: typography.sizes.sm,
       color: colors.yellow,
-      height: '100%',
+      height: !IS_WEB ? '100%' : undefined,
       textAlignVertical: 'center',
+      paddingTop: 0,
     }}
   />
 );
