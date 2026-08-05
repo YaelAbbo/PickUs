@@ -51,7 +51,7 @@ export const useLoginForm = ({ startShake }: UseLoginFormArgs) => {
 
           startShake();
         },
-      }),
+      }).catch(() => {}),
     startShake,
   );
 
