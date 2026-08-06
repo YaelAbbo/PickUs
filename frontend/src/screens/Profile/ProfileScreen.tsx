@@ -2,34 +2,23 @@ import { FlickeringWrapper, PageHead, ProfileCard } from '@/components';
 import { AppBackground } from '@/components/ui';
 import { useRideNavigation } from '@/hooks/rides';
 import { i18n } from '@/i18n';
-import type { Ride } from '@/schemas/ride';
 import { useAuth } from '@/services/auth/AuthContext';
-import { useRidesByDriverId, useRidesByPassengerId } from '@/services/ride/rideQueries';
+import {
+  useRideHistoryByDriverId,
+  useRideHistoryByPassengerId,
+  useRidesByDriverId,
+  useRidesByPassengerId,
+} from '@/services/ride/rideQueries';
 import { colors, spacing } from '@/theme';
+import { filterAndSortRides } from '@/utils/profileUtils';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RideCard } from '../AvailableRides/RideCard';
 
-const filterAndSortRides = (
-  activeTab: 'all' | 'driver' | 'passenger',
-  driverRides: Ride[],
-  passengerRides: Ride[],
-): Ride[] => {
-  if (activeTab === 'driver') {
-    return driverRides;
-  }
-  if (activeTab === 'passenger') {
-    return passengerRides;
-  }
-  return [...driverRides, ...passengerRides]
-    .filter((ride, index, self) => index === self.findIndex((t) => t.id === ride.id))
-    .sort((rideA, rideB) => new Date(rideA.startsAt).getTime() - new Date(rideB.startsAt).getTime());
-};
-
 export const ProfileScreen = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'driver' | 'passenger' | 'history'>('all');
 
   const {
     data: driverRides = [],
@@ -45,12 +34,17 @@ export const ProfileScreen = () => {
     refetch: refetchPassengerRides,
   } = useRidesByPassengerId(user?.id || '');
 
-  const isLoading = isDriverLoading || isPassengerLoading;
+  const { data: driverHistoryRides = [], isLoading: isDriverHistoryLoading } = useRideHistoryByDriverId(user?.id || '');
+
+  const { data: passengerHistoryRides = [], isLoading: isPassengerHistoryLoading } = useRideHistoryByPassengerId(
+    user?.id || '',
+  );
+
+  const isLoading = isDriverLoading || isPassengerLoading || isDriverHistoryLoading || isPassengerHistoryLoading;
   const isError = isDriverRidesError || isPassengerRidesError;
 
   const refetch = () => {
     refetchDriverRides();
-
     refetchPassengerRides();
   };
 
@@ -58,15 +52,13 @@ export const ProfileScreen = () => {
 
   if (!user) return <View style={styles.container} />;
 
-  const rides = filterAndSortRides(activeTab, driverRides, passengerRides);
-
-  const now = new Date();
-  const activeOrFutureRides = rides.filter((ride) => {
-    const endsAt = new Date(ride.estimatedEndsAt);
-    const isFutureOrActive = endsAt >= now || ride.rideStatus === 'ACTIVE';
-    const isNotDoneOrCancelled = ride.rideStatus !== 'DONE' && ride.rideStatus !== 'CANCELLED';
-    return isFutureOrActive && isNotDoneOrCancelled;
-  });
+  const displayedRides = filterAndSortRides(
+    activeTab,
+    driverRides,
+    passengerRides,
+    driverHistoryRides,
+    passengerHistoryRides,
+  );
 
   return (
     <AppBackground>
@@ -101,36 +93,45 @@ export const ProfileScreen = () => {
                 {i18n.general.driver}
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterChip, activeTab === 'history' && styles.filterChipActive]}
+              onPress={() => setActiveTab('history')}
+            >
+              <Text style={[styles.filterChipText, activeTab === 'history' && styles.filterChipTextActive]}>
+                {i18n.general.history}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <FlatList
-          data={activeOrFutureRides}
-          keyExtractor={(ride) => ride.id}
-          renderItem={({ item: ride }) => {
-            const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id)} />;
-
-            return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
-          }}
-          contentContainerStyle={styles.listContainer}
-          refreshing={isLoading}
-          onRefresh={refetch}
-          ListEmptyComponent={
-            isLoading ? (
-              <View style={styles.centerContainer}>
-                <ActivityIndicator size='large' color={colors.yellow} />
-              </View>
-            ) : isError ? (
-              <View style={styles.centerContainer}>
-                <Text style={styles.emptyText}>{i18n.profile_screen.error_loading_rides}</Text>
-              </View>
-            ) : activeOrFutureRides.length === 0 ? (
-              <View style={styles.centerContainer}>
-                <Text style={styles.emptyText}>{i18n.profile_screen.no_rides}</Text>
-              </View>
-            ) : null
-          }
-        />
+        {isLoading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size='large' color={colors.yellow} />
+          </View>
+        ) : isError ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>{i18n.profile_screen.error_loading_rides}</Text>
+          </View>
+        ) : displayedRides.length === 0 ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>
+              {activeTab === 'history' ? i18n.profile_screen.no_history_rides : i18n.profile_screen.no_rides}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={displayedRides}
+            keyExtractor={(ride) => ride.id}
+            renderItem={({ item: ride }) => {
+              const isHistory = activeTab === 'history';
+              const card = <RideCard item={ride} onPress={() => navigateToRideDetail(ride.id, isHistory)} />;
+              return ride.rideStatus === 'ACTIVE' ? <FlickeringWrapper>{card}</FlickeringWrapper> : card;
+            }}
+            contentContainerStyle={styles.listContainer}
+            refreshing={isLoading}
+            onRefresh={refetch}
+          />
+        )}
       </SafeAreaView>
     </AppBackground>
   );

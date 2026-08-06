@@ -74,6 +74,14 @@ export class RideController {
     return await this.rideService.getRidesByDriverId(driverId);
   }
 
+  @UseAccessAuth()
+  @Get('driver/:driverId/history')
+  async getRideHistoryByDriverId(
+    @Param('driverId') driverId: User['id'],
+  ): Promise<Ride[]> {
+    return await this.rideService.getRideHistoryByDriverId(driverId);
+  }
+
   @Get(':rideId/locations')
   @UseAccessAuth()
   async getRideLocations(@Param('rideId') rideId: Ride['id']) {
@@ -94,6 +102,14 @@ export class RideController {
     @Param('passengerId') passengerId: User['id'],
   ): Promise<Ride[]> {
     return await this.rideService.getRidesByPassengerId(passengerId);
+  }
+
+  @UseAccessAuth()
+  @Get('passenger/:passengerId/history')
+  async getRideHistoryByPassengerId(
+    @Param('passengerId') passengerId: User['id'],
+  ): Promise<Ride[]> {
+    return await this.rideService.getRideHistoryByPassengerId(passengerId);
   }
 
   @UseAccessAuth()

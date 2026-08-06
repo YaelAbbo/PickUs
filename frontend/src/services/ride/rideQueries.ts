@@ -10,6 +10,8 @@ export const RIDES_QUERY_KEYS = {
   locations: (id: Ride['id']) => [...RIDES_QUERY_KEYS.all, 'locations', id] as const,
   byDriver: (driverId: string) => [...RIDES_QUERY_KEYS.all, 'byDriver', driverId] as const,
   byPassenger: (passengerId: string) => [...RIDES_QUERY_KEYS.all, 'byPassenger', passengerId] as const,
+  historyByDriver: (driverId: string) => [...RIDES_QUERY_KEYS.all, 'historyByDriver', driverId] as const,
+  historyByPassenger: (passengerId: string) => [...RIDES_QUERY_KEYS.all, 'historyByPassenger', passengerId] as const,
   activeRideByPassenger: () => [...RIDES_QUERY_KEYS.all, 'activeRideByPassenger'] as const,
 };
 
@@ -64,6 +66,22 @@ export const useRidesByPassengerId = (passengerId: string) => {
   return useQuery({
     queryKey: RIDES_QUERY_KEYS.byPassenger(passengerId),
     queryFn: () => rideService.getRidesByPassengerId(passengerId),
+    enabled: !!passengerId,
+  });
+};
+
+export const useRideHistoryByDriverId = (driverId: string) => {
+  return useQuery({
+    queryKey: RIDES_QUERY_KEYS.historyByDriver(driverId),
+    queryFn: () => rideService.getRideHistoryByDriverId(driverId),
+    enabled: !!driverId,
+  });
+};
+
+export const useRideHistoryByPassengerId = (passengerId: string) => {
+  return useQuery({
+    queryKey: RIDES_QUERY_KEYS.historyByPassenger(passengerId),
+    queryFn: () => rideService.getRideHistoryByPassengerId(passengerId),
     enabled: !!passengerId,
   });
 };

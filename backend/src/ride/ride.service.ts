@@ -99,6 +99,15 @@ export class RideService {
     );
   }
 
+  private addHistoryRidesFilter(
+    queryBuilder: SelectQueryBuilder<Ride>,
+    alias = 'ride',
+  ): SelectQueryBuilder<Ride> {
+    return queryBuilder.andWhere(`${alias}.rideStatus = :done`, {
+      done: RideStatus.DONE,
+    });
+  }
+
   private addPassengerFilter(
     queryBuilder: SelectQueryBuilder<Ride>,
     passengerId: User['id'],
@@ -215,6 +224,32 @@ export class RideService {
 
     const rides = await this.addActiveOrFutureRidesFilter(query)
       .orderBy('ride.startsAt', 'ASC')
+      .getMany();
+
+    return this.sanitizeRideCollection(rides);
+  }
+
+  async getRideHistoryByDriverId(driverId: User['id']): Promise<Ride[]> {
+    const query = this.createRideQueryBuilder().andWhere(
+      'ride.driverId = :driverId',
+      { driverId },
+    );
+
+    const rides = await this.addHistoryRidesFilter(query)
+      .orderBy('ride.startsAt', 'DESC')
+      .getMany();
+
+    return this.sanitizeRideCollection(rides);
+  }
+
+  async getRideHistoryByPassengerId(passengerId: User['id']): Promise<Ride[]> {
+    const query = this.addPassengerFilter(
+      this.createRideQueryBuilder(),
+      passengerId,
+    );
+
+    const rides = await this.addHistoryRidesFilter(query)
+      .orderBy('ride.startsAt', 'DESC')
       .getMany();
 
     return this.sanitizeRideCollection(rides);

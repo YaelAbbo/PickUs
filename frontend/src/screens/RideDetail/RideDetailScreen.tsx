@@ -21,7 +21,8 @@ import { RideStopTimeline } from './RideStopTimeline';
 
 export const RideDetailScreen: FC = () => {
   const router = useRouter();
-  const { rideId } = useLocalSearchParams<{ rideId: Ride['id'] }>();
+  const { rideId, readOnly: readOnlyParam } = useLocalSearchParams<{ rideId: Ride['id']; readOnly?: string }>();
+  const readOnly = !!readOnlyParam;
   const { user } = useAuth();
 
   const [stopPickerVisible, setStopPickerVisible] = useState(false);
@@ -87,7 +88,7 @@ export const RideDetailScreen: FC = () => {
             </Text>
           </View>
 
-          <RideStopTimeline stops={ride.stops || []} />
+          <RideStopTimeline stops={(ride.stops ?? []).filter(Boolean)} />
 
           <View style={styles.divider} />
 
@@ -127,9 +128,9 @@ export const RideDetailScreen: FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <RideActionButtons ride={ride} />
+        <RideActionButtons ride={ride} readOnly={readOnly} />
 
-        {isPassenger ? (
+        {!readOnly && isPassenger && (
           <View style={styles.footerRow}>
             <AppButton
               label={i18n.ride_detail.edit_stop}
@@ -147,7 +148,8 @@ export const RideDetailScreen: FC = () => {
               loading={isLeaving}
             />
           </View>
-        ) : isDriver ? null : (
+        )}
+        {!readOnly && !isPassenger && !isDriver && (
           <AppButton
             label={isFull ? i18n.ride_detail.ride_full : i18n.ride_detail.join_ride}
             disabled={isFull}
@@ -160,34 +162,38 @@ export const RideDetailScreen: FC = () => {
         )}
       </View>
 
-      <RideStopPickerModal
-        visible={stopPickerVisible}
-        mode={stopPickerMode}
-        stops={(ride?.stops || []).slice(0, -1)}
-        currentStopId={currentPassenger?.rideStopId}
-        onClose={() => setStopPickerVisible(false)}
-        onSelectStop={(stopId) => {
-          setStopPickerVisible(false);
-          if (user?.id) {
-            if (stopPickerMode === 'join') {
-              joinRide(stopId, { onError: () => {} });
-            } else {
-              updateRideStop({ userId: user.id, rideStopId: stopId }, { onError: () => {} });
+      {!readOnly && (
+        <RideStopPickerModal
+          visible={stopPickerVisible}
+          mode={stopPickerMode}
+          stops={(ride.stops ?? []).filter(Boolean).slice(0, -1)}
+          currentStopId={currentPassenger?.rideStopId}
+          onClose={() => setStopPickerVisible(false)}
+          onSelectStop={(stopId) => {
+            setStopPickerVisible(false);
+            if (user?.id) {
+              if (stopPickerMode === 'join') {
+                joinRide(stopId, { onError: () => {} });
+              } else {
+                updateRideStop({ userId: user.id, rideStopId: stopId }, { onError: () => {} });
+              }
             }
-          }
-        }}
-      />
+          }}
+        />
+      )}
 
-      <LeaveRideConfirmationModal
-        visible={leaveModalVisible}
-        onClose={() => setLeaveModalVisible(false)}
-        onLeave={() => {
-          setLeaveModalVisible(false);
-          if (user?.id) {
-            leaveRide(user.id, { onError: () => {} });
-          }
-        }}
-      />
+      {!readOnly && (
+        <LeaveRideConfirmationModal
+          visible={leaveModalVisible}
+          onClose={() => setLeaveModalVisible(false)}
+          onLeave={() => {
+            setLeaveModalVisible(false);
+            if (user?.id) {
+              leaveRide(user.id, { onError: () => {} });
+            }
+          }}
+        />
+      )}
     </AppBackground>
   );
 };
