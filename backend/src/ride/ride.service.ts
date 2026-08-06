@@ -155,11 +155,6 @@ export class RideService {
     }
   }
 
-  async getAllRides(): Promise<Ride[]> {
-    const rides = await this.createRideQueryBuilder().getMany();
-    return this.sanitizeRideCollection(rides);
-  }
-
   async getAvailableRides(orgId: Ride['orgId']): Promise<Ride[]> {
     const now = new Date();
 
