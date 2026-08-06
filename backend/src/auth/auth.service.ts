@@ -73,7 +73,7 @@ export class AuthService {
 
   async login({ nationalId, password, response }: WithResponse<LoginDto>) {
     const user = (await this.usersRepository.findOne({
-      where: { nationalId },
+      where: { nationalId, isDeleted: false },
       select: ['id', 'passwordHash', 'isTempPassword'],
     })) as Pick<User, 'id' | 'passwordHash' | 'isTempPassword'> | null;
 
