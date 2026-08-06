@@ -1,19 +1,7 @@
-import type { User } from '@schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { authKeys } from './authKeys';
 import { authService } from './authService';
-
-export const authKeys = {
-  all: ['auth'] as const,
-  me: () => [...authKeys.all, 'me'] as const,
-  token: () => [...authKeys.all, 'token'] as const,
-};
-
-export const clearUserCache = async (queryClient: ReturnType<typeof useQueryClient>) => {
-  await queryClient.cancelQueries({ queryKey: authKeys.me() });
-
-  queryClient.setQueryData<User | null>(authKeys.me(), null);
-  queryClient.setQueryData<string | null>(authKeys.token(), null);
-};
+import { clearUserCache } from './utils';
 
 /**
  * Fetches the current user. Enabled only when a stored token exists.

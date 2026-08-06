@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   actions: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing.sm,
     marginTop: IS_WEB ? spacing.md : spacing.xs,
     marginBottom: IS_WEB ? spacing.xl : spacing.md,
