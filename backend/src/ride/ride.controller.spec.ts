@@ -305,57 +305,6 @@ describe('RideController', () => {
       await userRepository.delete(deletedPassengerUser.id);
     });
 
-    it('GET /rides should exclude rides whose driver has been deleted', async () => {
-      const deletedDriver = userRepository.create({
-        id: crypto.randomUUID(),
-        firstName: 'Deleted',
-        lastName: 'Driver',
-        nationalId: `deleted-driver-${crypto.randomUUID()}`,
-        email: `deleted-driver-${crypto.randomUUID()}@ride-test.com`,
-        phoneNumber: `deleted-passenger-+97250${Math.floor(1000000 + Math.random() * 9000000)}`,
-        passwordHash: 'dummyhash',
-        role: UserRole.BASIC_USER,
-        organization: { id: testOrgId },
-        isDeleted: true,
-      } as DeepPartial<User>);
-      const deletedDriverSaved = (await userRepository.save(
-        deletedDriver,
-      )) as User;
-
-      const ride = rideRepository.create({
-        organization: { id: testOrgId },
-        driver: { id: deletedDriverSaved.id },
-        startsAt: new Date(Date.now() + 1000 * 60 * 120),
-        estimatedEndsAt: new Date(Date.now() + 1000 * 60 * 180),
-        maxSeatsAmount: 4,
-        rideStatus: RideStatus.PENDING,
-        rideStops: [
-          {
-            location: { type: 'Point', coordinates: [34.8516, 31.0461] },
-            locationName: 'Start',
-            estimatedArrivalAt: new Date(Date.now() + 1000 * 60 * 120),
-            orderIndex: 1,
-          },
-        ],
-      } as DeepPartial<Ride>);
-      const savedRide = (await rideRepository.save(ride)) as Ride;
-
-      const response = await request(httpServer)
-        .get('/rides')
-        .set('Authorization', `Bearer ${adminAccessToken}`);
-
-      expect(response.status).toEqual(200);
-      expect(
-        response.body.find((r: Ride) => r.id === savedRide.id),
-      ).toBeUndefined();
-
-      await rideRepository.query(
-        `DELETE FROM "ride_stop" WHERE "ride_id" = '${savedRide.id}'`,
-      );
-      await rideRepository.delete(savedRide.id);
-      await userRepository.delete(deletedDriver.id);
-    });
-
     it('GET /rides/:id should fail with 404 for non-existent ride', async () => {
       const fakeId = '11111111-1111-4111-8111-111111111111';
       const response = await request(httpServer)
@@ -364,18 +313,6 @@ describe('RideController', () => {
 
       expect(response.status).toEqual(404);
       expect(response.body.message).toEqual(`Ride with ID ${fakeId} not found`);
-    });
-
-    it('GET /rides should return all rides', async () => {
-      const response = await request(httpServer)
-        .get('/rides')
-        .set('Authorization', `Bearer ${adminAccessToken}`);
-
-      expect(response.status).toEqual(200);
-      expect(Array.isArray(response.body)).toEqual(true);
-      expect(
-        response.body.find((r: Ride) => r.id === createdRideId),
-      ).toBeDefined();
     });
 
     it('GET /rides/organization/:orgId should return rides for the organization', async () => {
@@ -1354,7 +1291,6 @@ describe('RideController', () => {
       const fakeId = '11111111-1111-4111-8111-111111111111';
 
       const res1 = await request(httpServer).post('/rides').send({});
-      const res2 = await request(httpServer).get('/rides');
       const res3 = await request(httpServer).get(
         '/rides/available?orgId=fake-org-id',
       );
@@ -1375,7 +1311,6 @@ describe('RideController', () => {
       );
 
       expect(res1.status).toEqual(401);
-      expect(res2.status).toEqual(401);
       expect(res3.status).toEqual(401);
       expect(res4.status).toEqual(401);
       expect(res5.status).toEqual(401);
