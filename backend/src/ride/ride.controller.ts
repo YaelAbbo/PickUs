@@ -30,13 +30,12 @@ export class RideController {
   @Get('available')
   async getAvailableRides(
     @Query('orgId') orgId: Ride['orgId'],
-    @CurrentUserId() userId: User['id'],
   ): Promise<Ride[]> {
     if (!orgId) {
       throw new BadRequestException('orgId query parameter is required');
     }
 
-    return await this.rideService.getAvailableRides(orgId, userId);
+    return await this.rideService.getAvailableRides(orgId);
   }
 
   @UseAccessAuth()

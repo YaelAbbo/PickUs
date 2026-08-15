@@ -85,7 +85,7 @@ export class RidePassengerService {
             event: WsEvent.RIDE_PASSENGER_JOINED,
             rideId,
             organizationId: ride.organization.id,
-            passengerId: userId,
+            passenger: { id: userId } as User,
           });
       } catch (error) {
         this.logger.error(
@@ -147,7 +147,7 @@ export class RidePassengerService {
             event: WsEvent.RIDE_PASSENGER_UPDATED,
             rideId,
             organizationId: ride.organization.id,
-            passengerId: userId,
+            passenger: { id: userId } as User,
           });
       } catch (error) {
         this.logger.error(
@@ -198,7 +198,7 @@ export class RidePassengerService {
           event: WsEvent.RIDE_PASSENGER_LEFT,
           rideId,
           organizationId: ride.organization.id,
-          passengerId: userId,
+          passenger: { id: userId } as User,
         });
       }
     } catch (error) {
