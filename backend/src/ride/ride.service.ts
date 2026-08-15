@@ -164,16 +164,20 @@ export class RideService {
     }
   }
 
-  async getAvailableRides(orgId: Ride['orgId']): Promise<Ride[]> {
+  async getAvailableRides(
+    orgId: Ride['orgId'],
+    userId: User['id'],
+  ): Promise<Ride[]> {
     const now = new Date();
 
     const rides = await this.createRideQueryBuilder()
       .andWhere('ride.rideStatus = :status', { status: RideStatus.PENDING })
       .andWhere('ride.startsAt > :now', { now })
       .andWhere('ride.orgId = :orgId', { orgId })
+      .andWhere('ride.driverId != :userId', { userId })
       .getMany();
 
-    return filterAvailableRides(this.sanitizeRideCollection(rides));
+    return filterAvailableRides(this.sanitizeRideCollection(rides), userId);
   }
 
   async getRideById(id: Ride['id']): Promise<Ride> {

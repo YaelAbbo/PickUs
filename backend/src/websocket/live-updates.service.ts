@@ -30,7 +30,7 @@ export class LiveUpdatesService {
     event,
     rideId,
     organizationId,
-    passenger,
+    passengerId,
   }: {
     event:
       | WsEvent.RIDE_PASSENGER_JOINED
@@ -38,12 +38,12 @@ export class LiveUpdatesService {
       | WsEvent.RIDE_PASSENGER_LEFT;
     rideId: Ride['id'];
     organizationId: Ride['orgId'];
-    passenger: Pick<User, 'id'>;
+    passengerId: User['id'];
   }) =>
     this.mapGateway.emitEventToRoom({
       roomId: this.mapGateway.buildOrganizationRoomId(organizationId),
       event,
-      payload: { rideId, passenger },
+      payload: { rideId, passengerId, orgId: organizationId },
     });
 
   broadcastUserUpdate = ({ user }: { user: Pick<User, 'id' | 'orgId'> }) =>
