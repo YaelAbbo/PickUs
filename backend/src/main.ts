@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { configDotenv } from 'dotenv';
 import { join } from 'path';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './utils/all-exceptions.filter';
 
 configDotenv({ path: join(__dirname, '../../.env') });
 
@@ -33,6 +34,7 @@ async function bootstrap() {
       },
     }),
   );
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const {
     // FRONTEND_BASE_URL = 'http://localhost',
